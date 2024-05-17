@@ -7,7 +7,7 @@ Using OpenRewrite Recipes for Plugin Modernization or Automation Plugin Build Me
 
 ## About
 
-OpenRewrite enables large-scale distributed source code refactoring for framework migrations, vulnerability patches, and API migrations via large-scale automated source code refactoring. While the original focus was on the Java language, OpenRewrite is continuously expanding language and framework coverage. The contributor will develop recipes to perform Jenkins plugin hygiene and migration tasks. It is hoped that through the completion of this project, the contributor will pick up skills in Java, OpenRewrite, and Jenkins plugin development.
+Plugin Modernizer is a generic CLI tool designed to automate the modernization of Jenkins plugins. It utilizes OpenRewrite recipes, JDOM, and refaster to apply transformations to the plugin, validating the applied transformations and creating pull requests with the results.
 
 Learn more about this project at [https://www.jenkins.io/projects/gsoc/2024/project-ideas/using-openrewrite-recipes-for-plugin-modernization-or-automation-plugin-build-metadata-updates/](https://www.jenkins.io/projects/gsoc/2024/project-ideas/using-openrewrite-recipes-for-plugin-modernization-or-automation-plugin-build-metadata-updates/).
 
