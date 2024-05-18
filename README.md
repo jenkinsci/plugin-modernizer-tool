@@ -9,7 +9,7 @@ Using OpenRewrite Recipes for Plugin Modernization or Automation Plugin Build Me
 
 Plugin Modernizer is a generic CLI tool designed to automate the modernization of Jenkins plugins. It utilizes OpenRewrite recipes, JDOM, and refaster to apply transformations to the plugin, validating the applied transformations and creating pull requests with the results.
 
-Learn more about this project at [https://www.jenkins.io/projects/gsoc/2024/project-ideas/using-openrewrite-recipes-for-plugin-modernization-or-automation-plugin-build-metadata-updates/](https://www.jenkins.io/projects/gsoc/2024/project-ideas/using-openrewrite-recipes-for-plugin-modernization-or-automation-plugin-build-metadata-updates/).
+Learn more at [this project page](https://www.jenkins.io/projects/gsoc/2024/projects/using-openrewrite-recipes-for-plugin-modernization-or-automation-plugin-build-metadata-updates/).
 
 ## References
 
