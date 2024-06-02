@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration>
+
+<configuration>
+    <import class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
+    <contextListener class="LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg %n</pattern>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+    <logger name="io.jenkins.tools.pluginmodernizer" level="INFO" />
+</configuration>
