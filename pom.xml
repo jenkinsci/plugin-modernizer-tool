@@ -13,7 +13,8 @@
 
     <groupId>io.jenkins.plugin-modernizer</groupId>
     <artifactId>plugin-modernizer-parent-pom</artifactId>
-    <version>${revision}${changelist}</version>
+    <name>Plugin Modernizer Parent</name>
+    <version>${changelist}</version>
     <packaging>pom</packaging>
     <url>https://github.com/jenkinsci/plugin-modernizer-tool</url>
 
@@ -28,8 +29,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>1.0</revision>
-        <changelist>-SNAPSHOT</changelist>
+        <changelist>999999-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/plugin-modernizer-tool</gitHubRepo>
     </properties>
 
