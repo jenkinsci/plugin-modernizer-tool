@@ -6,15 +6,13 @@
     <parent>
         <groupId>io.jenkins.plugin-modernizer</groupId>
         <artifactId>plugin-modernizer-parent-pom</artifactId>
-        <version>${revision}${changelist}</version>
+        <version>${changelist}</version>
     </parent>
 
     <artifactId>plugin-modernizer-cli</artifactId>
+    <name>Plugin Modernizer CLI Interface</name>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <picocli.version>4.7.6</picocli.version>
     </properties>
 
