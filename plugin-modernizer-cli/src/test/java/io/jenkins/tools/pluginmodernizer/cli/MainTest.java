@@ -1,13 +1,12 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
-import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import picocli.CommandLine;
 
 public class MainTest {
     @Test

@@ -1,12 +1,12 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
-import picocli.CommandLine.IParameterConsumer;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+
+import picocli.CommandLine.IParameterConsumer;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
 
 public class CommaSeparatedParameterConsumer implements IParameterConsumer {
     @Override

@@ -1,13 +1,13 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
+import java.util.List;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import java.util.List;
-
 @Command(name = "Plugin Modernizer", mixinStandardHelpOptions = true, versionProvider = PomVersionProvider.class, description = "Applies recipes to the plugins.", requiredOptionMarker = '*')
-public class Main implements Runnable{
+public class Main implements Runnable {
     public static void main(final String[] args) {
         new CommandLine(new Main()).execute(args);
     }

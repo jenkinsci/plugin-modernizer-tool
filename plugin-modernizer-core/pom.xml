@@ -7,10 +7,9 @@
         <groupId>io.jenkins.plugin-modernizer</groupId>
         <artifactId>plugin-modernizer-parent-pom</artifactId>
         <version>${revision}${changelist}</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>gh-integration</artifactId>
+    <artifactId>plugin-modernizer-core</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

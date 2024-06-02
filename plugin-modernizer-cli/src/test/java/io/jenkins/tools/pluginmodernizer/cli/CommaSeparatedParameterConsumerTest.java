@@ -1,14 +1,14 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
-import org.junit.jupiter.api.Test;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.PositionalParamSpec;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Stack;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.PositionalParamSpec;
 
 public class CommaSeparatedParameterConsumerTest {
 

@@ -1,10 +1,10 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
-import picocli.CommandLine;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import picocli.CommandLine;
 
 public class PomVersionProvider implements CommandLine.IVersionProvider {
 
