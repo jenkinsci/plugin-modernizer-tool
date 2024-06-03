@@ -2,12 +2,23 @@ package io.jenkins.tools.pluginmodernizer.cli;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "Plugin Modernizer", mixinStandardHelpOptions = true, versionProvider = PomVersionProvider.class, description = "Applies recipes to the plugins.", requiredOptionMarker = '*')
 public class Main implements Runnable {
+
+    static {
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+    }
+
+    private static Logger LOG = LoggerFactory.getLogger(Main.class);
+
     public static void main(final String[] args) {
         new CommandLine(new Main()).execute(args);
     }
@@ -30,6 +41,6 @@ public class Main implements Runnable {
     @Override
     public void run() {
         // TODO: Modify the logic after building core
-        System.out.println("Triggers Plugin Modernizer");
+        LOG.info("Triggers Plugin Modernizer");
     }
 }
