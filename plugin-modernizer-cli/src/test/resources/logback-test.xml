@@ -13,6 +13,6 @@
     </appender>
     <root level="TRACE">
         <appender-ref ref="CONSOLE" />
-    </root>mv
+    </root>
     <logger name="io.jenkins.tools.pluginmodernizer" level="TRACE" />
 </configuration>
