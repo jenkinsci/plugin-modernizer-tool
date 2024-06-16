@@ -20,6 +20,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.jenkins.plugin-modernizer</groupId>
+            <artifactId>plugin-modernizer-core</artifactId>
+            <version>${changelist}</version>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>${picocli.version}</version>

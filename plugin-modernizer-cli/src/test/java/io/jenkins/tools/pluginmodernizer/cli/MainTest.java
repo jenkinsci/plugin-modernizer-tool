@@ -15,7 +15,7 @@ public class MainTest {
         Main main = new Main();
         new CommandLine(main).execute(args);
 
-        List<String> plugins = main.getPlugins();
+        List<String> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
         assertEquals(2, plugins.size());
         assertEquals("plugin1", plugins.get(0));
@@ -28,7 +28,7 @@ public class MainTest {
         Main main = new Main();
         new CommandLine(main).execute(args);
 
-        List<String> recipes = main.getRecipes();
+        List<String> recipes = main.setup().getRecipes();
         assertNotNull(recipes);
         assertEquals(2, recipes.size());
         assertEquals("recipe1", recipes.get(0));

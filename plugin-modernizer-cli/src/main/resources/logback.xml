@@ -7,7 +7,7 @@
         <resetJUL>true</resetJUL>
     </contextListener>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+        <filter class="io.jenkins.tools.pluginmodernizer.cli.ApplicationLogFilter" >
             <level>INFO</level>
         </filter>
         <encoder>
