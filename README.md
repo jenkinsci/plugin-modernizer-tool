@@ -20,7 +20,7 @@ mvn clean install
 ```
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins plugins1,plugin2 --recipe recipe1,recipe2
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins plugins1,plugin2 --recipes recipe1,recipe2
 ```
 
 ## References
