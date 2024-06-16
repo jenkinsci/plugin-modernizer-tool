@@ -11,6 +11,18 @@ Plugin Modernizer is a generic CLI tool designed to automate the modernization o
 
 Learn more at [this project page](https://www.jenkins.io/projects/gsoc/2024/projects/using-openrewrite-recipes-for-plugin-modernization-or-automation-plugin-build-metadata-updates/).
 
+## Usage
+
+### Build
+
+```shell
+mvn clean install
+```
+
+```shell
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins plugins1,plugin2 --recipe recipe1,recipe2
+```
+
 ## References
 
 - [GSoC 2024 Project Proposal](https://docs.google.com/document/d/1e1QkprPN6fLpFXk_QqBUQlJhZrAl9RvXbOXOiJ-gAuY/edit?usp=sharing)
