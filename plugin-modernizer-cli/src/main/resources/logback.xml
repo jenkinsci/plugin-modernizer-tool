@@ -7,12 +7,30 @@
         <resetJUL>true</resetJUL>
     </contextListener>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
         <encoder>
             <pattern>%msg %n</pattern>
         </encoder>
     </appender>
-    <root level="INFO">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>TRACE</level>
+        </filter>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z', 'UTC'} [%level] [Thread=%t] - %logger{36} # %msg %n</pattern>
+        </encoder>
+        <file>logs/modernizer.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/modernizer-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>5MB</maxFileSize>
+        </rollingPolicy>
+    </appender>
+    <root>
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
     </root>
-    <logger name="io.jenkins.tools.pluginmodernizer" level="INFO" />
+    <logger name="io.jenkins.tools.pluginmodernizer" level="TRACE" />
 </configuration>
