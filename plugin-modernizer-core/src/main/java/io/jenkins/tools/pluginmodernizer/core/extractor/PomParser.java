@@ -62,7 +62,7 @@ public class PomParser extends Recipe {
                 pluginMetadata.setLicensed(!pom.getLicenses().isEmpty());
                 pluginMetadata.setUsesHttps(tagExtractor.usesHttps());
 
-                try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("pluginMetadata.json"), StandardCharsets.UTF_8)) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("target/pluginMetadata.json"), StandardCharsets.UTF_8)) {
                     Gson gson = new Gson();
                     gson.toJson(pluginMetadata, writer);
                 } catch (IOException e) {
