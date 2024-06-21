@@ -1,7 +1,12 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import com.google.gson.Gson;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -11,8 +16,13 @@ import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Pom;
 import org.openrewrite.maven.tree.ResolvedPom;
 import org.openrewrite.xml.tree.Xml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PomParser extends Recipe {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PomParser.class);
+
     PluginMetadata pluginMetadata = PluginMetadata.getInstance();
 
     @Override
@@ -51,6 +61,13 @@ public class PomParser extends Recipe {
                 pluginMetadata.setHasDevelopersTag(tagExtractor.hasDevelopersTag());
                 pluginMetadata.setLicensed(!pom.getLicenses().isEmpty());
                 pluginMetadata.setUsesHttps(tagExtractor.usesHttps());
+
+                try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("pluginMetadata.json"), StandardCharsets.UTF_8)) {
+                    Gson gson = new Gson();
+                    gson.toJson(pluginMetadata, writer);
+                } catch (IOException e) {
+                    LOG.error(e.getMessage(), e);
+                }
 
                 return document;
             }
