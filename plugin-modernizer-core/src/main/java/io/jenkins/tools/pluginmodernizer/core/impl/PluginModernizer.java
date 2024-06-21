@@ -2,14 +2,11 @@ package io.jenkins.tools.pluginmodernizer.core.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
@@ -31,8 +28,11 @@ public class PluginModernizer {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final GoalsListCreator goalsListCreator;
+
     public PluginModernizer(Config config) {
         this.config = config;
+        this.goalsListCreator = new GoalsListCreator(config);
     }
 
     public void start() {
@@ -44,7 +44,7 @@ public class PluginModernizer {
         if (subdirectories != null) {
             for (File pluginDir : subdirectories) {
                 try {
-                    List<String> goals = createGoalsList();
+                    List<String> goals = goalsListCreator.createGoalsList();
                     if (goals == null) {
                         LOG.info("No active recipes.");
                         return;
@@ -62,9 +62,9 @@ public class PluginModernizer {
         LOG.debug("Cache Path: {}", config.getCachePath());
     }
 
-    private static void invokeMavenGoals(File pluginDir, List<String> goals) {
+    private void invokeMavenGoals(File pluginDir, List<String> goals) {
         Invoker invoker = new DefaultInvoker();
-        String mavenHome = getMavenHomePath();
+        String mavenHome = config.getMavenHome();
         if (mavenHome == null) {
             LOG.error("Neither MAVEN_HOME nor M2_HOME environment variables are set.");
             return;
@@ -95,48 +95,4 @@ public class PluginModernizer {
         }
     }
 
-    private static String getMavenHomePath() {
-        String mavenHome = System.getenv("MAVEN_HOME");
-        if (mavenHome == null) {
-            mavenHome = System.getenv("M2_HOME");
-        }
-        return mavenHome;
-    }
-
-    List<String> createGoalsList() throws IOException {
-        List<String> goals = new ArrayList<>();
-        goals.add("org.openrewrite.maven:rewrite-maven-plugin:run");
-
-        try (InputStream inputStream = PluginModernizer.class.getResourceAsStream("/recipe_data.json")) {
-            JsonNode recipesNode = objectMapper.readTree(inputStream).get("recipes");
-
-            List<String> recipes = config.getRecipes();
-            List<String> activeRecipes = new ArrayList<>();
-            List<String> recipeArtifactCoordinates = new ArrayList<>();
-
-            for (String recipe : recipes) {
-                JsonNode recipeNode = recipesNode.get(recipe);
-                if (recipeNode != null) {
-                    String fqcn = recipeNode.get("fqcn").asText();
-                    activeRecipes.add(fqcn);
-
-                    String artifactCoordinates = recipeNode.get("artifactCoordinates").asText();
-                    recipeArtifactCoordinates.add(artifactCoordinates);
-                } else {
-                    System.err.println("Recipe '" + recipe + "' not found.");
-                }
-            }
-
-            if (!activeRecipes.isEmpty()) {
-                goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipes));
-            } else {
-                return null;
-            }
-            if (!recipeArtifactCoordinates.isEmpty()) {
-                goals.add("-Drewrite.recipeArtifactCoordinates=" + String.join(",", recipeArtifactCoordinates));
-            }
-        }
-
-        return goals;
-    }
 }
