@@ -10,12 +10,16 @@ public class Config {
     private final List<String> plugins;
     private final List<String> recipes;
     private final Path cachePath;
+    private final String mavenHome;
+    private final String mavenRewritePluginVersion;
 
-    private Config(String version, List<String> plugins, List<String> recipes, Path cachePath) {
+    private Config(String version, List<String> plugins, List<String> recipes, Path cachePath, String mavenHome, String mavenRewritePluginVersion) {
         this.version = version;
         this.plugins = plugins;
         this.recipes = recipes;
         this.cachePath = cachePath;
+        this.mavenHome = mavenHome;
+        this.mavenRewritePluginVersion = mavenRewritePluginVersion;
     }
 
     public String getVersion() {
@@ -34,6 +38,14 @@ public class Config {
         return cachePath;
     }
 
+    public String getMavenHome() {
+        return mavenHome;
+    }
+
+    public String getMavenPluginVersion() {
+        return mavenRewritePluginVersion;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -43,6 +55,8 @@ public class Config {
         private List<String> plugins;
         private List<String> recipes;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
+        private String mavenHome = Settings.MAVEN_HOME_PATH;
+        private String mavenRewritePluginVersion = Settings.MAVEN_REWRITE_PLUGIN_VERSION;
 
         public Builder withVersion(String version) {
             this.version = version;
@@ -64,8 +78,18 @@ public class Config {
             return this;
         }
 
+        public Builder withMavenHome(String mavenHome) {
+            this.mavenHome = mavenHome;
+            return this;
+        }
+
+        public Builder withMavenPluginVersion(String mavenPluginVersion) {
+            this.mavenRewritePluginVersion = mavenPluginVersion;
+            return this;
+        }
+
         public Config build() {
-            return new Config(version, plugins, recipes, cachePath);
+            return new Config(version, plugins, recipes, cachePath, mavenHome, mavenRewritePluginVersion);
         }
     }
 
