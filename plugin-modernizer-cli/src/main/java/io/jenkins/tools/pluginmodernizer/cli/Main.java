@@ -31,6 +31,9 @@ public class Main implements Runnable {
     @Option(names = {"-r", "--recipes"}, required = true, description = "List of Recipes to be applied.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
     private List<String> recipes;
 
+    @Option(names = {"-dr", "--dry-run"}, description = "Perform a dry run without making any changes.")
+    public boolean dryRun;
+
     @Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
     public boolean debug;
 
@@ -40,6 +43,7 @@ public class Main implements Runnable {
                 .withVersion(getVersion())
                 .withPlugins(plugins)
                 .withRecipes(recipes)
+                .withDryRun(dryRun)
                 .build();
     }
 

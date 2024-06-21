@@ -12,14 +12,16 @@ public class Config {
     private final Path cachePath;
     private final String mavenHome;
     private final String mavenRewritePluginVersion;
+    private final boolean dryRun;
 
-    private Config(String version, List<String> plugins, List<String> recipes, Path cachePath, String mavenHome, String mavenRewritePluginVersion) {
+    private Config(String version, List<String> plugins, List<String> recipes, Path cachePath, String mavenHome, String mavenRewritePluginVersion, boolean dryRun) {
         this.version = version;
         this.plugins = plugins;
         this.recipes = recipes;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.mavenRewritePluginVersion = mavenRewritePluginVersion;
+        this.dryRun = dryRun;
     }
 
     public String getVersion() {
@@ -46,6 +48,10 @@ public class Config {
         return mavenRewritePluginVersion;
     }
 
+    public boolean isDryRun() {
+        return dryRun;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -57,6 +63,7 @@ public class Config {
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private String mavenHome = Settings.MAVEN_HOME_PATH;
         private String mavenRewritePluginVersion = Settings.MAVEN_REWRITE_PLUGIN_VERSION;
+        private boolean dryRun = false;
 
         public Builder withVersion(String version) {
             this.version = version;
@@ -88,8 +95,13 @@ public class Config {
             return this;
         }
 
+        public Builder withDryRun(boolean dryRun) {
+            this.dryRun = dryRun;
+            return this;
+        }
+
         public Config build() {
-            return new Config(version, plugins, recipes, cachePath, mavenHome, mavenRewritePluginVersion);
+            return new Config(version, plugins, recipes, cachePath, mavenHome, mavenRewritePluginVersion, dryRun);
         }
     }
 

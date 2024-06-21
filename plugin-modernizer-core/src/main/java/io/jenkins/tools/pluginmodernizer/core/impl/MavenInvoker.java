@@ -56,7 +56,8 @@ public class MavenInvoker {
     private List<String> createGoalsList() throws IOException {
         List<String> goals = new ArrayList<>();
         String mavenPluginVersion = config.getMavenPluginVersion();
-        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + mavenPluginVersion + ":run");
+        String mode = config.isDryRun() ? "dryRun" : "run";
+        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + mavenPluginVersion + ":" + mode);
 
         try (InputStream inputStream = getClass().getResourceAsStream("/recipe_data.json")) {
             JsonNode recipesNode = objectMapper.readTree(inputStream).get("recipes");
