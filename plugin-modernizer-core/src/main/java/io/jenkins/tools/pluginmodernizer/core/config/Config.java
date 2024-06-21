@@ -11,15 +11,15 @@ public class Config {
     private final List<String> recipes;
     private final Path cachePath;
     private final String mavenHome;
-    private final String mavenPluginVersion;
+    private final String mavenRewritePluginVersion;
 
-    private Config(String version, List<String> plugins, List<String> recipes, Path cachePath, String mavenHome, String mavenPluginVersion) {
+    private Config(String version, List<String> plugins, List<String> recipes, Path cachePath, String mavenHome, String mavenRewritePluginVersion) {
         this.version = version;
         this.plugins = plugins;
         this.recipes = recipes;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
-        this.mavenPluginVersion = mavenPluginVersion;
+        this.mavenRewritePluginVersion = mavenRewritePluginVersion;
     }
 
     public String getVersion() {
@@ -43,7 +43,7 @@ public class Config {
     }
 
     public String getMavenPluginVersion() {
-        return mavenPluginVersion;
+        return mavenRewritePluginVersion;
     }
 
     public static Builder builder() {
@@ -56,7 +56,7 @@ public class Config {
         private List<String> recipes;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private String mavenHome = Settings.MAVEN_HOME_PATH;
-        private String mavenPluginVersion = Settings.MAVEN_PLUGIN_VERSION;
+        private String mavenRewritePluginVersion = Settings.MAVEN_REWRITE_PLUGIN_VERSION;
 
         public Builder withVersion(String version) {
             this.version = version;
@@ -84,12 +84,12 @@ public class Config {
         }
 
         public Builder withMavenPluginVersion(String mavenPluginVersion) {
-            this.mavenPluginVersion = mavenPluginVersion;
+            this.mavenRewritePluginVersion = mavenPluginVersion;
             return this;
         }
 
         public Config build() {
-            return new Config(version, plugins, recipes, cachePath, mavenHome, mavenPluginVersion);
+            return new Config(version, plugins, recipes, cachePath, mavenHome, mavenRewritePluginVersion);
         }
     }
 
