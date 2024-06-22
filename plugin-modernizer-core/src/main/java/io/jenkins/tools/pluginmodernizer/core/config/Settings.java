@@ -3,6 +3,8 @@ package io.jenkins.tools.pluginmodernizer.core.config;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.apache.maven.artifact.versioning.ComparableVersion;
+
 public class Settings {
 
     public static final Path DEFAULT_CACHE_PATH;
@@ -12,6 +14,8 @@ public class Settings {
     public static final String MAVEN_REWRITE_PLUGIN_VERSION = "5.34.1";
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
+
+    public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
     static {
         String cacheBaseDir = System.getProperty("user.home");
