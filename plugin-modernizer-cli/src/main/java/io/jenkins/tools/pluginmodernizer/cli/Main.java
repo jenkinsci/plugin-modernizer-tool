@@ -1,8 +1,10 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,12 @@ public class Main implements Runnable {
     @Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
     public boolean debug;
 
+    @Option(names = {"-c", "--cache-path"}, description = "Path to the cache directory.")
+    public Path cachePath = Settings.DEFAULT_CACHE_PATH;
+
+    @Option(names = {"-m", "--maven-home"}, description = "Path to the Maven Home directory.")
+    public Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
+
     public Config setup() {
         Config.DEBUG = debug;
         return Config.builder()
@@ -44,6 +52,8 @@ public class Main implements Runnable {
                 .withPlugins(plugins)
                 .withRecipes(recipes)
                 .withDryRun(dryRun)
+                .withCachePath(cachePath)
+                .withMavenHome(mavenHome)
                 .build();
     }
 

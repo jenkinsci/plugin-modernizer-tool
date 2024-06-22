@@ -3,6 +3,8 @@ package io.jenkins.tools.pluginmodernizer.cli;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,14 @@ public class MainTest {
     @Test
     public void testMissingRecipesArgument() {
         String[] args = {"-p", "plugin1,plugin2"};
+        Main main = new Main();
+        int exitCode = new CommandLine(main).execute(args);
+        assertEquals(CommandLine.ExitCode.USAGE, exitCode);
+    }
+
+    @Test
+    public void testMavenHome() throws IOException {
+        String[] args = {"--maven-home", Files.createTempDirectory("unsued").toString()};
         Main main = new Main();
         int exitCode = new CommandLine(main).execute(args);
         assertEquals(CommandLine.ExitCode.USAGE, exitCode);

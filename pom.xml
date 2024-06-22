@@ -52,6 +52,7 @@
         <asm.version>9.7</asm.version>
         <gson.version>2.11.0</gson.version>
         <dataformat.version>2.16.1</dataformat.version>
+        <maven.version>3.9.8</maven.version>
     </properties>
 
     <repositories>
