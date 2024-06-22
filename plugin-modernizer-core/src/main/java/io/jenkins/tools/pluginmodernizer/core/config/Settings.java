@@ -31,6 +31,9 @@ public class Settings {
         if (mavenHome == null) {
             mavenHome = System.getenv("M2_HOME");
         }
+        if (mavenHome == null) {
+            return null;
+        }
         return Path.of(mavenHome);
     }
 }

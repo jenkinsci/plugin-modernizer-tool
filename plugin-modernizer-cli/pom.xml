@@ -12,7 +12,6 @@
     <artifactId>plugin-modernizer-cli</artifactId>
     <name>Plugin Modernizer CLI Interface</name>
 
-
     <dependencies>
         <dependency>
             <groupId>io.jenkins.plugin-modernizer</groupId>
@@ -44,10 +43,54 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>apache-maven</artifactId>
+            <scope>test</scope>
+            <classifier>bin</classifier>
+            <type>zip</type>
+            <version>${maven.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <MAVEN_HOME>${project.build.directory}/apache-maven-${maven.version}</MAVEN_HOME>
+                        <M2_HOME>${project.build.directory}/apache-maven-${maven.version}</M2_HOME>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <phase>process-test-resources</phase>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.apache.maven</groupId>
+                                    <artifactId>apache-maven</artifactId>
+                                    <classifier>bin</classifier>
+                                    <type>zip</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <!-- version specified in parent pom -->
