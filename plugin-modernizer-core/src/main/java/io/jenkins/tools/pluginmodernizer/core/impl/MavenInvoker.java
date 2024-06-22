@@ -22,6 +22,7 @@ import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MarkerFactory;
 
 @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "false positive")
 public class MavenInvoker {
@@ -35,20 +36,20 @@ public class MavenInvoker {
         this.config = config;
     }
 
-    public void invokeGoal(String pluginPath, String goal) {
+    public void invokeGoal(String plugin, String pluginPath, String goal) {
         List<String> goals = new ArrayList<>();
         goals.add(goal);
-        invokeGoals(pluginPath, goals);
+        invokeGoals(plugin, pluginPath, goals);
     }
 
-    public void invokeRewrite(String pluginPath) {
+    public void invokeRewrite(String plugin, String pluginPath) {
         try {
             List<String> goals = createGoalsList();
             if (goals == null) {
-                LOG.info("No active recipes.");
+                LOG.info(MarkerFactory.getMarker(plugin), "No active recipes.");
                 return;
             }
-            invokeGoals(pluginPath, goals);
+            invokeGoals(plugin, pluginPath, goals);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -102,20 +103,27 @@ public class MavenInvoker {
         return recipeArtifactCoordinates;
     }
 
-    private void invokeGoals(String pluginPath, List<String> goals) {
+    private void invokeGoals(String plugin, String pluginPath, List<String> goals) {
         if (!validateMavenHome()) {
             return;
         }
 
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(new File(config.getMavenHome()));
-
         try {
             InvocationRequest request = createInvocationRequest(pluginPath, goals);
+            request.setBatchMode(true);
+            request.setNoTransferProgress(false);
+            request.setErrorHandler((message) -> {
+                LOG.error(MarkerFactory.getMarker(plugin), String.format("Something went wrong when running maven: %s", message));
+            });
+            request.setOutputHandler((message) -> {
+                LOG.info(MarkerFactory.getMarker(plugin), message);
+            });
             InvocationResult result = invoker.execute(request);
-            handleInvocationResult(result);
+            handleInvocationResult(plugin, result);
         } catch (MavenInvocationException e) {
-            LOG.error("Maven invocation failed: ", e);
+            LOG.error(MarkerFactory.getMarker(plugin), "Maven invocation failed: ", e);
         }
     }
 
@@ -147,14 +155,14 @@ public class MavenInvoker {
         return request;
     }
 
-    private void handleInvocationResult(InvocationResult result) {
+    private void handleInvocationResult(String plugin, InvocationResult result) {
         if (result.getExitCode() != 0) {
-            LOG.error("Build failed.");
+            LOG.error(MarkerFactory.getMarker(plugin), "Build fail with code: {}", result.getExitCode());
             if (result.getExecutionException() != null) {
-                LOG.error("Execution exception occurred: ", result.getExecutionException());
+                LOG.error(MarkerFactory.getMarker(plugin), "Execution exception occurred: ", result.getExecutionException());
             }
         } else {
-            LOG.info("Build succeeded.");
+            LOG.info(MarkerFactory.getMarker(plugin), "Build success!");
         }
     }
 }

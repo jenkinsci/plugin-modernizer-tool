@@ -22,10 +22,15 @@ public class PluginModernizer {
 
     public void start() {
         String projectRoot = System.getProperty("user.dir");
+        LOG.info("Plugins: {}", config.getPlugins());
+        LOG.info("Recipes: {}", config.getRecipes());
+        LOG.debug("Cache Path: {}", config.getCachePath());
         for (String plugin : config.getPlugins()) {
             String pluginPath = projectRoot + "/test-plugins/" + plugin;
-            mavenInvoker.invokeGoal(pluginPath, "clean");
-            mavenInvoker.invokeRewrite(pluginPath);
+            LOG.info("Invoking clean phase for plugin: {}", plugin);
+            mavenInvoker.invokeGoal(plugin, pluginPath, "clean");
+            LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
+            mavenInvoker.invokeRewrite(plugin, pluginPath);
         }
     }
 
