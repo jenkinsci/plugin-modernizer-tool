@@ -7,7 +7,7 @@ public class Settings {
 
     public static final Path DEFAULT_CACHE_PATH;
 
-    public static final String MAVEN_HOME_PATH;
+    public static final Path DEFAULT_MAVEN_HOME;
 
     public static final String MAVEN_REWRITE_PLUGIN_VERSION = "5.34.1";
 
@@ -23,14 +23,14 @@ public class Settings {
         } else {
             DEFAULT_CACHE_PATH = Paths.get(cacheDirFromEnv);
         }
-        MAVEN_HOME_PATH = getMavenHomePath();
+        DEFAULT_MAVEN_HOME = getDefaultMavenHome();
     }
 
-    private static String getMavenHomePath() {
+    private static Path getDefaultMavenHome() {
         String mavenHome = System.getenv("MAVEN_HOME");
         if (mavenHome == null) {
             mavenHome = System.getenv("M2_HOME");
         }
-        return mavenHome;
+        return Path.of(mavenHome);
     }
 }

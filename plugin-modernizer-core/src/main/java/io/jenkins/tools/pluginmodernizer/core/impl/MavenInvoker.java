@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationRequest;
@@ -57,7 +57,7 @@ public class MavenInvoker {
 
     private List<String> createGoalsList() throws IOException {
         List<String> goals = new ArrayList<>();
-        String mavenPluginVersion = config.getMavenPluginVersion();
+        String mavenPluginVersion = Settings.MAVEN_REWRITE_PLUGIN_VERSION;
         String mode = config.isDryRun() ? "dryRun" : "run";
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + mavenPluginVersion + ":" + mode);
 
@@ -109,7 +109,7 @@ public class MavenInvoker {
         }
 
         Invoker invoker = new DefaultInvoker();
-        invoker.setMavenHome(new File(config.getMavenHome()));
+        invoker.setMavenHome(config.getMavenHome().toFile());
         try {
             InvocationRequest request = createInvocationRequest(pluginPath, goals);
             request.setBatchMode(true);
@@ -128,20 +128,14 @@ public class MavenInvoker {
     }
 
     private boolean validateMavenHome() {
-        String mavenHome = config.getMavenHome();
+        Path mavenHome = config.getMavenHome();
         if (mavenHome == null) {
             LOG.error("Neither MAVEN_HOME nor M2_HOME environment variables are set.");
             return false;
         }
 
-        try {
-            Path mavenHomePath = Paths.get(mavenHome).toRealPath();
-            if (!Files.isDirectory(mavenHomePath) || !Files.isExecutable(mavenHomePath.resolve("bin/mvn"))) {
-                LOG.error("Invalid Maven home directory. Aborting build.");
-                return false;
-            }
-        } catch (IOException e) {
-            LOG.error("Error validating Maven home directory: ", e);
+        if (!Files.isDirectory(mavenHome) || !Files.isExecutable(mavenHome.resolve("bin/mvn"))) {
+            LOG.error("Invalid Maven home directory. Aborting build.");
             return false;
         }
 
