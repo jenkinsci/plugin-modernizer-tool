@@ -51,7 +51,7 @@
         <common.text.version>1.12.0</common.text.version>
         <asm.version>9.7</asm.version>
         <gson.version>2.11.0</gson.version>
-        <dataformat.version>2.16.1</dataformat.version>
+        <jackson.version>2.17.1</jackson.version>
         <maven.version>3.9.8</maven.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     </properties>
@@ -145,9 +145,11 @@
                 <version>${gson.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-                <version>${dataformat.version}</version>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
             </dependency>
         </dependencies>
     </dependencyManagement>
