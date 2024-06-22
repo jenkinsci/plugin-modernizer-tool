@@ -208,13 +208,6 @@
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
                         <version>${jacoco-maven-plugin.version}</version>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/Messages.class</exclude>
-                                <!-- https://github.com/HtmlUnit/htmlunit-cssparser/issues/4 -->
-                                <exclude>org/htmlunit/**</exclude>
-                            </excludes>
-                        </configuration>
                         <executions>
                             <execution>
                                 <goals>
