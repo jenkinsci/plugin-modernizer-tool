@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
@@ -26,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class MavenInvoker {
 
     private static final Logger LOG = LoggerFactory.getLogger(MavenInvoker.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
     private final Config config;
 
@@ -58,7 +59,7 @@ public class MavenInvoker {
         String mavenPluginVersion = config.getMavenPluginVersion();
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + mavenPluginVersion + ":run");
 
-        try (InputStream inputStream = getClass().getResourceAsStream("/recipe_data.json")) {
+        try (InputStream inputStream = getClass().getResourceAsStream("/recipe_data.yaml")) {
             JsonNode recipesNode = objectMapper.readTree(inputStream).get("recipes");
 
             List<String> recipes = config.getRecipes();
