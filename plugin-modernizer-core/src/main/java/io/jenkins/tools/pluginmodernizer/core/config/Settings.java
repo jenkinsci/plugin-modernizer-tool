@@ -33,7 +33,9 @@ public class Settings {
 
     public static final String ORGANIZATION = "jenkinsci";
 
-    public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
+    public static final String RECIPE_DATA_YAML_PATH = "META-INF/rewrite/recipes.yml";
+
+    public static final String RECIPE_FQDN_PREFIX = "io.jenkins.tools.pluginmodernizer";
 
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 

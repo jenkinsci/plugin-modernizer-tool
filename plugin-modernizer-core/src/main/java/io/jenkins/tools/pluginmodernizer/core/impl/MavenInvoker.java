@@ -1,19 +1,18 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
-import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -23,6 +22,8 @@ import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
+import org.openrewrite.Recipe;
+import org.openrewrite.config.YamlResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
@@ -82,37 +83,28 @@ public class MavenInvoker {
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
         try (InputStream inputStream = getClass().getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
-            List<RecipeDescriptor> recipeDescriptors =
-                    new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});
+            YamlResourceLoader yamlResourceLoader =
+                    new YamlResourceLoader(inputStream, URI.create(Settings.RECIPE_DATA_YAML_PATH), new Properties());
+            List<Recipe> recipeDescriptors =
+                    yamlResourceLoader.listRecipes().stream().toList();
 
             List<String> recipes = config.getRecipes();
             List<String> activeRecipes = getActiveRecipes(recipes, recipeDescriptors);
-            List<String> recipeArtifactCoordinates = getRecipeArtifactCoordinates(recipes, recipeDescriptors);
-
+            LOG.debug("Active recipes: {}", activeRecipes);
             if (activeRecipes.isEmpty()) {
                 return null;
             }
             goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipes));
-            if (!recipeArtifactCoordinates.isEmpty()) {
-                goals.add("-Drewrite.recipeArtifactCoordinates=" + String.join(",", recipeArtifactCoordinates));
-            }
+            goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
+                    + config.getVersion());
         }
         return goals;
     }
 
-    private List<String> getActiveRecipes(List<String> recipes, List<RecipeDescriptor> recipeDescriptors) {
+    private List<String> getActiveRecipes(List<String> recipes, List<Recipe> recipeDescriptors) {
         return recipes.stream()
-                .flatMap(recipe -> recipeDescriptors.stream()
-                        .filter(descriptor -> descriptor.name().equals(recipe))
-                        .map(RecipeDescriptor::fqcn))
-                .collect(Collectors.toList());
-    }
-
-    private List<String> getRecipeArtifactCoordinates(List<String> recipes, List<RecipeDescriptor> recipeDescriptors) {
-        return recipes.stream()
-                .flatMap(recipe -> recipeDescriptors.stream()
-                        .filter(descriptor -> descriptor.name().equals(recipe))
-                        .map(RecipeDescriptor::artifactCoordinates))
+                .flatMap(recipe ->
+                        recipeDescriptors.stream().map(Recipe::getName).filter(name -> name.endsWith(recipe)))
                 .collect(Collectors.toList());
     }
 
