@@ -45,6 +45,8 @@ Here, `plugin1` and `plugin2` are the names of plugin directories, and `AddPlugi
 
 - `--recipes` or `-r`: (required) Name(s) of recipes to apply to the plugins.
 
+- `--list-recipes` or `-l`: (optional) Displays the list of available recipes.
+
 - `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes.
 
 - `--debug` or `-d`: (optional) Enables debug mode.
