@@ -23,15 +23,39 @@ Learn more at [this project page](https://www.jenkins.io/projects/gsoc/2024/proj
 
 ## Usage
 
+> [!NOTE]
+> Currently, this tool does not support checking out plugins from remote repositories. Therefore, one must manually check out the plugin repository into a new directory named `test-plugins`.
+
 ### Build
 
 ```shell
 mvn clean install
 ```
 
+Execute the following command outside the `test-plugins` directory:
+
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins plugins1,plugin2 --recipes recipe1,recipe2
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins plugin1,plugin2 --recipes AddPluginsBom,AddCodeOwner
 ```
+
+Here, `plugin1` and `plugin2` are the names of plugin directories, and `AddPluginsBom` and `AddCodeOwners` are recipe names.  For more details about available recipes, refer to the [recipe_data.yaml](plugin-modernizer-core/src/main/resources/recipe_data.yaml) file.
+
+### CLI Options
+- `--plugins` or `-p`: (required) Name(s) of plugin directory cloned inside the `test-plugins` directory.
+
+- `--recipes` or `-r`: (required) Name(s) of recipes to apply to the plugins.
+
+- `--list-recipes` or `-l`: (optional) Displays the list of available recipes.
+
+- `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes.
+
+- `--debug` or `-d`: (optional) Enables debug mode.
+
+- `--cache-path` or `-c`: (optional) Custom path to the cache directory
+
+- `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set.
+
+- `--version` or `-v`: (optional) Displays the version of the Plugin Modernizer tool.
 
 ## References
 
