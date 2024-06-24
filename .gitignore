@@ -3,6 +3,12 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Plugins Directory ###
+test-plugins
+
+### Log file ###
+logs/
+
 ### IntelliJ IDEA ###
 .idea/
 *.iws

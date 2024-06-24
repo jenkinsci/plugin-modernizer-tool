@@ -1,0 +1,10 @@
+recipes:
+  PomParser:
+    fqcn: "io.jenkins.tools.pluginmodernizer.core.extractor.PomParser"
+    artifactCoordinates: "io.jenkins.plugin-modernizer:plugin-modernizer-core:999999-SNAPSHOT"
+  AddPluginsBom:
+    fqcn: "org.openrewrite.jenkins.AddPluginsBom"
+    artifactCoordinates: "org.openrewrite.recipe:rewrite-jenkins:0.8.1"
+  AddCodeOwner:
+    fqcn: "org.openrewrite.jenkins.github.AddTeamToCodeowners"
+    artifactCoordinates: "org.openrewrite.recipe:rewrite-jenkins:0.8.1"
