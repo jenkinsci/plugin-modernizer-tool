@@ -43,17 +43,17 @@ Here, `plugin1` and `plugin2` are the names of plugin directories, and `AddPlugi
 ### CLI Options
 - `--plugins` or `-p`: (required) Name(s) of plugin directory cloned inside the `test-plugins` directory.
 
-- `--recipes` or `r`: (required) Name(s) of recipes to apply to the plugins.
+- `--recipes` or `-r`: (required) Name(s) of recipes to apply to the plugins.
 
-- `--dry-run` or `n`: (optional) Enables dry run mode, generating patch files instead of applying changes.
+- `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes.
 
-- `--debug` or `d`: (optional) Enables debug mode.
+- `--debug` or `-d`: (optional) Enables debug mode.
 
 - `--cache-path` or `-c`: (optional) Custom path to the cache directory
 
 - `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set.
 
-- `--version` or `-V`: (optional) Displays the version of the Plugin Modernizer tool.
+- `--version` or `-v`: (optional) Displays the version of the Plugin Modernizer tool.
 
 ## References
 
