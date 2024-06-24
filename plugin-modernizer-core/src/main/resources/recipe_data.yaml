@@ -1,6 +1,6 @@
 recipes:
-  PomParser:
-    fqcn: "io.jenkins.tools.pluginmodernizer.core.extractor.PomParser"
+  FetchMetadata:
+    fqcn: "io.jenkins.tools.pluginmodernizer.core.extractor.MetadataCollector"
     artifactCoordinates: "io.jenkins.plugin-modernizer:plugin-modernizer-core:999999-SNAPSHOT"
   AddPluginsBom:
     fqcn: "org.openrewrite.jenkins.AddPluginsBom"

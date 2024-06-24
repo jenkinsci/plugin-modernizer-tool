@@ -1,5 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -7,9 +9,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import com.google.gson.Gson;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.Recipe;
+import org.openrewrite.ScanningRecipe;
+import org.openrewrite.SourceFile;
+import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
@@ -19,24 +25,48 @@ import org.openrewrite.xml.tree.Xml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PomParser extends Recipe {
+public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PomParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MetadataCollector.class);
 
     PluginMetadata pluginMetadata = PluginMetadata.getInstance();
 
     @Override
     public String getDisplayName() {
-        return "Pom Parser";
+        return "Plugin metadata extractor";
     }
 
     @Override
     public String getDescription() {
-        return "Extracts Metadata from pom file.";
+        return "Extracts metadata from plugin.";
+    }
+
+    public static class Metadata {
+        boolean hasJenkinsfile = false;
     }
 
     @Override
-    public TreeVisitor<?, ExecutionContext> getVisitor() {
+    public Metadata getInitialValue(ExecutionContext ctx) {
+        return new Metadata();
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getScanner(Metadata acc) {
+        return new TreeVisitor<Tree, ExecutionContext>() {
+            @SuppressFBWarnings(value = "NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE", justification = "false postive")
+            @Override
+            public Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
+                SourceFile sourceFile = (SourceFile) requireNonNull(tree);
+                if (sourceFile.getSourcePath().endsWith("Jenkinsfile")) {
+                    acc.hasJenkinsfile = true;
+                }
+                return tree;
+            }
+        };
+    }
+
+    @Override
+    public TreeVisitor<?, ExecutionContext> getVisitor(Metadata acc) {
         return new MavenIsoVisitor<>() {
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
@@ -61,6 +91,7 @@ public class PomParser extends Recipe {
                 pluginMetadata.setHasDevelopersTag(tagExtractor.hasDevelopersTag());
                 pluginMetadata.setLicensed(!pom.getLicenses().isEmpty());
                 pluginMetadata.setUsesHttps(tagExtractor.usesHttps());
+                pluginMetadata.setHasJenkinsfile(acc.hasJenkinsfile);
 
                 try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("target/pluginMetadata.json"), StandardCharsets.UTF_8)) {
                     Gson gson = new Gson();

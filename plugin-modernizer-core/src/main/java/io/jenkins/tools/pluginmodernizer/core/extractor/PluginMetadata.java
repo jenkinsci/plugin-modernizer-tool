@@ -12,6 +12,7 @@ public class PluginMetadata {
     private boolean hasDevelopersTag;
     private boolean hasJavaLevel;
     private boolean usesHttps;
+    private boolean hasJenkinsfile;
     private List<Dependency> dependencies;
     private String jenkinsVersion;
     private Parent pluginParent;
@@ -70,6 +71,14 @@ public class PluginMetadata {
 
     public void setUsesHttps(boolean usesHttps) {
         this.usesHttps = usesHttps;
+    }
+
+    public boolean hasJenkinsfile() {
+        return hasJenkinsfile;
+    }
+
+    public void setHasJenkinsfile(boolean hasJenkinsfile) {
+        this.hasJenkinsfile = hasJenkinsfile;
     }
 
     public List<Dependency> getDependencies() {
