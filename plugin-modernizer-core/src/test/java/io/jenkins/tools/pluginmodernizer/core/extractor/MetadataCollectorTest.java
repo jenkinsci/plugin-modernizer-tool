@@ -16,10 +16,10 @@ import org.openrewrite.test.RewriteTest;
 
 
 
-public class PomParserTest implements RewriteTest {
+public class MetadataCollectorTest implements RewriteTest {
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new PomParser());
+        spec.recipe(new MetadataCollector());
     }
 
     @Test
