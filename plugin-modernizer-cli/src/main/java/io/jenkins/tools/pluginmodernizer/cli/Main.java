@@ -1,7 +1,9 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
@@ -9,6 +11,7 @@ import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -24,7 +27,7 @@ public class Main implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main(final String[] args) {
-        new CommandLine(new Main()).execute(args);
+        new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);
     }
 
     @Option(names = {"-p", "--plugins"}, required = true, description = "List of Plugins to Modernize.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
@@ -44,6 +47,9 @@ public class Main implements Runnable {
 
     @Option(names = {"-m", "--maven-home"}, description = "Path to the Maven Home directory.")
     public Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
+
+    @Option(names = {"-l", "--list-recipes"}, help = true, description = "List available recipes.")
+    public boolean listRecipes;
 
     public Config setup() {
         Config.DEBUG = debug;
@@ -66,8 +72,25 @@ public class Main implements Runnable {
         }
     }
 
+    public void listAvailableRecipes() {
+        Yaml yaml = new Yaml();
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("recipe_data.yaml");
+        if (inputStream == null) {
+            LOG.error("Failed to load the available recipes.");
+            return;
+        }
+        Map<String, Object> data = yaml.load(inputStream);
+        LOG.info("Available recipes:");
+        Map<String, Map<String, String>> recipes = (Map<String, Map<String, String>>) data.get("recipes");
+        recipes.keySet().forEach(recipe -> LOG.info(recipe));
+    }
+
     @Override
     public void run() {
+        if (listRecipes) {
+            listAvailableRecipes();
+            return;
+        }
         LOG.info("Starting Plugin Modernizer");
         PluginModernizer modernizer = new PluginModernizer(setup());
         modernizer.start();
