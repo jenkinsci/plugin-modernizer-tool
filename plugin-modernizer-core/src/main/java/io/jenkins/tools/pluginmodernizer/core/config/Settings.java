@@ -1,5 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -10,6 +11,8 @@ public class Settings {
     public static final Path DEFAULT_MAVEN_HOME;
 
     public static final String MAVEN_REWRITE_PLUGIN_VERSION = "5.34.1";
+
+    public static final InputStream RECIPE_DATA_YAML = Settings.class.getClassLoader().getResourceAsStream("recipe_data.yaml");
 
     static {
         String cacheBaseDir = System.getProperty("user.home");

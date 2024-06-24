@@ -1,10 +1,10 @@
 recipes:
-  FetchMetadata:
+  - name: "FetchMetadata"
     fqcn: "io.jenkins.tools.pluginmodernizer.core.extractor.MetadataCollector"
     artifactCoordinates: "io.jenkins.plugin-modernizer:plugin-modernizer-core:999999-SNAPSHOT"
-  AddPluginsBom:
+  - name: "AddPluginsBom"
     fqcn: "org.openrewrite.jenkins.AddPluginsBom"
     artifactCoordinates: "org.openrewrite.recipe:rewrite-jenkins:0.8.1"
-  AddCodeOwner:
+  - name: "AddCodeOwner"
     fqcn: "org.openrewrite.jenkins.github.AddTeamToCodeowners"
     artifactCoordinates: "org.openrewrite.recipe:rewrite-jenkins:0.8.1"

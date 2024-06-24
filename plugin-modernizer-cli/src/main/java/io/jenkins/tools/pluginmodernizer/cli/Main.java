@@ -3,11 +3,12 @@ package io.jenkins.tools.pluginmodernizer.cli;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
+import io.jenkins.tools.pluginmodernizer.core.model.RecipeData;
+import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -74,15 +75,24 @@ public class Main implements Runnable {
 
     public void listAvailableRecipes() {
         Yaml yaml = new Yaml();
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("recipe_data.yaml");
+        InputStream inputStream = Settings.RECIPE_DATA_YAML;
         if (inputStream == null) {
             LOG.error("Failed to load the available recipes.");
             return;
         }
-        Map<String, Object> data = yaml.load(inputStream);
-        LOG.info("Available recipes:");
-        Map<String, Map<String, String>> recipes = (Map<String, Map<String, String>>) data.get("recipes");
-        recipes.keySet().forEach(recipe -> LOG.info(recipe));
+        try {
+            RecipeData data = yaml.loadAs(inputStream, RecipeData.class);
+            if (data == null || data.getRecipes() == null) {
+                LOG.error("No recipes found in the YAML file.");
+                return;
+            }
+
+            LOG.info("Available recipes:");
+            List<RecipeDescriptor> recipes = data.getRecipes();
+            recipes.forEach(recipe -> LOG.info(recipe.getName()));
+        } catch (Exception e) {
+            LOG.error("Error loading recipes from YAML: " + e.getMessage());
+        }
     }
 
     @Override

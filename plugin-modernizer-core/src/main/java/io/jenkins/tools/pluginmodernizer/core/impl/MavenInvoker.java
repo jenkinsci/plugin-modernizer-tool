@@ -82,11 +82,11 @@ public class MavenInvoker {
     private List<String> getActiveRecipes(List<String> recipes, JsonNode recipesNode) {
         List<String> activeRecipes = new ArrayList<>();
         for (String recipe : recipes) {
-            JsonNode recipeNode = recipesNode.get(recipe);
-            if (recipeNode != null) {
-                activeRecipes.add(recipeNode.get("fqcn").asText());
-            } else {
-                LOG.error("Recipe {} not found", recipe);
+            for (JsonNode recipeNode : recipesNode) {
+                if (recipeNode.get("name").asText().equals(recipe)) {
+                    activeRecipes.add(recipeNode.get("fqcn").asText());
+                    break;
+                }
             }
         }
         return activeRecipes;
@@ -95,9 +95,11 @@ public class MavenInvoker {
     private List<String> getRecipeArtifactCoordinates(List<String> recipes, JsonNode recipesNode) {
         List<String> recipeArtifactCoordinates = new ArrayList<>();
         for (String recipe : recipes) {
-            JsonNode recipeNode = recipesNode.get(recipe);
-            if (recipeNode != null) {
-                recipeArtifactCoordinates.add(recipeNode.get("artifactCoordinates").asText());
+            for (JsonNode recipeNode : recipesNode) {
+                if (recipeNode.get("name").asText().equals(recipe)) {
+                    recipeArtifactCoordinates.add(recipeNode.get("artifactCoordinates").asText());
+                    break;
+                }
             }
         }
         return recipeArtifactCoordinates;
