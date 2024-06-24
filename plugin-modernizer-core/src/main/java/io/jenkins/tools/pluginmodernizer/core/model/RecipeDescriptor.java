@@ -2,6 +2,7 @@ package io.jenkins.tools.pluginmodernizer.core.model;
 
 public class RecipeDescriptor {
     private String name;
+    private String description;
     private String fqcn;
     private String artifactCoordinates;
 
@@ -11,6 +12,14 @@ public class RecipeDescriptor {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getFqcn() {

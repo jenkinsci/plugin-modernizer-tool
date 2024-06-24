@@ -89,7 +89,7 @@ public class Main implements Runnable {
 
             LOG.info("Available recipes:");
             List<RecipeDescriptor> recipes = data.getRecipes();
-            recipes.forEach(recipe -> LOG.info(recipe.getName()));
+            recipes.forEach(recipe -> LOG.info("{} - {}", recipe.getName(), recipe.getDescription()));
         } catch (Exception e) {
             LOG.error("Error loading recipes from YAML: " + e.getMessage());
         }
