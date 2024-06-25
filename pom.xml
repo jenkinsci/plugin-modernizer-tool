@@ -8,7 +8,7 @@
         <groupId>org.jenkins-ci</groupId>
         <artifactId>jenkins</artifactId>
         <version>1.116</version>
-        <relativePath />
+        <relativePath/>
     </parent>
 
     <groupId>io.jenkins.plugin-modernizer</groupId>
@@ -54,6 +54,7 @@
         <jackson.version>2.17.1</jackson.version>
         <maven.version>3.9.8</maven.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <git.client.version>5.0.0</git.client.version>
     </properties>
 
     <repositories>
@@ -118,17 +119,17 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${common.io.version}</version>
-              </dependency>
-              <dependency>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${common.lang3.version}</version>
-              </dependency>
-              <dependency>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
                 <version>${common.text.version}</version>
-              </dependency>
+            </dependency>
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
@@ -165,6 +166,49 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.7.1</version>
+                <executions>
+                    <execution>
+                        <id>download-pom</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.jenkins-ci.plugins</groupId>
+                                    <artifactId>git-client</artifactId>
+                                    <version>${git.client.version}</version>
+                                    <type>pom</type>
+                                    <outputDirectory>${project.basedir}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${project.basedir}/git-client-${git.client.version}.pom</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <configuration>
