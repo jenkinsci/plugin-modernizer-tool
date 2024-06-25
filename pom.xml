@@ -1,4 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.jenkins-ci</groupId>
+        <artifactId>jenkins</artifactId>
+        <version>1.116</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.jenkins.plugin-modernizer</groupId>
+    <artifactId>plugin-modernizer-parent-pom</artifactId>
+    <name>Plugin Modernizer Parent</name>
+    <version>${changelist}</version>
+    <packaging>pom</packaging>
+    <url>https://github.com/jenkinsci/plugin-modernizer-tool</url>
+
+    <modules>
+        <module>plugin-modernizer-cli</module>
+        <module>plugin-modernizer-core</module>
+        <module>plugin-modernizer-recipes</module>
+        <module>plugin-modernizer-integration</module>
+    </modules>
+
+    <licenses>
+        <license>
+            <name>The MIT license</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <changelist>999999-SNAPSHOT</changelist>
+        <gitHubRepo>jenkinsci/plugin-modernizer-tool</gitHubRepo>
+
+        <!-- Version -->
+        <openrewrite.bom.version>2.13.2</openrewrite.bom.version>
+        <openrewrite.jenkins.version>0.8.1</openrewrite.jenkins.version>
+        <slf4j.version>2.0.13</slf4j.version>
+        <logback.version>1.5.6</logback.version>
+        <picocli.version>4.7.6</picocli.version>
+        <common.io.version>2.16.1</common.io.version>
+        <common.lang3.version>3.14.0</common.lang3.version>
+        <common.text.version>1.12.0</common.text.version>
+        <asm.version>9.7</asm.version>
+        <gson.version>2.11.0</gson.version>
+        <jackson.version>2.17.1</jackson.version>
+        <maven.version>3.9.8</maven.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <git.client.version>5.0.0</git.client.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.openrewrite.recipe</groupId>
+                <artifactId>rewrite-recipe-bom</artifactId>
+                <version>${openrewrite.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openrewrite.recipe</groupId>
+                <artifactId>rewrite-jenkins</artifactId>
+                <version>${openrewrite.jenkins.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli</artifactId>
+                <version>${picocli.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli-codegen</artifactId>
+                <version>${picocli.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${common.io.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -62,7 +182,7 @@
                                 <artifactItem>
                                     <groupId>org.jenkins-ci.plugins</groupId>
                                     <artifactId>git-client</artifactId>
-                                    <version>${git.client.version}</version>
+                                    <version>5.0.0</version>
                                     <type>pom</type>
                                     <outputDirectory>${project.basedir}</outputDirectory>
                                 </artifactItem>
@@ -74,7 +194,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <version>1.0.0</version>
                 <executions>
                     <execution>
                         <phase>initialize</phase>
@@ -83,7 +203,7 @@
                         </goals>
                         <configuration>
                             <files>
-                                <file>${project.basedir}/git-client-${git.client.version}.pom</file>
+                                <file>${project.basedir}/git-client-5.0.0.pom</file>
                             </files>
                         </configuration>
                     </execution>
@@ -99,3 +219,58 @@
                     </sourceDirectories>
                     <testSourceDirectories>
                         <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+                    </testSourceDirectories>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>enable-jacoco</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
