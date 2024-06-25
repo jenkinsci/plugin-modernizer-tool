@@ -1,20 +1,14 @@
-# This is the configuration file for Dependabot, a tool that automatically
-# updates your project's dependencies. This file is in YAML format.
-
-version: 2  # This specifies the version of Dependabot configuration syntax being used.
-
-updates:  # This section contains all the update configurations.
+version: 2	# This is the configuration file for Dependabot, a tool that automatically
+updates:	# updates your project's dependencies. This file is in YAML format.
+  - package-ecosystem: "maven"	
+    directory: "/"	version: 2  # This specifies the version of Dependabot configuration syntax being used.
+    schedule:	
+      interval: "weekly"	updates:  # This section contains all the update configurations.
+      day: "sunday"	
 
   # This block is for maintaining the dependencies of your Maven-based Java project.
-  - package-ecosystem: maven  # Specifies that the package ecosystem is Maven.
-    directory: /  # The directory where your project's root is located.
-    schedule:  # Defines the schedule for updates.
-      interval: weekly  # Dependabot will check for updates weekly.
-    open-pull-requests-limit: 10  # The maximum number of open pull requests for updates at any time.
-    target-branch: master  # The branch where Dependabot will create pull requests.
-
-  # This block is for maintaining the dependencies of your GitHub Actions.
-  - package-ecosystem: github-actions  # Specifies that the package ecosystem is GitHub Actions.
-    directory: /  # The directory where your GitHub Actions workflows are located.
-    schedule:  # Defines the schedule for updates.
-      interval: weekly  # Dependabot will check for updates weekly.
+  - package-ecosystem: "github-actions"	  - package-ecosystem: maven  # Specifies that the package ecosystem is Maven.
+    directory: "/"	    directory: /  # The directory where your project's root is located.
+    schedule:	    schedule:  # Defines the schedule for updates.
+      interval: "weekly"	      interval: weekly  # Dependabot will check for updates weekly.
+      day: "sunday"
