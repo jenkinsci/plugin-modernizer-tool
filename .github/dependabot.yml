@@ -1,13 +1,13 @@
-version: 2	version: 2	# This is the configuration file for Dependabot, a tool that automatically
-updates:	updates:	# updates your project's dependencies. This file is in YAML format.
-              - package-ecosystem: "maven"	  - package-ecosystem: "maven"
-                directory: "/"	    directory: "/"	version: 2  # This specifies the version of Dependabot configuration syntax being used.
-                schedule:	    schedule:
-                                   interval: "weekly"	      interval: "weekly"	updates:  # This section contains all the update configurations.
-                                   day: "sunday"	      day: "sunday"
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
 
-
-              - package-ecosystem: "github-actions"	  # This block is for maintaining the dependencies of your Maven-based Java project.
-                directory: "/"	  - package-ecosystem: "github-actions"	  - package-ecosystem: maven  # Specifies that the package ecosystem is Maven.
-                schedule:	    directory: "/"	    directory: /  # The directory where your project's root is located.
-                                                       interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
