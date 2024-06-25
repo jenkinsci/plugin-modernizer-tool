@@ -4,15 +4,15 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
-import io.jenkins.tools.pluginmodernizer.core.model.RecipeData;
 import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -74,22 +74,21 @@ public class Main implements Runnable {
     }
 
     public void listAvailableRecipes() {
-        Yaml yaml = new Yaml();
-        InputStream inputStream = Settings.RECIPE_DATA_YAML;
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(Settings.RECIPE_DATA_YAML_PATH);
         if (inputStream == null) {
             LOG.error("Failed to load the available recipes.");
             return;
         }
         try {
-            RecipeData data = yaml.loadAs(inputStream, RecipeData.class);
-            if (data == null || data.getRecipes() == null) {
+            List<RecipeDescriptor> recipeDescriptors = new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});
+
+            if (recipeDescriptors == null || recipeDescriptors.isEmpty()) {
                 LOG.error("No recipes found in the YAML file.");
                 return;
             }
 
             LOG.info("Available recipes:");
-            List<RecipeDescriptor> recipes = data.getRecipes();
-            recipes.forEach(recipe -> LOG.info("{} - {}", recipe.getName(), recipe.getDescription()));
+            recipeDescriptors.forEach(recipe -> LOG.info("{} - {}", recipe.name(), recipe.description()));
         } catch (Exception e) {
             LOG.error("Error loading recipes from YAML: {}", e.getMessage());
         }
