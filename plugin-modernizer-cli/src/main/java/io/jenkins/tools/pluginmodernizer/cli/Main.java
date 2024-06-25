@@ -1,11 +1,15 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
+import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -24,7 +28,7 @@ public class Main implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main(final String[] args) {
-        new CommandLine(new Main()).execute(args);
+        new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);
     }
 
     @Option(names = {"-p", "--plugins"}, required = true, description = "List of Plugins to Modernize.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
@@ -44,6 +48,9 @@ public class Main implements Runnable {
 
     @Option(names = {"-m", "--maven-home"}, description = "Path to the Maven Home directory.")
     public Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
+
+    @Option(names = {"-l", "--list-recipes"}, help = true, description = "List available recipes.")
+    public boolean listRecipes;
 
     public Config setup() {
         Config.DEBUG = debug;
@@ -66,8 +73,33 @@ public class Main implements Runnable {
         }
     }
 
+    public void listAvailableRecipes() {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(Settings.RECIPE_DATA_YAML_PATH);
+        if (inputStream == null) {
+            LOG.error("Failed to load the available recipes.");
+            return;
+        }
+        try {
+            List<RecipeDescriptor> recipeDescriptors = new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});
+
+            if (recipeDescriptors == null || recipeDescriptors.isEmpty()) {
+                LOG.error("No recipes found in the YAML file.");
+                return;
+            }
+
+            LOG.info("Available recipes:");
+            recipeDescriptors.forEach(recipe -> LOG.info("{} - {}", recipe.name(), recipe.description()));
+        } catch (Exception e) {
+            LOG.error("Error loading recipes from YAML: {}", e.getMessage());
+        }
+    }
+
     @Override
     public void run() {
+        if (listRecipes) {
+            listAvailableRecipes();
+            return;
+        }
         LOG.info("Starting Plugin Modernizer");
         PluginModernizer modernizer = new PluginModernizer(setup());
         modernizer.start();

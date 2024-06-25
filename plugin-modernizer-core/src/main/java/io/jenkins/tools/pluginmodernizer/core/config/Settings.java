@@ -11,6 +11,8 @@ public class Settings {
 
     public static final String MAVEN_REWRITE_PLUGIN_VERSION = "5.34.1";
 
+    public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
+
     static {
         String cacheBaseDir = System.getProperty("user.home");
         if (cacheBaseDir == null) {

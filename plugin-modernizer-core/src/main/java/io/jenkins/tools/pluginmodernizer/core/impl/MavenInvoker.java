@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
@@ -61,8 +62,8 @@ public class MavenInvoker {
         String mode = config.isDryRun() ? "dryRun" : "run";
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + mavenPluginVersion + ":" + mode);
 
-        try (InputStream inputStream = getClass().getResourceAsStream("/recipe_data.yaml")) {
-            JsonNode recipesNode = objectMapper.readTree(inputStream).get("recipes");
+        try (InputStream inputStream = getClass().getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
+            ArrayNode recipesNode = (ArrayNode) objectMapper.readTree(inputStream);
 
             List<String> recipes = config.getRecipes();
             List<String> activeRecipes = getActiveRecipes(recipes, recipesNode);
@@ -79,25 +80,27 @@ public class MavenInvoker {
         return goals;
     }
 
-    private List<String> getActiveRecipes(List<String> recipes, JsonNode recipesNode) {
+    private List<String> getActiveRecipes(List<String> recipes, ArrayNode recipesNode) {
         List<String> activeRecipes = new ArrayList<>();
         for (String recipe : recipes) {
-            JsonNode recipeNode = recipesNode.get(recipe);
-            if (recipeNode != null) {
-                activeRecipes.add(recipeNode.get("fqcn").asText());
-            } else {
-                LOG.error("Recipe {} not found", recipe);
+            for (JsonNode recipeNode : recipesNode) {
+                if (recipeNode.get("name").asText().equals(recipe)) {
+                    activeRecipes.add(recipeNode.get("fqcn").asText());
+                    break;
+                }
             }
         }
         return activeRecipes;
     }
 
-    private List<String> getRecipeArtifactCoordinates(List<String> recipes, JsonNode recipesNode) {
+    private List<String> getRecipeArtifactCoordinates(List<String> recipes, ArrayNode recipesNode) {
         List<String> recipeArtifactCoordinates = new ArrayList<>();
         for (String recipe : recipes) {
-            JsonNode recipeNode = recipesNode.get(recipe);
-            if (recipeNode != null) {
-                recipeArtifactCoordinates.add(recipeNode.get("artifactCoordinates").asText());
+            for (JsonNode recipeNode : recipesNode) {
+                if (recipeNode.get("name").asText().equals(recipe)) {
+                    recipeArtifactCoordinates.add(recipeNode.get("artifactCoordinates").asText());
+                    break;
+                }
             }
         }
         return recipeArtifactCoordinates;
