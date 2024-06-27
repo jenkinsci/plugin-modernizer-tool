@@ -21,8 +21,6 @@
     <modules>
         <module>plugin-modernizer-cli</module>
         <module>plugin-modernizer-core</module>
-        <module>plugin-modernizer-recipes</module>
-        <module>plugin-modernizer-integration</module>
     </modules>
 
     <licenses>
