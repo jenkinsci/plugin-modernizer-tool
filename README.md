@@ -57,6 +57,29 @@ Here, `plugin1` and `plugin2` are the names of plugin directories, and `AddPlugi
 
 - `--version` or `-v`: (optional) Displays the version of the Plugin Modernizer tool.
 
+## Reproducibility
+
+The maven build should be reproducible
+
+See
+
+- https://maven.apache.org/guides/mini/guide-reproducible-builds.html
+- https://reproducible-builds.org
+- https://github.com/jenkinsci/incrementals-tools/issues/103 for the support on the Jenkins incrementals tools and [JEP-229](https://github.com/jenkinsci/jep/blob/master/jep/229/README.adoc)
+
+[Reproducible Builds](https://reproducible-builds.org/) for more information.
+
+Ensure the repository is clean before running the following commands (otherwise you can pass the `-Dignore.dirty` flag to the maven command).
+
+```shell
+mvn -Dset.changelist clean install
+mvn -Dset.changelist -Dreference.repo=central clean verify artifact:compare
+```
+
+The property `project.build.outputTimestamp` will be set with the timestamp of the latest commit.
+
+If you are using a mirror for `central` you should adapt the `reference.repo` property accordingly to match the id of the mirror in your `settings.xml`.
+
 ## References
 
 - [GSoC 2024 Project Proposal](https://docs.google.com/document/d/1e1QkprPN6fLpFXk_QqBUQlJhZrAl9RvXbOXOiJ-gAuY/edit?usp=sharing)
