@@ -38,9 +38,7 @@ public class MavenInvoker {
     }
 
     public void invokeGoal(String plugin, String pluginPath, String goal) {
-        List<String> goals = new ArrayList<>();
-        goals.add(goal);
-        invokeGoals(plugin, pluginPath, goals);
+        invokeGoals(plugin, pluginPath, List.of(goal));
     }
 
     public void invokeRewrite(String plugin, String pluginPath) {
@@ -58,9 +56,8 @@ public class MavenInvoker {
 
     private List<String> createGoalsList() throws IOException {
         List<String> goals = new ArrayList<>();
-        String mavenPluginVersion = Settings.MAVEN_REWRITE_PLUGIN_VERSION;
         String mode = config.isDryRun() ? "dryRun" : "run";
-        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + mavenPluginVersion + ":" + mode);
+        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":" + mode);
 
         try (InputStream inputStream = getClass().getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
             ArrayNode recipesNode = (ArrayNode) objectMapper.readTree(inputStream);
