@@ -8,7 +8,6 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 
 import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -22,7 +21,6 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Pom;
-import org.openrewrite.maven.tree.Profile;
 import org.openrewrite.maven.tree.ResolvedPom;
 import org.openrewrite.xml.tree.Xml;
 import org.slf4j.Logger;
