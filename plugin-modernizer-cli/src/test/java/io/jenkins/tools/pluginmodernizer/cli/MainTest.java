@@ -1,21 +1,40 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
 
 public class MainTest {
+
+    private CommandLine commandLine;
+    private ByteArrayOutputStream outputStream;
+    private Main main;
+
+    @BeforeEach
+    public void setUp() {
+        main = new Main();
+        commandLine = new CommandLine(main);
+        outputStream = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outputStream));
+    }
+
     @Test
     public void testGetPlugins() {
         String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2"};
-        Main main = new Main();
-        new CommandLine(main).execute(args);
+        commandLine.execute(args);
 
         List<String> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
@@ -27,8 +46,7 @@ public class MainTest {
     @Test
     public void testGetRecipes() {
         String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2"};
-        Main main = new Main();
-        new CommandLine(main).execute(args);
+        commandLine.execute(args);
 
         List<String> recipes = main.setup().getRecipes();
         assertNotNull(recipes);
@@ -40,24 +58,73 @@ public class MainTest {
     @Test
     public void testMissingPluginsArgument() {
         String[] args = {"-r", "recipe1,recipe2"};
-        Main main = new Main();
-        int exitCode = new CommandLine(main).execute(args);
+        int exitCode = commandLine.execute(args);
         assertEquals(CommandLine.ExitCode.USAGE, exitCode);
     }
 
     @Test
     public void testMissingRecipesArgument() {
         String[] args = {"-p", "plugin1,plugin2"};
-        Main main = new Main();
-        int exitCode = new CommandLine(main).execute(args);
+        int exitCode = commandLine.execute(args);
         assertEquals(CommandLine.ExitCode.USAGE, exitCode);
     }
 
     @Test
     public void testMavenHome() throws IOException {
-        String[] args = {"--maven-home", Files.createTempDirectory("unsued").toString()};
-        Main main = new Main();
-        int exitCode = new CommandLine(main).execute(args);
+        String[] args = {"--maven-home", Files.createTempDirectory("unused").toString()};
+        int exitCode = commandLine.execute(args);
         assertEquals(CommandLine.ExitCode.USAGE, exitCode);
     }
+
+    @Test
+    public void testDryRunOption() {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-n"};
+        commandLine.execute(args);
+        assertTrue(main.setup().isDryRun());
+    }
+
+    @Test
+    public void testDebugOption() {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-d"};
+        commandLine.execute(args);
+        main.setup();
+        assertTrue(Config.DEBUG);
+    }
+
+    @Test
+    public void testCachePathOption() {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-c", "/tmp/cache"};
+        commandLine.execute(args);
+        assertEquals(Paths.get("/tmp/cache"), main.setup().getCachePath());
+    }
+
+    @Test
+    public void testListRecipesOption() {
+        String[] args = {"-l"};
+        commandLine.execute(args);
+        assertTrue(main.listRecipes);
+        main.run();
+        assertTrue(outputStream.toString().contains("Available recipes:"));
+    }
+
+    @Test
+    public void testCaseInsensitiveOption() {
+        int exitCode = commandLine.setOptionsCaseInsensitive(true).execute("-H");
+        assertEquals(CommandLine.ExitCode.OK, exitCode);
+    }
+
+    @Test
+    public void testExecuteWithInvalidArgs() {
+        String[] args = {"--invalidOption", "value"};
+        int exitCode = commandLine.execute(args);
+        assertNotEquals(CommandLine.ExitCode.OK, exitCode);
+    }
+
+    @Test
+    public void testExecuteWithNoArgs() {
+        String[] args = {};
+        int exitCode = commandLine.execute(args);
+        assertNotEquals(CommandLine.ExitCode.OK, exitCode);
+    }
+
 }
