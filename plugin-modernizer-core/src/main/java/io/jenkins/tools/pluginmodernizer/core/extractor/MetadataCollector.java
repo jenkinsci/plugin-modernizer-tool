@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -20,6 +22,7 @@ import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Pom;
+import org.openrewrite.maven.tree.Profile;
 import org.openrewrite.maven.tree.ResolvedPom;
 import org.openrewrite.xml.tree.Xml;
 import org.slf4j.Logger;
@@ -82,10 +85,14 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 TagExtractor tagExtractor = new TagExtractor();
                 tagExtractor.visit(document, ctx);
 
+                Map<String, String> properties = pom.getProperties();
+                properties.remove("project.basedir");
+                properties.remove("basedir");
+
                 pluginMetadata.setPluginName(pom.getName());
                 pluginMetadata.setPluginParent(pom.getParent());
                 pluginMetadata.setDependencies(pom.getDependencies());
-                pluginMetadata.setProperties(pom.getProperties());
+                pluginMetadata.setProperties(properties);
                 pluginMetadata.setJenkinsVersion(resolvedPom.getManagedVersion("org.jenkins-ci.main", "jenkins-core", null, null));
                 pluginMetadata.setHasJavaLevel(pom.getProperties().get("java.level") != null);
                 pluginMetadata.setHasDevelopersTag(tagExtractor.hasDevelopersTag());

@@ -167,6 +167,6 @@ public class MetadataCollectorTest implements RewriteTest {
         Map<String, String> properties = pluginMetadata.getProperties();
         assertNotNull(properties);
         // project.basedir and basedir included in properties
-        assertEquals(12, properties.size());
+        assertEquals(10, properties.size());
     }
 }
