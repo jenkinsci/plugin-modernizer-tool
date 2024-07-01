@@ -166,7 +166,6 @@ public class MetadataCollectorTest implements RewriteTest {
         assertEquals("io.jenkins.plugins:caffeine-api", dependency.getGav().toString());
         Map<String, String> properties = pluginMetadata.getProperties();
         assertNotNull(properties);
-        // project.basedir and basedir included in properties
         assertEquals(10, properties.size());
     }
 }
