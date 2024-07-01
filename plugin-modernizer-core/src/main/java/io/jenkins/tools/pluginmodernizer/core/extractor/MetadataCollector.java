@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.gson.Gson;
@@ -82,10 +83,14 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 TagExtractor tagExtractor = new TagExtractor();
                 tagExtractor.visit(document, ctx);
 
+                Map<String, String> properties = pom.getProperties();
+                properties.remove("project.basedir");
+                properties.remove("basedir");
+
                 pluginMetadata.setPluginName(pom.getName());
                 pluginMetadata.setPluginParent(pom.getParent());
                 pluginMetadata.setDependencies(pom.getDependencies());
-                pluginMetadata.setProperties(pom.getProperties());
+                pluginMetadata.setProperties(properties);
                 pluginMetadata.setJenkinsVersion(resolvedPom.getManagedVersion("org.jenkins-ci.main", "jenkins-core", null, null));
                 pluginMetadata.setHasJavaLevel(pom.getProperties().get("java.level") != null);
                 pluginMetadata.setHasDevelopersTag(tagExtractor.hasDevelopersTag());
