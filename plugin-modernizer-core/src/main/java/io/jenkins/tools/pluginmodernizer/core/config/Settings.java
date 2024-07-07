@@ -8,10 +8,9 @@ import java.util.Properties;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.maven.artifact.versioning.ComparableVersion;
 
 public class Settings {
 
