@@ -53,7 +53,7 @@ Here, `plugin1` and `plugin2` are the names of plugin directories, and `AddPlugi
 
 - `--cache-path` or `-c`: (optional) Custom path to the cache directory
 
-- `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set.
+- `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set. The minimum required version is 3.9.7.
 
 - `--version` or `-v`: (optional) Displays the version of the Plugin Modernizer tool.
 

@@ -11,6 +11,8 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.maven.artifact.versioning.ComparableVersion;
+
 public class Settings {
 
     private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
@@ -22,6 +24,8 @@ public class Settings {
     public static final String MAVEN_REWRITE_PLUGIN_VERSION;
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
+
+    public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
     static {
         String cacheBaseDir = System.getProperty("user.home");
