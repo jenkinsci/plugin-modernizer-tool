@@ -8,10 +8,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -33,7 +32,6 @@ import org.slf4j.MarkerFactory;
 public class MavenInvoker {
 
     private static final Logger LOG = LoggerFactory.getLogger(MavenInvoker.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
     private final Config config;
 
@@ -103,29 +101,19 @@ public class MavenInvoker {
     }
 
     private List<String> getActiveRecipes(List<String> recipes, List<RecipeDescriptor> recipeDescriptors) {
-        List<String> activeRecipes = new ArrayList<>();
-        for (String recipe : recipes) {
-            for (RecipeDescriptor recipeDescriptor : recipeDescriptors) {
-                if (recipeDescriptor.name().equals(recipe)) {
-                    activeRecipes.add(recipeDescriptor.fqcn());
-                    break;
-                }
-            }
-        }
-        return activeRecipes;
+        return recipes.stream()
+                .flatMap(recipe -> recipeDescriptors.stream()
+                        .filter(descriptor -> descriptor.name().equals(recipe))
+                        .map(RecipeDescriptor::fqcn))
+                .collect(Collectors.toList());
     }
 
     private List<String> getRecipeArtifactCoordinates(List<String> recipes, List<RecipeDescriptor> recipeDescriptors) {
-        List<String> recipeArtifactCoordinates = new ArrayList<>();
-        for (String recipe : recipes) {
-            for (RecipeDescriptor recipeDescriptor : recipeDescriptors) {
-                if (recipeDescriptor.name().equals(recipe)) {
-                    recipeArtifactCoordinates.add(recipeDescriptor.artifactCoordinates());
-                    break;
-                }
-            }
-        }
-        return recipeArtifactCoordinates;
+        return recipes.stream()
+                .flatMap(recipe -> recipeDescriptors.stream()
+                        .filter(descriptor -> descriptor.name().equals(recipe))
+                        .map(RecipeDescriptor::artifactCoordinates))
+                .collect(Collectors.toList());
     }
 
     private void invokeGoals(String plugin, String pluginPath, List<String> goals) {
