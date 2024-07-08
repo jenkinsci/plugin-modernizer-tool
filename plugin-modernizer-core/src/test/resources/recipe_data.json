@@ -1,8 +1,0 @@
-{
-  "recipes": {
-    "exampleRecipe": {
-      "fqcn": "example.fqcn",
-      "artifactCoordinates": "group:artifact:version"
-    }
-  }
-}

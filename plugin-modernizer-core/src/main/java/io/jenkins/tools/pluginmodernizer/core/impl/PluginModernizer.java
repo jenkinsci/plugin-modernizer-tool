@@ -1,6 +1,5 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
@@ -13,8 +12,6 @@ public class PluginModernizer {
     private static final Logger LOG = LoggerFactory.getLogger(PluginModernizer.class);
 
     private final Config config;
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final MavenInvoker mavenInvoker;
 
