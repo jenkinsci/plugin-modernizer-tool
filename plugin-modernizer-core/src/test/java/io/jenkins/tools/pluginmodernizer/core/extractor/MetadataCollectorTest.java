@@ -1,6 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.maven.Assertions.pomXml;
@@ -166,7 +167,8 @@ public class MetadataCollectorTest implements RewriteTest {
         assertEquals("io.jenkins.plugins:caffeine-api", dependency.getGav().toString());
         Map<String, String> properties = pluginMetadata.getProperties();
         assertNotNull(properties);
-        // project.basedir and basedir included in properties
-        assertEquals(12, properties.size());
+        assertEquals(10, properties.size());
+        boolean hasJenkinsfile = pluginMetadata.hasJenkinsfile();
+        assertFalse(hasJenkinsfile);
     }
 }

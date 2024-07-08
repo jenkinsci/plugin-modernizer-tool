@@ -53,9 +53,32 @@ Here, `plugin1` and `plugin2` are the names of plugin directories, and `AddPlugi
 
 - `--cache-path` or `-c`: (optional) Custom path to the cache directory
 
-- `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set.
+- `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set. The minimum required version is 3.9.7.
 
 - `--version` or `-v`: (optional) Displays the version of the Plugin Modernizer tool.
+
+## Reproducibility
+
+The maven build should be reproducible
+
+See
+
+- https://maven.apache.org/guides/mini/guide-reproducible-builds.html
+- https://reproducible-builds.org
+- https://github.com/jenkinsci/incrementals-tools/issues/103 for the support on the Jenkins incrementals tools and [JEP-229](https://github.com/jenkinsci/jep/blob/master/jep/229/README.adoc)
+
+[Reproducible Builds](https://reproducible-builds.org/) for more information.
+
+Ensure the repository is clean before running the following commands (otherwise you can pass the `-Dignore.dirty` flag to the maven command).
+
+```shell
+mvn -Dset.changelist clean install
+mvn -Dset.changelist -Dreference.repo=central clean verify artifact:compare
+```
+
+The property `project.build.outputTimestamp` will be set with the timestamp of the latest commit.
+
+If you are using a mirror for `central` you should adapt the `reference.repo` property accordingly to match the id of the mirror in your `settings.xml`.
 
 ## References
 

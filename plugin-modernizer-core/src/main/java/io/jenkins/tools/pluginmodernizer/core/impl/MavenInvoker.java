@@ -7,14 +7,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationRequest;
@@ -29,18 +32,36 @@ import org.slf4j.MarkerFactory;
 public class MavenInvoker {
 
     private static final Logger LOG = LoggerFactory.getLogger(MavenInvoker.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
 
     private final Config config;
 
     public MavenInvoker(Config config) {
         this.config = config;
+        validateMavenHome();
+        validateMavenVersion();
+    }
+
+    public @Nullable ComparableVersion getMavenVersion() {
+        AtomicReference<String> version = new AtomicReference<>();
+        try {
+            Invoker invoker = new DefaultInvoker();
+            invoker.setMavenHome(config.getMavenHome().toFile());
+            InvocationRequest request = new DefaultInvocationRequest();
+            request.setBatchMode(true);
+            request.addArg("-q");
+            request.addArg("--version");
+            request.setOutputHandler(version::set);
+            invoker.execute(request);
+            return new ComparableVersion(version.get());
+        }
+        catch (MavenInvocationException e) {
+            LOG.error("Failed to check for maven version", e);
+            return null;
+        }
     }
 
     public void invokeGoal(String plugin, String pluginPath, String goal) {
-        List<String> goals = new ArrayList<>();
-        goals.add(goal);
-        invokeGoals(plugin, pluginPath, goals);
+        invokeGoals(plugin, pluginPath, List.of(goal));
     }
 
     public void invokeRewrite(String plugin, String pluginPath) {
@@ -58,16 +79,15 @@ public class MavenInvoker {
 
     private List<String> createGoalsList() throws IOException {
         List<String> goals = new ArrayList<>();
-        String mavenPluginVersion = Settings.MAVEN_REWRITE_PLUGIN_VERSION;
         String mode = config.isDryRun() ? "dryRun" : "run";
-        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + mavenPluginVersion + ":" + mode);
+        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":" + mode);
 
         try (InputStream inputStream = getClass().getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
-            ArrayNode recipesNode = (ArrayNode) objectMapper.readTree(inputStream);
+            List<RecipeDescriptor> recipeDescriptors = new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});
 
             List<String> recipes = config.getRecipes();
-            List<String> activeRecipes = getActiveRecipes(recipes, recipesNode);
-            List<String> recipeArtifactCoordinates = getRecipeArtifactCoordinates(recipes, recipesNode);
+            List<String> activeRecipes = getActiveRecipes(recipes, recipeDescriptors);
+            List<String> recipeArtifactCoordinates = getRecipeArtifactCoordinates(recipes, recipeDescriptors);
 
             if (activeRecipes.isEmpty()) {
                 return null;
@@ -80,37 +100,23 @@ public class MavenInvoker {
         return goals;
     }
 
-    private List<String> getActiveRecipes(List<String> recipes, ArrayNode recipesNode) {
-        List<String> activeRecipes = new ArrayList<>();
-        for (String recipe : recipes) {
-            for (JsonNode recipeNode : recipesNode) {
-                if (recipeNode.get("name").asText().equals(recipe)) {
-                    activeRecipes.add(recipeNode.get("fqcn").asText());
-                    break;
-                }
-            }
-        }
-        return activeRecipes;
+    private List<String> getActiveRecipes(List<String> recipes, List<RecipeDescriptor> recipeDescriptors) {
+        return recipes.stream()
+                .flatMap(recipe -> recipeDescriptors.stream()
+                        .filter(descriptor -> descriptor.name().equals(recipe))
+                        .map(RecipeDescriptor::fqcn))
+                .collect(Collectors.toList());
     }
 
-    private List<String> getRecipeArtifactCoordinates(List<String> recipes, ArrayNode recipesNode) {
-        List<String> recipeArtifactCoordinates = new ArrayList<>();
-        for (String recipe : recipes) {
-            for (JsonNode recipeNode : recipesNode) {
-                if (recipeNode.get("name").asText().equals(recipe)) {
-                    recipeArtifactCoordinates.add(recipeNode.get("artifactCoordinates").asText());
-                    break;
-                }
-            }
-        }
-        return recipeArtifactCoordinates;
+    private List<String> getRecipeArtifactCoordinates(List<String> recipes, List<RecipeDescriptor> recipeDescriptors) {
+        return recipes.stream()
+                .flatMap(recipe -> recipeDescriptors.stream()
+                        .filter(descriptor -> descriptor.name().equals(recipe))
+                        .map(RecipeDescriptor::artifactCoordinates))
+                .collect(Collectors.toList());
     }
 
     private void invokeGoals(String plugin, String pluginPath, List<String> goals) {
-        if (!validateMavenHome()) {
-            return;
-        }
-
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(config.getMavenHome().toFile());
         try {
@@ -130,19 +136,38 @@ public class MavenInvoker {
         }
     }
 
-    private boolean validateMavenHome() {
+    /**
+     * Validate the Maven home directory.
+     * @throws IllegalArgumentException if the Maven home directory is not set or invalid.
+     */
+    private void validateMavenHome() {
         Path mavenHome = config.getMavenHome();
         if (mavenHome == null) {
             LOG.error("Neither MAVEN_HOME nor M2_HOME environment variables are set.");
-            return false;
+            throw new IllegalArgumentException("Maven home directory not set.");
         }
 
         if (!Files.isDirectory(mavenHome) || !Files.isExecutable(mavenHome.resolve("bin/mvn"))) {
             LOG.error("Invalid Maven home directory. Aborting build.");
-            return false;
+            throw new IllegalArgumentException("Invalid Maven home directory.");
         }
+    }
 
-        return true;
+    /**
+     * Validate the Maven version.
+     * @throws IllegalArgumentException if the Maven version is too old or cannot be determined.
+     */
+    private void validateMavenVersion() {
+        ComparableVersion mavenVersion = getMavenVersion();
+        LOG.debug("Maven version detected: {}", mavenVersion);
+        if (mavenVersion == null) {
+            LOG.error("Failed to check Maven version. Aborting build.");
+            throw new IllegalArgumentException("Failed to check Maven version.");
+        }
+        if (mavenVersion.compareTo(Settings.MAVEN_MINIMAL_VERSION) < 0) {
+            LOG.error("Maven version detected {}, is too old. Please use at least version {}", mavenVersion, Settings.MAVEN_MINIMAL_VERSION);
+            throw new IllegalArgumentException("Maven version is too old.");
+        }
     }
 
     private InvocationRequest createInvocationRequest(String pluginPath, List<String> goals) {

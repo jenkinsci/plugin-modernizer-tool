@@ -1,17 +1,17 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressFBWarnings(value = "CRLF_INJECTION_LOGS", justification = "safe because versions from pom.xml")
 public class PluginModernizer {
 
     private static final Logger LOG = LoggerFactory.getLogger(PluginModernizer.class);
 
     private final Config config;
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final MavenInvoker mavenInvoker;
 
@@ -25,6 +25,8 @@ public class PluginModernizer {
         LOG.info("Plugins: {}", config.getPlugins());
         LOG.info("Recipes: {}", config.getRecipes());
         LOG.debug("Cache Path: {}", config.getCachePath());
+        LOG.debug("Dry Run: {}", config.isDryRun());
+        LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
         for (String plugin : config.getPlugins()) {
             String pluginPath = projectRoot + "/test-plugins/" + plugin;
             LOG.info("Invoking clean phase for plugin: {}", plugin);
