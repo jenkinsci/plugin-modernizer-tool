@@ -21,3 +21,7 @@ git clone https://github.com/jenkinsci/badge-plugin.git
 # to display build timestamps in the Jenkins UI. This plugin will also be built as part
 # of the Docker image setup.
 git clone https://github.com/jenkinsci/build-timestamp-plugin.git
+
+echo "As a gentle reminder, we have already cloned two Jenkins plugin repositories: badge-plugin and build-timestamp-plugin."
+echo "You can now proceed with the modernizer tool thanks to the following commands:"
+echo "\033[36m$target\033[0m, "
