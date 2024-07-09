@@ -5,7 +5,6 @@
 # and is named `Dockerfile`. This Dockerfile sets up the Java development environment, including JDK 17, Git, and Maven.
 image:
   file: .gitpod/Dockerfile
-
 # Define tasks to be executed when the workspace is initialized. These tasks are run in the order they are listed.
 tasks:
   - before: chmod +x .gitpod/init.sh
