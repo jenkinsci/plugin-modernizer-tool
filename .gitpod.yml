@@ -8,7 +8,7 @@ image:
 
 # Define tasks to be executed when the workspace is initialized. These tasks are run in the order they are listed.
 tasks:
-  - before: chmod +x ./init.sh
+  - before: chmod +x .gitpod/init.sh
     init: .gitpod/init.sh
     # The `init` phase runs a shell script named `init.sh` located in the root of the project. This script is responsible
     # for performing initial setup tasks such as installing dependencies and setting up the project environment. This ensures
