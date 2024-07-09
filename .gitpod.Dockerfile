@@ -10,11 +10,3 @@ RUN sudo apt-get update && \
     sudo apt-get install -y maven && \
     sudo rm -rf /var/lib/apt/lists/*
 
-# Create a directory for the test plugins and move into it. This directory will hold the cloned repositories.
-RUN mkdir test-plugins && cd test-plugins
-
-# Clone the first Jenkins plugin repository. This plugin will be built as part of the Docker image.
-RUN git clone https://github.com/jenkinsci/badge-plugin.git
-
-# Clone the second Jenkins plugin repository. This is another plugin that will be built.
-RUN git clone https://github.com/jenkinsci/build-timestamp-plugin.git
