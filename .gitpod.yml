@@ -10,6 +10,7 @@ image:
 tasks:
   - before: chmod +x .gitpod/init.sh
     init: .gitpod/init.sh
-    # The `init` phase runs a shell script named `init.sh` located in the root of the project. This script is responsible
+    # The `before` task ensures that the `init.sh` script has executable permissions. This is crucial for allowing the script to run without permission issues.
+    # The `init` phase runs a shell script named `init.sh` located in the `.gitpod` directory of the project. This script is responsible
     # for performing initial setup tasks such as installing dependencies and setting up the project environment. This ensures
     # that the workspace is ready for development as soon as it is launched.
