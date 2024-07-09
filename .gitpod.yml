@@ -1,1 +1,2 @@
-image: gitpod/workspace-java-17
+image:
+  file: .gitpod.Dockerfile
