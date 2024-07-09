@@ -24,4 +24,4 @@ git clone https://github.com/jenkinsci/build-timestamp-plugin.git
 
 echo "As a gentle reminder, we have already cloned two Jenkins plugin repositories: \033[36mbadge-plugin\033[0m and \033[36mbuild-timestamp-plugin\033[0m."
 echo "You can now proceed with the modernizer tool thanks to the following commands:"
-echo "\033[36mjava -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner\033[0m, "
+echo "\033[36mjava -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner\033[0m"
