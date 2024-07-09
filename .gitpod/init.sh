@@ -21,7 +21,15 @@ git clone https://github.com/jenkinsci/badge-plugin.git
 # to display build timestamps in the Jenkins UI. This plugin will also be built as part
 # of the Docker image setup.
 git clone https://github.com/jenkinsci/build-timestamp-plugin.git
+# Check if the terminal supports colors
+if tput colors > /dev/null 2>&1; then
+  color_cyan="\033[36m"
+  color_reset="\033[0m"
+else
+  color_cyan=""
+  color_reset=""
+fi
 
-echo "As a gentle reminder, we have already cloned two Jenkins plugin repositories: \033[36mbadge-plugin\033[0m and \033[36mbuild-timestamp-plugin\033[0m."
-echo "You can now proceed with the modernizer tool thanks to the following commands:"
-echo "\033[36mjava -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner\033[0m"
+echo -e "As a gentle reminder, we have already cloned two Jenkins plugin repositories: ${color_cyan}badge-plugin${color_reset} and ${color_cyan}build-timestamp-plugin${color_reset}."
+echo -e "You can now proceed with the modernizer tool thanks to the following commands:"
+echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner${color_reset}"
