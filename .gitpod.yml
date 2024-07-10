@@ -1,0 +1,15 @@
+# This .gitpod.yml configuration file is designed for a Java project using Maven. It specifies the Docker image to be used
+# and defines initialization tasks to be run when the Gitpod workspace is created.
+
+# Specify the Docker image to be used by Gitpod for the workspace. The Dockerfile is located in the same directory
+# and is named `Dockerfile`. This Dockerfile sets up the Java development environment, including JDK 17, Git, and Maven.
+image:
+  file: .gitpod/Dockerfile
+# Define tasks to be executed when the workspace is initialized. These tasks are run in the order they are listed.
+tasks:
+  - before: chmod +x .gitpod/init.sh
+    init: .gitpod/init.sh
+    # The `before` task ensures that the `init.sh` script has executable permissions. This is crucial for allowing the script to run without permission issues.
+    # The `init` phase runs a shell script named `init.sh` located in the `.gitpod` directory of the project. This script is responsible
+    # for performing initial setup tasks such as installing dependencies and setting up the project environment. This ensures
+    # that the workspace is ready for development as soon as it is launched.
