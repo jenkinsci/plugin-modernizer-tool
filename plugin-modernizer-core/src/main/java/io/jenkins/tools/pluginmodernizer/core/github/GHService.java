@@ -24,7 +24,7 @@ public class GHService {
 
     private static final String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
     private static final String FORKED_REPO_OWNER = System.getenv("GITHUB_USERNAME");
-    private static final String ORIGINAL_REPO_OWNER = "sridamul";
+    private static final String ORIGINAL_REPO_OWNER = "jenkinsci";
     private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
     private static final String PR_TITLE = "Automated PR";
 
