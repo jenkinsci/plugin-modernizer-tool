@@ -22,6 +22,14 @@ public class Settings {
 
     public static final String MAVEN_REWRITE_PLUGIN_VERSION;
 
+    public static final String GITHUB_TOKEN;
+
+    public static final String GITHUB_USERNAME;
+
+    public static final String TEST_PLUGINS_DIRECTORY;
+
+    public static final String ORGANIZATION = "jenkinsci";
+
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
 
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
@@ -40,6 +48,9 @@ public class Settings {
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
+        GITHUB_TOKEN = getGithubToken();
+        GITHUB_USERNAME = getGithubUsername();
+        TEST_PLUGINS_DIRECTORY = getTestPluginsDirectory();
     }
 
     private static Path getDefaultMavenHome() {
@@ -55,6 +66,18 @@ public class Settings {
 
     private static @Nullable String getRewritePluginVersion() {
         return readProperty("openrewrite.maven.plugin.version", "versions.properties");
+    }
+
+    private static String getGithubToken() {
+        return System.getenv("GITHUB_TOKEN");
+    }
+
+    private static String getGithubUsername() {
+        return System.getenv("GITHUB_USERNAME");
+    }
+
+    private static String getTestPluginsDirectory() {
+        return System.getProperty("user.dir") + "/test-plugins/";
     }
 
     /**

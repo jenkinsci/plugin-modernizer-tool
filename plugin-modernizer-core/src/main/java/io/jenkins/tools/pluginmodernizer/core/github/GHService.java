@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -22,15 +23,15 @@ public class GHService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GHService.class);
 
-    private static final String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
-    private static final String FORKED_REPO_OWNER = System.getenv("GITHUB_USERNAME");
-    private static final String ORIGINAL_REPO_OWNER = "jenkinsci";
+    private static final String GITHUB_TOKEN = Settings.GITHUB_TOKEN;
+    private static final String FORKED_REPO_OWNER = Settings.GITHUB_USERNAME;
+    private static final String ORIGINAL_REPO_OWNER = Settings.ORGANIZATION;
+    // TODO: Change commit message and PR title based on applied recipes
     private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
     private static final String PR_TITLE = "Automated PR";
 
     public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
-        String root = System.getProperty("user.dir");
-        File pluginDirectory = new File(root + "/test-plugins/" + pluginName);
+        File pluginDirectory = new File(Settings.TEST_PLUGINS_DIRECTORY + pluginName);
 
         GitHub github = GitHub.connectUsingOAuth(GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(ORIGINAL_REPO_OWNER + "/" + pluginName);
