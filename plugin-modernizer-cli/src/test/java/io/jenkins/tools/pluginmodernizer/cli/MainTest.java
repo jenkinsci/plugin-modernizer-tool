@@ -9,12 +9,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
 public class MainTest {
@@ -22,6 +24,9 @@ public class MainTest {
     private CommandLine commandLine;
     private ByteArrayOutputStream outputStream;
     private Main main;
+
+    @TempDir
+    Path tempDir;
 
     @BeforeEach
     public void setUp() {
@@ -56,17 +61,24 @@ public class MainTest {
     }
 
     @Test
-    public void testMissingPluginsArgument() {
-        String[] args = {"-r", "recipe1,recipe2"};
+    public void testMissingRecipesArgument() {
+        String[] args = {"-p", "plugin1,plugin2"};
         int exitCode = commandLine.execute(args);
         assertEquals(CommandLine.ExitCode.USAGE, exitCode);
     }
 
     @Test
-    public void testMissingRecipesArgument() {
-        String[] args = {"-p", "plugin1,plugin2"};
+    public void testPluginFile() throws IOException {
+        Path pluginFile = tempDir.resolve("plugins.txt");
+        Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
+        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
         int exitCode = commandLine.execute(args);
-        assertEquals(CommandLine.ExitCode.USAGE, exitCode);
+        List<String> plugins = main.setup().getPlugins();
+        assertNotNull(plugins);
+        assertEquals(3, plugins.size());
+        assertEquals("plugin1", plugins.get(0));
+        assertEquals("plugin2", plugins.get(1));
+        assertEquals("plugin3", plugins.get(2));
     }
 
     @Test
