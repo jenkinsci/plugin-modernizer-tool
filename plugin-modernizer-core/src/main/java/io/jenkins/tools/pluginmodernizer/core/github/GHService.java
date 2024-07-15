@@ -31,11 +31,18 @@ public class GHService {
 
     public GHService(Config config) {
         this.config = config;
+        validate();
     }
 
-    private static final String GITHUB_TOKEN = Settings.GITHUB_TOKEN;
-    private static final String FORKED_REPO_OWNER = Settings.GITHUB_USERNAME;
-    private static final String ORIGINAL_REPO_OWNER = Settings.ORGANIZATION;
+    private void validate() {
+        if (Settings.GITHUB_TOKEN == null) {
+            throw new IllegalArgumentException("GitHub token is not set. Please set GH_TOKEN or GITHUB_TOKEN environment variable.");
+        }
+        if (config.getGithubUsername() == null) {
+            throw new IllegalArgumentException("GitHub username/organization is not set for forked repos. Please set GH_USERNAME or GITHUB_USERNAME environment variable.");
+        }
+    }
+
     // TODO: Change commit message and PR title based on applied recipes
     private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
     private static final String PR_TITLE = "Automated PR";
@@ -43,8 +50,8 @@ public class GHService {
     public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
-        GitHub github = GitHub.connectUsingOAuth(GITHUB_TOKEN);
-        GHRepository originalRepo = github.getRepository(ORIGINAL_REPO_OWNER + "/" + pluginName);
+        GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
+        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + pluginName);
 
         getOrCreateForkedRepo(github, originalRepo);
 
@@ -69,7 +76,7 @@ public class GHService {
         if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
             LOG.info("Cloning {}", pluginName);
             Git.cloneRepository()
-                    .setURI("https://github.com/" + FORKED_REPO_OWNER + "/" + pluginName + ".git")
+                    .setURI("https://github.com/" + config.getGithubUsername() + "/" + pluginName + ".git")
                     .setDirectory(pluginDirectory.toFile())
                     .call();
             LOG.info("Cloned successfully.");
@@ -120,7 +127,7 @@ public class GHService {
     private void pushBranch(Path pluginDirectory, String branchName) throws IOException, GitAPIException {
         try (Git git = Git.open(pluginDirectory.toFile())) {
             git.push()
-                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(GITHUB_TOKEN, ""))
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(Settings.GITHUB_TOKEN, ""))
                     .setRemote("origin")
                     .setRefSpecs(new RefSpec(branchName + ":" + branchName))
                     .call();
@@ -130,8 +137,8 @@ public class GHService {
     }
 
     private void createPullRequest(String pluginName, String branchName) throws IOException {
-        GitHub github = GitHub.connectUsingOAuth(GITHUB_TOKEN);
-        GHRepository originalRepo = github.getRepository(ORIGINAL_REPO_OWNER + "/" + pluginName);
+        GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
+        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + pluginName);
 
         Optional<GHPullRequest> existingPR = checkIfPullRequestExists(originalRepo, branchName);
 
@@ -141,7 +148,7 @@ public class GHService {
             String prBody = String.format("Applied the following recipes: %s", String.join(", ", config.getRecipes()));
             GHPullRequest pr = originalRepo.createPullRequest(
                     PR_TITLE,
-                    FORKED_REPO_OWNER + ":" + branchName,
+                    config.getGithubUsername() + ":" + branchName,
                     originalRepo.getDefaultBranch(),
                     prBody
             );

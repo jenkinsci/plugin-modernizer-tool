@@ -69,11 +69,19 @@ public class Settings {
     }
 
     private static String getGithubToken() {
-        return System.getenv("GITHUB_TOKEN");
+        String token = System.getenv("GH_TOKEN");
+        if (token == null) {
+            token = System.getenv("GITHUB_TOKEN");
+        }
+        return token;
     }
 
     private static String getGithubUsername() {
-        return System.getenv("GITHUB_USERNAME");
+        String username = System.getenv("GH_USERNAME");
+        if (username == null) {
+            username = System.getenv("GITHUB_USERNAME");
+        }
+        return username;
     }
 
     private static String getTestPluginsDirectory() {
