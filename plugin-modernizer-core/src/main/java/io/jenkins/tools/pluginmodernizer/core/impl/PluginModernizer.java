@@ -21,7 +21,7 @@ public class PluginModernizer {
     public PluginModernizer(Config config) {
         this.config = config;
         this.mavenInvoker = new MavenInvoker(config);
-        this.ghService = new GHService();
+        this.ghService = new GHService(config);
     }
 
     public void start() {
@@ -44,8 +44,7 @@ public class PluginModernizer {
                 LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
                 mavenInvoker.invokeRewrite(plugin, pluginPath);
 
-                LOG.info("Creating pull request for plugin: {}", plugin);
-                ghService.commitAndCreatePR(plugin, branchName, config.getRecipes());
+                ghService.commitAndCreatePR(plugin, branchName);
             } catch (Exception e) {
                 LOG.error("Failed to process plugin: {}", plugin, e);
             }

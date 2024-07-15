@@ -1,10 +1,14 @@
 package io.jenkins.tools.pluginmodernizer.core.github;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -23,6 +27,12 @@ public class GHService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GHService.class);
 
+    private final Config config;
+
+    public GHService(Config config) {
+        this.config = config;
+    }
+
     private static final String GITHUB_TOKEN = Settings.GITHUB_TOKEN;
     private static final String FORKED_REPO_OWNER = Settings.GITHUB_USERNAME;
     private static final String ORIGINAL_REPO_OWNER = Settings.ORGANIZATION;
@@ -31,13 +41,20 @@ public class GHService {
     private static final String PR_TITLE = "Automated PR";
 
     public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
-        File pluginDirectory = new File(Settings.TEST_PLUGINS_DIRECTORY + pluginName);
+        Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
         GitHub github = GitHub.connectUsingOAuth(GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(ORIGINAL_REPO_OWNER + "/" + pluginName);
 
-        // Fork the original repo
-        GHRepository forkedRepo = github.getMyself().getRepository(pluginName);
+        getOrCreateForkedRepo(github, originalRepo);
+
+        cloneRepositoryIfNeeded(pluginDirectory, pluginName);
+
+        createAndCheckoutBranch(pluginDirectory, branchName);
+    }
+
+    private void getOrCreateForkedRepo(GitHub github, GHRepository originalRepo) throws IOException, InterruptedException {
+        GHRepository forkedRepo = github.getMyself().getRepository(originalRepo.getName());
         if (forkedRepo == null) {
             LOG.info("Forking the repository...");
             originalRepo.fork();
@@ -46,18 +63,21 @@ public class GHService {
         } else {
             LOG.info("Repository already forked.");
         }
+    }
 
-        if (!pluginDirectory.exists() || !pluginDirectory.isDirectory()) {
+    private void cloneRepositoryIfNeeded(Path pluginDirectory, String pluginName) throws GitAPIException {
+        if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
             LOG.info("Cloning {}", pluginName);
             Git.cloneRepository()
                     .setURI("https://github.com/" + FORKED_REPO_OWNER + "/" + pluginName + ".git")
-                    .setDirectory(pluginDirectory)
+                    .setDirectory(pluginDirectory.toFile())
                     .call();
             LOG.info("Cloned successfully.");
         }
+    }
 
-        try (Git git = Git.open(pluginDirectory)) {
-            // Create and switch to new branch
+    private void createAndCheckoutBranch(Path pluginDirectory, String branchName) throws IOException, GitAPIException {
+        try (Git git = Git.open(pluginDirectory.toFile())) {
             try {
                 git.checkout().setCreateBranch(true).setName(branchName).call();
             } catch (RefAlreadyExistsException e) {
@@ -67,23 +87,38 @@ public class GHService {
         }
     }
 
-    public void commitAndCreatePR(String pluginName, String branchName, List<String> recipes) throws IOException, GitAPIException {
-        String root = System.getProperty("user.dir");
-        File pluginDirectory = new File(root + "/test-plugins/" + pluginName);
+    public void commitAndCreatePR(String pluginName, String branchName) throws IOException, GitAPIException {
+        if (config.isDryRun()) {
+            LOG.info("[Dry Run] Skipping commit and pull request creation for {}", pluginName);
+            return;
+        }
 
-        try (Git git = Git.open(pluginDirectory)) {
-            // Stage all
+        LOG.info("Creating pull request for plugin: {}", pluginName);
+
+        Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
+
+        commitChanges(pluginDirectory);
+
+        pushBranch(pluginDirectory, branchName);
+
+        createPullRequest(pluginName, branchName);
+    }
+
+    private void commitChanges(Path pluginDirectory) throws IOException, GitAPIException {
+        try (Git git = Git.open(pluginDirectory.toFile())) {
             git.add().addFilepattern(".").call();
 
-            // Commit
             git.commit()
                     .setMessage(COMMIT_MESSAGE)
                     .setSign(false)  // Maybe a new option to sign commit?
                     .call();
 
             LOG.info("Changes committed");
+        }
+    }
 
-            // Push the new branch to your fork
+    private void pushBranch(Path pluginDirectory, String branchName) throws IOException, GitAPIException {
+        try (Git git = Git.open(pluginDirectory.toFile())) {
             git.push()
                     .setCredentialsProvider(new UsernamePasswordCredentialsProvider(GITHUB_TOKEN, ""))
                     .setRemote("origin")
@@ -92,24 +127,18 @@ public class GHService {
 
             LOG.info("Pushed changes to forked repository.");
         }
+    }
 
+    private void createPullRequest(String pluginName, String branchName) throws IOException {
         GitHub github = GitHub.connectUsingOAuth(GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(ORIGINAL_REPO_OWNER + "/" + pluginName);
 
-        // Check if a PR with the same branch already exists
-        List<GHPullRequest> pullRequests = originalRepo.getPullRequests(GHIssueState.OPEN);
-        boolean prExists = false;
-        for (GHPullRequest pr : pullRequests) {
-            if (pr.getHead().getRef().equals(branchName) && pr.getTitle().equals(PR_TITLE)) {
-                LOG.info("Pull request already exists: {}", pr.getHtmlUrl());
-                prExists = true;
-                break;
-            }
-        }
+        Optional<GHPullRequest> existingPR = checkIfPullRequestExists(originalRepo, branchName);
 
-        // Create a PR
-        if (!prExists) {
-            String prBody = String.format("Applied the following recipes: %s", String.join(", ", recipes));
+        if (existingPR.isPresent()) {
+            LOG.info("Pull request already exists: {}", existingPR.get().getHtmlUrl());
+        } else {
+            String prBody = String.format("Applied the following recipes: %s", String.join(", ", config.getRecipes()));
             GHPullRequest pr = originalRepo.createPullRequest(
                     PR_TITLE,
                     FORKED_REPO_OWNER + ":" + branchName,
@@ -119,5 +148,12 @@ public class GHService {
 
             LOG.info("Pull request created: {}", pr.getHtmlUrl());
         }
+    }
+
+    private Optional<GHPullRequest> checkIfPullRequestExists(GHRepository originalRepo, String branchName) throws IOException {
+        List<GHPullRequest> pullRequests = originalRepo.getPullRequests(GHIssueState.OPEN);
+        return pullRequests.stream()
+                .filter(pr -> pr.getHead().getRef().equals(branchName) && pr.getTitle().equals(PR_TITLE))
+                .findFirst();
     }
 }
