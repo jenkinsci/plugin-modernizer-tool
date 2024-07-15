@@ -40,5 +40,9 @@
     <logger name="io.jenkins.tools.pluginmodernizer" level="TRACE" />
     <logger name="jdk.event.security" level="INFO" />
     <logger name="java.lang.ProcessBuilder" level="WARN" />
+    <logger name="org.eclipse.jgit.internal.storage.file" level="INFO" />
+    <logger name="org.eclipse.jgit.internal.util" level="INFO" />
+    <logger name="org.eclipse.jgit.transport" level="INFO" />
+    <logger name="org.eclipse.jgit.util" level="INFO" />
     <logger name="sun.net.www.protocol.http" level="INFO" />
 </configuration>
