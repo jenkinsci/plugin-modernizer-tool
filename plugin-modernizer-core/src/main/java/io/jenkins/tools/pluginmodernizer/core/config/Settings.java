@@ -77,9 +77,9 @@ public class Settings {
     }
 
     private static String getGithubOwner() {
-        String username = System.getenv("GH_USERNAME");
+        String username = System.getenv("GH_OWNER");
         if (username == null) {
-            username = System.getenv("GITHUB_USERNAME");
+            username = System.getenv("GITHUB_OWNER");
         }
         return username;
     }
