@@ -7,7 +7,7 @@
 
 # Run Maven clean install to ensure all project dependencies are correctly installed
 # and the project is built successfully.
-mvn clean install
+mvn clean install -DskipTests
 
 # Create a directory for the test plugins and move into it. This directory will serve
 # as a workspace for cloning and building Jenkins plugin repositories.
@@ -53,7 +53,10 @@ else
 fi
 
 echo -e "Hello $GITPOD_GIT_USER_NAME"
-echo -e "Your temporary GitHub token is ${color_cyan}$SCM_TOKEN${color_reset}"
+echo -e "This tool needs a GitHub token to work."
+echo -e "GitPod created a temporary GitHub token for you: ${color_cyan}$SCM_TOKEN${color_reset}"
+echo -e "We'll store it in the ${color_cyan}GH_TOKEN${color_reset} environment variable."
+export GH_TOKEN="$SCM_TOKEN"
 echo -e "As a gentle reminder, we have already cloned two Jenkins plugin repositories: ${color_cyan}badge-plugin${color_reset} and ${color_cyan}build-timestamp-plugin${color_reset}."
 echo -e "You can now proceed with the modernizer tool thanks to the following commands:"
 echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner${color_reset}"
