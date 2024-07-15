@@ -32,6 +32,8 @@ public class Settings {
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
 
+    public static final String UPDATE_CENTER_URL = "https://updates.jenkins.io/current/update-center.actual.json";
+
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
     static {

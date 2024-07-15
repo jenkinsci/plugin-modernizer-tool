@@ -7,9 +7,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -48,11 +50,16 @@ public class GHService {
     private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
     private static final String PR_TITLE = "Automated PR";
 
+    private String repoName;
+
     public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
+        JsonNode jsonNode = JenkinsPluginInfo.getCachedJsonNode(config.getCachePath());
+        repoName = JenkinsPluginInfo.extractRepoName(pluginName, jsonNode);
+
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
-        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + pluginName);
+        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
 
         getOrCreateForkedRepo(github, originalRepo);
 
@@ -116,7 +123,7 @@ public class GHService {
         if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
             LOG.info("Cloning {}", pluginName);
             Git.cloneRepository()
-                    .setURI("https://github.com/" + config.getGithubOwner() + "/" + pluginName + ".git")
+                    .setURI("https://github.com/" + config.getGithubOwner() + "/" + repoName + ".git")
                     .setDirectory(pluginDirectory.toFile())
                     .call();
             LOG.info("Cloned successfully.");
@@ -148,7 +155,7 @@ public class GHService {
 
         pushBranch(pluginDirectory, branchName);
 
-        createPullRequest(pluginName, branchName);
+        createPullRequest(branchName);
     }
 
     private void commitChanges(Path pluginDirectory) throws IOException, GitAPIException {
@@ -176,9 +183,9 @@ public class GHService {
         }
     }
 
-    private void createPullRequest(String pluginName, String branchName) throws IOException {
+    private void createPullRequest(String branchName) throws IOException {
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
-        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + pluginName);
+        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
 
         Optional<GHPullRequest> existingPR = checkIfPullRequestExists(originalRepo, branchName);
 
