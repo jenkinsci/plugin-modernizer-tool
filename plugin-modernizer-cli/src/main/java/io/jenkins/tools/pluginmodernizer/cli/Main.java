@@ -37,6 +37,9 @@ public class Main implements Runnable {
     @Option(names = {"-r", "--recipes"}, required = true, description = "List of Recipes to be applied.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
     private List<String> recipes;
 
+    @Option(names = {"-g", "--github-owner"}, description = "GitHub owner for forked repositories (only username supported for now)")
+    private String githubUsername = Settings.GITHUB_USERNAME;
+
     @Option(names = {"-n", "--dry-run"}, description = "Perform a dry run without making any changes.")
     public boolean dryRun;
 
@@ -56,6 +59,7 @@ public class Main implements Runnable {
         Config.DEBUG = debug;
         return Config.builder()
                 .withVersion(getVersion())
+                .withGitHubUsername(githubUsername)
                 .withPlugins(plugins)
                 .withRecipes(recipes)
                 .withDryRun(dryRun)
