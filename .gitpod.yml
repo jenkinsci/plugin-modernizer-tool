@@ -13,3 +13,12 @@ tasks:
     # The `init` phase runs a shell script named `init.sh` located in the `.gitpod` directory of the project. This script is responsible
     # for performing initial setup tasks such as installing dependencies and setting up the project environment. This ensures
     # that the workspace is ready for development as soon as it is launched.
+  - name: Trying to export environment variables
+    command: |
+              GH_TOKEN="$SCM_TOKEN"
+              export GH_TOKEN
+              # Make a GET request to the GitHub API to fetch user information
+              response=$(curl -sH "Authorization: token $SCM_TOKEN" https://api.github.com/user)
+              # Extract the GitHub handle from the response
+              handle=$(echo $response | jq -r '.login')
+              export handle
