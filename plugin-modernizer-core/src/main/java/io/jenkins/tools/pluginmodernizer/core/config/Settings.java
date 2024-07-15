@@ -28,7 +28,7 @@ public class Settings {
 
     public static final String TEST_PLUGINS_DIRECTORY;
 
-    public static final String ORGANIZATION = "jenkinsci";
+    public static final String ORGANIZATION = "sridamul";
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
 

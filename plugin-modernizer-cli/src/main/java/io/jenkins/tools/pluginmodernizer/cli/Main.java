@@ -10,6 +10,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
+import io.jenkins.tools.pluginmodernizer.core.utils.PluginListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -31,13 +32,16 @@ public class Main implements Runnable {
         new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);
     }
 
-    @Option(names = {"-p", "--plugins"}, required = true, description = "List of Plugins to Modernize.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
+    @Option(names = {"-p", "--plugins"}, description = "List of Plugins to Modernize.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
     private List<String> plugins;
 
     @Option(names = {"-r", "--recipes"}, required = true, description = "List of Recipes to be applied.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
     private List<String> recipes;
 
-    @Option(names = {"-g", "--github-owner"}, description = "GitHub owner for forked repositories (only username supported for now)")
+    @Option(names = {"-f", "--plugin-file"}, description = "Path to the file that contains a list of plugins")
+    private Path pluginFile;
+
+    @Option(names = {"-g", "--github-owner"}, description = "GitHub owner for forked repositories")
     private String githubOwner = Settings.GITHUB_OWNER;
 
     @Option(names = {"-n", "--dry-run"}, description = "Perform a dry run without making any changes.")
@@ -100,6 +104,10 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
+        if (pluginFile != null && (plugins == null || plugins.isEmpty())) {
+            plugins = PluginListParser.loadPluginsFromFile(pluginFile);
+        }
+
         if (listRecipes) {
             listAvailableRecipes();
             return;
