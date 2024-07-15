@@ -53,15 +53,14 @@ public class PluginListParserTest {
 
     @Test
     public void testLoadPluginsFromResourceFile() {
-        // Load plugins.txt from resources
         Path resourceFilePath = Path.of("src", "test", "resources", "plugins.txt");
 
         List<String> plugins = PluginListParser.loadPluginsFromFile(resourceFilePath);
 
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
-        assertTrue(plugins.contains("jobcacher-plugin"));
-        assertTrue(plugins.contains("login-theme-plugin"));
-        assertTrue(plugins.contains("next-executions-plugin"));
+        assertTrue(plugins.contains("jobcacher"));
+        assertTrue(plugins.contains("login-theme"));
+        assertTrue(plugins.contains("next-executions"));
     }
 }
