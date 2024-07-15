@@ -27,6 +27,7 @@ public class PluginModernizer {
     public void start() {
         LOG.info("Plugins: {}", config.getPlugins());
         LOG.info("Recipes: {}", config.getRecipes());
+        LOG.info("GitHub owner: {}", config.getGithubOwner());
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
