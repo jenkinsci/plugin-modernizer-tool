@@ -52,6 +52,7 @@ else
   color_reset=""
 fi
 
+echo -e "Hello $GITPOD_GIT_USER_NAME"
 echo -e "As a gentle reminder, we have already cloned two Jenkins plugin repositories: ${color_cyan}badge-plugin${color_reset} and ${color_cyan}build-timestamp-plugin${color_reset}."
 echo -e "You can now proceed with the modernizer tool thanks to the following commands:"
 echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner${color_reset}"
