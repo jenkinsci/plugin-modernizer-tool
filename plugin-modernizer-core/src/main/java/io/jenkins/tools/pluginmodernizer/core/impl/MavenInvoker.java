@@ -1,10 +1,10 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -172,7 +172,8 @@ public class MavenInvoker {
 
     private InvocationRequest createInvocationRequest(String pluginPath, List<String> goals) {
         InvocationRequest request = new DefaultInvocationRequest();
-        request.setPomFile(new File(pluginPath, "pom.xml"));
+        Path pomPath = Paths.get(pluginPath, "pom.xml");
+        request.setPomFile(pomPath.toFile());
         request.setGoals(goals);
         return request;
     }
