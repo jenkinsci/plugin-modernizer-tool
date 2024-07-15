@@ -38,5 +38,7 @@
         <appender-ref ref="SIFT" />
     </root>
     <logger name="io.jenkins.tools.pluginmodernizer" level="TRACE" />
+    <logger name="jdk.event.security" level="INFO" />
     <logger name="java.lang.ProcessBuilder" level="WARN" />
+    <logger name="sun.net.www.protocol.http" level="INFO" />
 </configuration>
