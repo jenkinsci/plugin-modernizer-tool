@@ -12,11 +12,11 @@ public class Config {
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
-    private final String githubUsername;
+    private final String githubOwner;
 
-    private Config(String version, String githubUsername, List<String> plugins, List<String> recipes, Path cachePath, Path mavenHome, boolean dryRun) {
+    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, Path cachePath, Path mavenHome, boolean dryRun) {
         this.version = version;
-        this.githubUsername = githubUsername;
+        this.githubOwner = githubOwner;
         this.plugins = plugins;
         this.recipes = recipes;
         this.cachePath = cachePath;
@@ -28,8 +28,8 @@ public class Config {
         return version;
     }
 
-    public String getGithubUsername() {
-        return githubUsername;
+    public String getGithubOwner() {
+        return githubOwner;
     }
 
     public List<String> getPlugins() {
@@ -58,7 +58,7 @@ public class Config {
 
     public static class Builder {
         private String version;
-        private String githubUsername = Settings.GITHUB_USERNAME;
+        private String githubOwner = Settings.GITHUB_OWNER;
         private List<String> plugins;
         private List<String> recipes;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
@@ -70,8 +70,8 @@ public class Config {
             return this;
         }
 
-        public Builder withGitHubUsername(String githubUsername) {
-            this.githubUsername = githubUsername;
+        public Builder withGitHubOwner(String githubOwner) {
+            this.githubOwner = githubOwner;
             return this;
         }
 
@@ -105,7 +105,7 @@ public class Config {
         }
 
         public Config build() {
-            return new Config(version, githubUsername, plugins, recipes, cachePath, mavenHome, dryRun);
+            return new Config(version, githubOwner, plugins, recipes, cachePath, mavenHome, dryRun);
         }
     }
 

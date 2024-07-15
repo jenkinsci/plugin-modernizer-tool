@@ -16,6 +16,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.kohsuke.github.GHIssueState;
+import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -38,8 +39,8 @@ public class GHService {
         if (Settings.GITHUB_TOKEN == null) {
             throw new IllegalArgumentException("GitHub token is not set. Please set GH_TOKEN or GITHUB_TOKEN environment variable.");
         }
-        if (config.getGithubUsername() == null) {
-            throw new IllegalArgumentException("GitHub username/organization is not set for forked repos. Please set GH_USERNAME or GITHUB_USERNAME environment variable.");
+        if (config.getGithubOwner() == null) {
+            throw new IllegalArgumentException("GitHub owner (username/organization) is not set. Please set GH_OWNER or GITHUB_OWNER environment variable.");
         }
     }
 
@@ -61,22 +62,61 @@ public class GHService {
     }
 
     private void getOrCreateForkedRepo(GitHub github, GHRepository originalRepo) throws IOException, InterruptedException {
-        GHRepository forkedRepo = github.getMyself().getRepository(originalRepo.getName());
-        if (forkedRepo == null) {
-            LOG.info("Forking the repository...");
-            originalRepo.fork();
-            Thread.sleep(5000); // Ensure the completion of Fork
-            LOG.info("Repository forked successfully.");
+        GHOrganization organization = getOrganization(github, config.getGithubOwner());
+
+        if (organization != null) {
+            if (isRepositoryForked(organization, originalRepo.getName())) {
+                // TODO: Fn to sync upstream
+                LOG.info("Repository already forked to organization.");
+            } else {
+                forkRepositoryToOrganization(originalRepo, organization);
+            }
         } else {
-            LOG.info("Repository already forked.");
+            if (isRepositoryForked(github, originalRepo.getName())) {
+                // TODO: Fn to sync upstream
+                LOG.info("Repository already forked to personal account.");
+            } else {
+                forkRepositoryToPersonalAccount(originalRepo);
+            }
         }
+    }
+
+    private GHOrganization getOrganization(GitHub github, String owner) {
+        try {
+            return github.getOrganization(owner);
+        } catch (IOException e) {
+            LOG.debug("Owner is not an organization: {}", owner, e);
+            return null;
+        }
+    }
+
+    private boolean isRepositoryForked(GHOrganization organization, String repoName) throws IOException {
+        return organization.getRepository(repoName) != null;
+    }
+
+    private boolean isRepositoryForked(GitHub github, String repoName) throws IOException {
+        return github.getMyself().getRepository(repoName) != null;
+    }
+
+    private void forkRepositoryToOrganization(GHRepository originalRepo, GHOrganization organization) throws IOException, InterruptedException {
+        LOG.info("Forking the repository to organization...");
+        originalRepo.forkTo(organization);
+        Thread.sleep(5000); // Ensure the completion of Fork
+        LOG.info("Repository forked to organization successfully.");
+    }
+
+    private void forkRepositoryToPersonalAccount(GHRepository originalRepo) throws IOException, InterruptedException {
+        LOG.info("Forking the repository to personal account...");
+        originalRepo.fork();
+        Thread.sleep(5000); // Ensure the completion of Fork
+        LOG.info("Repository forked to personal account successfully.");
     }
 
     private void cloneRepositoryIfNeeded(Path pluginDirectory, String pluginName) throws GitAPIException {
         if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
             LOG.info("Cloning {}", pluginName);
             Git.cloneRepository()
-                    .setURI("https://github.com/" + config.getGithubUsername() + "/" + pluginName + ".git")
+                    .setURI("https://github.com/" + config.getGithubOwner() + "/" + pluginName + ".git")
                     .setDirectory(pluginDirectory.toFile())
                     .call();
             LOG.info("Cloned successfully.");
@@ -148,7 +188,7 @@ public class GHService {
             String prBody = String.format("Applied the following recipes: %s", String.join(", ", config.getRecipes()));
             GHPullRequest pr = originalRepo.createPullRequest(
                     PR_TITLE,
-                    config.getGithubUsername() + ":" + branchName,
+                    config.getGithubOwner() + ":" + branchName,
                     originalRepo.getDefaultBranch(),
                     prBody
             );

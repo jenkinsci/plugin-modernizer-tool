@@ -24,7 +24,7 @@ public class Settings {
 
     public static final String GITHUB_TOKEN;
 
-    public static final String GITHUB_USERNAME;
+    public static final String GITHUB_OWNER;
 
     public static final String TEST_PLUGINS_DIRECTORY;
 
@@ -49,7 +49,7 @@ public class Settings {
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
         GITHUB_TOKEN = getGithubToken();
-        GITHUB_USERNAME = getGithubUsername();
+        GITHUB_OWNER = getGithubOwner();
         TEST_PLUGINS_DIRECTORY = getTestPluginsDirectory();
     }
 
@@ -76,7 +76,7 @@ public class Settings {
         return token;
     }
 
-    private static String getGithubUsername() {
+    private static String getGithubOwner() {
         String username = System.getenv("GH_USERNAME");
         if (username == null) {
             username = System.getenv("GITHUB_USERNAME");
