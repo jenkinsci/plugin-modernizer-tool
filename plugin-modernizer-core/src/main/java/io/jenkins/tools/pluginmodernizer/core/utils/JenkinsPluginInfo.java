@@ -11,14 +11,16 @@ import java.nio.file.Path;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JenkinsPluginInfo {
-    private static final Logger logger = LoggerFactory.getLogger(JenkinsPluginInfo.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JenkinsPluginInfo.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "safe url")
     public static JsonNode getCachedJsonNode(Path cacheDir) throws IOException {
         Path cacheFile = cacheDir.resolve("update-center.json");
 
@@ -27,7 +29,7 @@ public class JenkinsPluginInfo {
         }
 
         if (Files.exists(cacheFile)) {
-            String jsonStr = new String(Files.readAllBytes(cacheFile), StandardCharsets.UTF_8);
+            String jsonStr = Files.readString(cacheFile);
             return objectMapper.readTree(jsonStr);
         } else {
             URL apiUrl = new URL(Settings.UPDATE_CENTER_URL);
@@ -45,14 +47,14 @@ public class JenkinsPluginInfo {
                     response.append(inputLine);
                 }
 
-                Files.write(cacheFile, response.toString().getBytes(StandardCharsets.UTF_8));
+                Files.writeString(cacheFile, response.toString());
                 return objectMapper.readTree(response.toString());
             } finally {
                 if (in != null) {
                     try {
                         in.close();
                     } catch (IOException e) {
-                        logger.error("Error closing BufferedReader: ", e);
+                        LOG.error("Error closing BufferedReader: ", e);
                     }
                 }
                 if (con != null) {

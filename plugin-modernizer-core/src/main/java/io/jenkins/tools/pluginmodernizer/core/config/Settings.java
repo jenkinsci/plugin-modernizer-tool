@@ -32,7 +32,7 @@ public class Settings {
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
 
-    public static final String UPDATE_CENTER_URL = "https://updates.jenkins.io/current/update-center.actual.json";
+    public static final String UPDATE_CENTER_URL;
 
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
@@ -50,6 +50,7 @@ public class Settings {
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
+        UPDATE_CENTER_URL = getUpdateCenterUrl();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
         TEST_PLUGINS_DIRECTORY = getTestPluginsDirectory();
@@ -68,6 +69,10 @@ public class Settings {
 
     private static @Nullable String getRewritePluginVersion() {
         return readProperty("openrewrite.maven.plugin.version", "versions.properties");
+    }
+
+    private static @Nullable String getUpdateCenterUrl() {
+        return readProperty("update.center.url", "update_center.properties");
     }
 
     private static String getGithubToken() {
@@ -101,7 +106,7 @@ public class Settings {
         try (InputStream input = Settings.class.getClassLoader().getResourceAsStream(resource)) {
             if (input == null) {
                 LOG.error("Error reading {} from settings", resource);
-                throw new IOException(String.format("Unable to to load `%s`", resource));
+                throw new IOException(String.format("Unable to load `%s`", resource));
             }
             properties.load(input);
         }
