@@ -72,13 +72,43 @@ public class MainTest {
         Path pluginFile = tempDir.resolve("plugins.txt");
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
-        int exitCode = commandLine.execute(args);
+        commandLine.execute(args);
         List<String> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
-        assertEquals("plugin1", plugins.get(0));
-        assertEquals("plugin2", plugins.get(1));
-        assertEquals("plugin3", plugins.get(2));
+        assertTrue(plugins.contains("plugin1"));
+        assertTrue(plugins.contains("plugin2"));
+        assertTrue(plugins.contains("plugin3"));
+    }
+
+    @Test
+    public void testPluginFileAlongWithPluginOptionWithoutCommonPlugins() throws IOException {
+        Path pluginFile = tempDir.resolve("plugins.txt");
+        Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
+        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
+        commandLine.execute(args);
+        List<String> plugins = main.setup().getPlugins();
+        assertNotNull(plugins);
+        assertEquals(5, plugins.size());
+        assertTrue(plugins.contains("plugin1"));
+        assertTrue(plugins.contains("plugin2"));
+        assertTrue(plugins.contains("plugin3"));
+        assertTrue(plugins.contains("plugin4"));
+        assertTrue(plugins.contains("plugin5"));
+    }
+
+    @Test
+    public void testPluginFileAlongWithPluginOptionWithCommonPlugins() throws IOException {
+        Path pluginFile = tempDir.resolve("plugins.txt");
+        Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
+        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin2,plugin3"};
+        commandLine.execute(args);
+        List<String> plugins = main.setup().getPlugins();
+        assertNotNull(plugins);
+        assertEquals(3, plugins.size());
+        assertTrue(plugins.contains("plugin1"));
+        assertTrue(plugins.contains("plugin2"));
+        assertTrue(plugins.contains("plugin3"));
     }
 
     @Test

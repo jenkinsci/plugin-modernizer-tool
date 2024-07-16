@@ -2,6 +2,8 @@ package io.jenkins.tools.pluginmodernizer.cli;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -102,11 +104,24 @@ public class Main implements Runnable {
         }
     }
 
+    private List<String> loadPlugins() {
+        List<String> loadedPlugins = new ArrayList<>();
+
+        if (pluginFile != null) {
+            List<String> pluginsFromFile = PluginListParser.loadPluginsFromFile(pluginFile);
+            loadedPlugins.addAll(pluginsFromFile);
+        }
+
+        if (plugins != null) {
+            loadedPlugins.addAll(plugins);
+        }
+
+        return new ArrayList<>(new HashSet<>(loadedPlugins));
+    }
+
     @Override
     public void run() {
-        if (pluginFile != null && (plugins == null || plugins.isEmpty())) {
-            plugins = PluginListParser.loadPluginsFromFile(pluginFile);
-        }
+        plugins = loadPlugins();
 
         if (listRecipes) {
             listAvailableRecipes();
