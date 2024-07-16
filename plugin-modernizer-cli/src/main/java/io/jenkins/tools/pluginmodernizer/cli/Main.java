@@ -52,6 +52,9 @@ public class Main implements Runnable {
     @Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
     public boolean debug;
 
+    @Option(names = "--jenkins-update-center", description = "Sets main update center; will override JENKINS_UC environment variable. If not set via CLI option or environment variable, will use default update center url")
+    public String jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
+
     @Option(names = {"-c", "--cache-path"}, description = "Path to the cache directory.")
     public Path cachePath = Settings.DEFAULT_CACHE_PATH;
 
@@ -69,6 +72,7 @@ public class Main implements Runnable {
                 .withPlugins(plugins)
                 .withRecipes(recipes)
                 .withDryRun(dryRun)
+                .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withCachePath(cachePath)
                 .withMavenHome(mavenHome)
                 .build();

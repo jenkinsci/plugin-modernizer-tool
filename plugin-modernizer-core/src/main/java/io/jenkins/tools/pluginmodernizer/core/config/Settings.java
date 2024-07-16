@@ -16,6 +16,8 @@ public class Settings {
 
     private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
 
+    public static final String DEFAULT_UPDATE_CENTER_URL;
+
     public static final Path DEFAULT_CACHE_PATH;
 
     public static final Path DEFAULT_MAVEN_HOME;
@@ -31,8 +33,6 @@ public class Settings {
     public static final String ORGANIZATION = "jenkinsci";
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
-
-    public static final String UPDATE_CENTER_URL;
 
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
@@ -50,7 +50,7 @@ public class Settings {
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
-        UPDATE_CENTER_URL = getUpdateCenterUrl();
+        DEFAULT_UPDATE_CENTER_URL = getUpdateCenterUrl();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
         TEST_PLUGINS_DIRECTORY = getTestPluginsDirectory();

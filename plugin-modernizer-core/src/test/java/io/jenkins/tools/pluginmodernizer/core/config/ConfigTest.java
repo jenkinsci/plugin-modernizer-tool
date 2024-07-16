@@ -17,24 +17,30 @@ public class ConfigTest {
     @Test
     public void testConfigBuilderWithAllFields() {
         String version = "1.0";
+        String githubOwner = "test-owner";
         List<String> plugins = Arrays.asList("plugin1", "plugin2");
         List<String> recipes = Arrays.asList("recipe1", "recipe2");
+        String jenkinsUpdateCenter = "https://updates.jenkins.io/current/update-center.actual.json";
         Path cachePath = Paths.get("/path/to/cache");
         Path mavenHome = Paths.get("/path/to/maven");
         boolean dryRun = true;
 
         Config config = Config.builder()
                 .withVersion(version)
+                .withGitHubOwner(githubOwner)
                 .withPlugins(plugins)
                 .withRecipes(recipes)
+                .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withCachePath(cachePath)
                 .withMavenHome(mavenHome)
                 .withDryRun(dryRun)
                 .build();
 
         assertEquals(version, config.getVersion());
+        assertEquals(githubOwner, config.getGithubOwner());
         assertEquals(plugins, config.getPlugins());
         assertEquals(recipes, config.getRecipes());
+        assertEquals(jenkinsUpdateCenter, config.getJenkinsUpdateCenter());
         assertEquals(cachePath, config.getCachePath());
         assertEquals(mavenHome, config.getMavenHome());
         assertTrue(config.isDryRun());
@@ -47,6 +53,7 @@ public class ConfigTest {
         assertNull(config.getVersion());
         assertNull(config.getPlugins());
         assertNull(config.getRecipes());
+        assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
         assertEquals(Settings.DEFAULT_MAVEN_HOME, config.getMavenHome());
         assertFalse(config.isDryRun());
@@ -65,6 +72,7 @@ public class ConfigTest {
         assertEquals(version, config.getVersion());
         assertEquals(plugins, config.getPlugins());
         assertNull(config.getRecipes());
+        assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
         assertEquals(Settings.DEFAULT_MAVEN_HOME, config.getMavenHome());
         assertFalse(config.isDryRun());
@@ -73,6 +81,7 @@ public class ConfigTest {
     @Test
     public void testConfigBuilderWithNullValues() {
         Config config = Config.builder()
+                .withJenkinsUpdateCenter(null)
                 .withCachePath(null)
                 .withMavenHome(null)
                 .build();
@@ -80,6 +89,7 @@ public class ConfigTest {
         assertNull(config.getVersion());
         assertNull(config.getPlugins());
         assertNull(config.getRecipes());
+        assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
         assertEquals(Settings.DEFAULT_MAVEN_HOME, config.getMavenHome());
         assertFalse(config.isDryRun());

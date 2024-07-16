@@ -141,6 +141,13 @@ public class MainTest {
     }
 
     @Test
+    public void testJenkinsUpdateCenterOption() {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--jenkins-update-center", "test-url"};
+        commandLine.execute(args);
+        assertEquals("test-url", main.setup().getJenkinsUpdateCenter());
+    }
+
+    @Test
     public void testListRecipesOption() {
         String[] args = {"-l"};
         commandLine.execute(args);
