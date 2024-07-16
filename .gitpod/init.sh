@@ -55,7 +55,10 @@ fi
 echo -e "Hello $GITPOD_GIT_USER_NAME"
 echo -e "This tool needs a GitHub token to work."
 echo -e "GitPod created a temporary GitHub token for you: ${color_cyan}$SCM_TOKEN${color_reset}"
-echo -e "We'll store it in the ${color_cyan}GH_TOKEN${color_reset} environment variable."
+echo -e "If that's fine with you, we'll store it in an environment variable so the tool can use it."
+ echo -e "Please enter this command in the terminal: ${color_cyan}export GH_TOKEN=$SCM_TOKEN${color_reset}"
+echo -e "If you want to use a different token, please set it in the ${color_cyan}GH_TOKEN${color_reset} environment variable."
+echo -e "If you want to know more about GitHub tokens, please visit https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens"
 GH_TOKEN="$SCM_TOKEN"
 export GH_TOKEN
 # Make a GET request to the GitHub API to fetch user information
