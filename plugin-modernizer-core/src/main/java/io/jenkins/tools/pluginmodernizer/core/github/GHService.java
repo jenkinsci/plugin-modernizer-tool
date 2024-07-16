@@ -17,6 +17,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.kohsuke.github.GHFileNotFoundException;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHPullRequest;
@@ -61,38 +62,36 @@ public class GHService {
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
 
-        getOrCreateForkedRepo(github, originalRepo);
-
-        cloneRepositoryIfNeeded(pluginDirectory, pluginName);
-
+        forkRepository(github, originalRepo);
+        fetchRepository(pluginDirectory, pluginName);
         createAndCheckoutBranch(pluginDirectory, branchName);
     }
 
-    private void getOrCreateForkedRepo(GitHub github, GHRepository originalRepo) throws IOException, InterruptedException {
+    private void forkRepository(GitHub github, GHRepository originalRepo) throws IOException, InterruptedException {
         GHOrganization organization = getOrganization(github, config.getGithubOwner());
 
         if (organization != null) {
             if (isRepositoryForked(organization, originalRepo.getName())) {
                 // TODO: Fn to sync upstream
-                LOG.info("Repository already forked to organization.");
+                LOG.info("Repository already forked to organization {}", organization.getLogin());
             } else {
-                forkRepositoryToOrganization(originalRepo, organization);
+                forkRepository(originalRepo, organization);
             }
         } else {
             if (isRepositoryForked(github, originalRepo.getName())) {
                 // TODO: Fn to sync upstream
-                LOG.info("Repository already forked to personal account.");
+                LOG.info("Repository already forked to personal account {}", github.getMyself().getLogin());
             } else {
-                forkRepositoryToPersonalAccount(originalRepo);
+                forkRepository(originalRepo);
             }
         }
     }
 
-    private GHOrganization getOrganization(GitHub github, String owner) {
+    private GHOrganization getOrganization(GitHub github, String owner) throws IOException {
         try {
             return github.getOrganization(owner);
-        } catch (IOException e) {
-            LOG.debug("Owner is not an organization: {}", owner, e);
+        } catch (GHFileNotFoundException e) {
+            LOG.debug("Owner is not an organization: {}", owner);
             return null;
         }
     }
@@ -105,28 +104,36 @@ public class GHService {
         return github.getMyself().getRepository(repoName) != null;
     }
 
-    private void forkRepositoryToOrganization(GHRepository originalRepo, GHOrganization organization) throws IOException, InterruptedException {
+    private void forkRepository(GHRepository originalRepo, GHOrganization organization) throws IOException, InterruptedException {
         LOG.info("Forking the repository to organization...");
-        originalRepo.forkTo(organization);
-        Thread.sleep(5000); // Ensure the completion of Fork
-        LOG.info("Repository forked to organization successfully.");
+        if (organization == null) {
+            LOG.info("Forking the repository to personal account...");
+            originalRepo.fork();
+            LOG.info("Repository forked to personal account successfully.");
+        }
+        else {
+            LOG.info("Forking the repository to organisation...");
+            originalRepo.forkTo(organization);
+            LOG.info("Repository forked to organization successfully.");
+        }
     }
 
-    private void forkRepositoryToPersonalAccount(GHRepository originalRepo) throws IOException, InterruptedException {
-        LOG.info("Forking the repository to personal account...");
-        originalRepo.fork();
-        Thread.sleep(5000); // Ensure the completion of Fork
-        LOG.info("Repository forked to personal account successfully.");
+    private void forkRepository(GHRepository originalRepo) throws IOException, InterruptedException {
+        forkRepository(originalRepo, null);
     }
 
-    private void cloneRepositoryIfNeeded(Path pluginDirectory, String pluginName) throws GitAPIException {
+    private void fetchRepository(Path pluginDirectory, String pluginName) throws GitAPIException {
+        String uri = "https://github.com/" + config.getGithubOwner() + "/" + repoName + ".git";
         if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
-            LOG.info("Cloning {}", pluginName);
+            LOG.debug("Cloning {}", pluginName);
             Git.cloneRepository()
-                    .setURI("https://github.com/" + config.getGithubOwner() + "/" + repoName + ".git")
+                    .setURI(uri)
                     .setDirectory(pluginDirectory.toFile())
                     .call();
-            LOG.info("Cloned successfully.");
+            LOG.debug("Cloned successfully from {}", uri);
+        }
+        else {
+            // TODO: Cleanup and fetch latest changes. Also ensure on the main branch
         }
     }
 
@@ -143,7 +150,7 @@ public class GHService {
 
     public void commitAndCreatePR(String pluginName, String branchName) throws IOException, GitAPIException {
         if (config.isDryRun()) {
-            LOG.info("[Dry Run] Skipping commit and pull request creation for {}", pluginName);
+            LOG.info("Skipping commit and pull request creation for {}", pluginName);
             return;
         }
 
