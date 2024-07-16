@@ -17,6 +17,7 @@ public class PluginListParser {
     public static List<String> loadPluginsFromFile(Path pluginFile) {
         try (Stream<String> lines = Files.lines(pluginFile)) {
             return lines.filter(line -> !line.trim().isEmpty())
+                        .map(line -> line.split(":")[0])
                         .collect(Collectors.toList());
         } catch (IOException e) {
             LOG.error("Error reading plugins from file: {}", e.getMessage());
