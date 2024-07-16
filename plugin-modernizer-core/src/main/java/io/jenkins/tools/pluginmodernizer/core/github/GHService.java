@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
@@ -56,8 +55,7 @@ public class GHService {
     public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
-        JsonNode jsonNode = JenkinsPluginInfo.getCachedJsonNode(config.getCachePath());
-        repoName = JenkinsPluginInfo.extractRepoName(pluginName, jsonNode);
+        repoName = JenkinsPluginInfo.extractRepoName(pluginName, config.getCachePath());
 
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
@@ -105,7 +103,6 @@ public class GHService {
     }
 
     private void forkRepository(GHRepository originalRepo, GHOrganization organization) throws IOException, InterruptedException {
-        LOG.info("Forking the repository to organization...");
         if (organization == null) {
             LOG.info("Forking the repository to personal account...");
             originalRepo.fork();

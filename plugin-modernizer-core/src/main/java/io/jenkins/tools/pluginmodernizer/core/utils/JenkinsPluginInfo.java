@@ -3,7 +3,7 @@ package io.jenkins.tools.pluginmodernizer.core.utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,73 +21,56 @@ public class JenkinsPluginInfo {
     private static final Logger LOG = LoggerFactory.getLogger(JenkinsPluginInfo.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "safe url")
-    public static JsonNode getCachedJsonNode(Path cacheDir) throws IOException {
-        Path cacheFile = cacheDir.resolve("update-center.json");
+    public static String extractRepoName(String pluginName, Path cacheDir) {
+        try {
+            UpdateCenterData updateCenterData = getCachedUpdateCenterData(cacheDir);
+            String scmUrl = updateCenterData.getScmUrl(pluginName);
 
-        if (!Files.exists(cacheDir)) {
-            Files.createDirectories(cacheDir);
-        }
-
-        if (Files.exists(cacheFile)) {
-            String jsonStr = Files.readString(cacheFile);
-            return objectMapper.readTree(jsonStr);
-        } else {
-            URL apiUrl = new URL(Settings.UPDATE_CENTER_URL);
-            HttpURLConnection con = null;
-            BufferedReader in = null;
-
-            try {
-                con = (HttpURLConnection) apiUrl.openConnection();
-                con.setRequestMethod("GET");
-
-                in = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
-                StringBuilder response = new StringBuilder();
-                String inputLine;
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-
-                Files.writeString(cacheFile, response.toString());
-                return objectMapper.readTree(response.toString());
-            } finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        LOG.error("Error closing BufferedReader: ", e);
-                    }
-                }
-                if (con != null) {
-                    con.disconnect();
-                }
+            int lastSlashIndex = scmUrl.lastIndexOf('/');
+            if (lastSlashIndex != -1 && lastSlashIndex < scmUrl.length() - 1) {
+                return scmUrl.substring(lastSlashIndex + 1);
+            } else {
+                throw new IllegalArgumentException("Invalid SCM URL format: " + scmUrl);
             }
+        } catch (IOException e) {
+            LOG.error("Error extracting repository name: ", e);
+            throw new UncheckedIOException(e);
         }
     }
 
-    public static String extractRepoName(String pluginName, JsonNode jsonNode) {
-        JsonNode plugins = jsonNode.get("plugins");
-        if (plugins == null || !plugins.has(pluginName)) {
-            throw new RuntimeException("Plugin not found in update center: " + pluginName);
-        }
+    private static UpdateCenterData getCachedUpdateCenterData(Path cacheDir) throws IOException {
+        Path cacheFile = cacheDir.resolve("update-center.json");
 
-        JsonNode pluginInfo = plugins.get(pluginName);
-
-        JsonNode scmNode = pluginInfo.get("scm");
-        String scmUrl;
-        if (scmNode.isObject()) {
-            scmUrl = scmNode.get("url").asText();
-        } else if (scmNode.isTextual()) {
-            scmUrl = scmNode.asText();
+        if (Files.exists(cacheFile)) {
+            String jsonStr = Files.readString(cacheFile);
+            return parseJson(jsonStr);
         } else {
-            throw new RuntimeException("Unexpected type for SCM URL: " + scmNode.getNodeType());
+            String jsonStr = fetchUpdateCenterData();
+            Files.writeString(cacheFile, jsonStr);
+            return parseJson(jsonStr);
+        }
+    }
+
+    private static UpdateCenterData parseJson(String jsonStr) throws IOException {
+        JsonNode jsonNode = objectMapper.readTree(jsonStr);
+        return new UpdateCenterData(jsonNode);
+    }
+
+    @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "safe url")
+    private static String fetchUpdateCenterData() throws IOException {
+        URL apiUrl = new URL(Settings.UPDATE_CENTER_URL);
+
+        StringBuilder response = new StringBuilder();
+
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(apiUrl.openStream(), StandardCharsets.UTF_8))) {
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+        } catch (IOException e) {
+            throw new IOException("Error fetching update center data", e);
         }
 
-        int lastSlashIndex = scmUrl.lastIndexOf('/');
-        if (lastSlashIndex != -1 && lastSlashIndex < scmUrl.length() - 1) {
-            return scmUrl.substring(lastSlashIndex + 1);
-        } else {
-            throw new RuntimeException("Invalid SCM URL format: " + scmUrl);
-        }
+        return response.toString();
     }
 }
