@@ -46,9 +46,11 @@ fi
 # Check if the terminal supports colors
 if tput colors > /dev/null 2>&1; then
   color_cyan="\033[36m"
+  color_blue="\033[34m" # Blue color definition
   color_reset="\033[0m"
 else
   color_cyan=""
+  color_blue=""
   color_reset=""
 fi
 
@@ -58,7 +60,7 @@ echo -e "GitPod created a temporary GitHub token for you: ${color_cyan}$SCM_TOKE
 echo -e "If that's fine with you, we'll store it in an environment variable so the tool can use it."
  echo -e "Please enter this command in the terminal: ${color_cyan}export GH_TOKEN=$SCM_TOKEN${color_reset}"
 echo -e "If you want to use a different token, please set it in the ${color_cyan}GH_TOKEN${color_reset} environment variable."
-echo -e "If you want to know more about GitHub tokens, please visit https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens"
+echo -e "If you want to know more about GitHub tokens, please visit ${color_blue}https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens${color_reset}"
 GH_TOKEN="$SCM_TOKEN"
 export GH_TOKEN
 # Make a GET request to the GitHub API to fetch user information
