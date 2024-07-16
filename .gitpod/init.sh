@@ -11,39 +11,7 @@ mvn clean install -DskipTests
 
 # Create a directory for the test plugins and move into it. This directory will serve
 # as a workspace for cloning and building Jenkins plugin repositories.
-mkdir -p test-plugins && cd test-plugins || exit
-
-# Clone the first Jenkins plugin repository. The badge-plugin is a Jenkins plugin that
-# adds badges to build pages, indicating various conditions like coverage or build status.
-# Define the repository URL and the directory name
-REPO_URL="https://github.com/jenkinsci/badge-plugin.git"
-DIR_NAME="badge-plugin"
-
-# Check if the directory exists and is not empty
-if [ -d "$DIR_NAME" ] && [ "$(ls -A $DIR_NAME)" ]; then
-  echo "The directory $DIR_NAME already exists and is not empty. Skipping clone."
-else
-  # If the directory does not exist or is empty, clone the repository
-  echo "Cloning $REPO_URL into $DIR_NAME..."
-  git clone $REPO_URL $DIR_NAME
-fi
-
-# Clone the second Jenkins plugin repository. The build-timestamp-plugin adds the ability
-# to display build timestamps in the Jenkins UI. This plugin will also be built as part
-# of the Docker image setup.
-REPO_URL="https://github.com/jenkinsci/build-timestamp-plugin.git"
-DIR_NAME="build-timestamp-plugin"
-
-# Check if the directory exists and is not empty
-if [ -d "$DIR_NAME" ] && [ "$(ls -A $DIR_NAME)" ]; then
-  echo "The directory $DIR_NAME already exists and is not empty. Skipping clone."
-else
-  # If the directory does not exist or is empty, clone the repository
-  echo "Cloning $REPO_URL into $DIR_NAME..."
-  git clone $REPO_URL $DIR_NAME
-fi
-
-cd - || exit
+mkdir -p test-plugins
 
 # Check if the terminal supports colors
 if tput colors > /dev/null 2>&1; then
