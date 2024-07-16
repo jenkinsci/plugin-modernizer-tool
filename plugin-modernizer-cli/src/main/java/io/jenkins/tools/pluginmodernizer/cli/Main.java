@@ -2,6 +2,8 @@ package io.jenkins.tools.pluginmodernizer.cli;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,6 +12,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
+import io.jenkins.tools.pluginmodernizer.core.utils.PluginListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -31,13 +34,16 @@ public class Main implements Runnable {
         new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);
     }
 
-    @Option(names = {"-p", "--plugins"}, required = true, description = "List of Plugins to Modernize.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
+    @Option(names = {"-p", "--plugins"}, description = "List of Plugins to Modernize.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
     private List<String> plugins;
 
     @Option(names = {"-r", "--recipes"}, required = true, description = "List of Recipes to be applied.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
     private List<String> recipes;
 
-    @Option(names = {"-g", "--github-owner"}, description = "GitHub owner for forked repositories (only username supported for now)")
+    @Option(names = {"-f", "--plugin-file"}, description = "Path to the file that contains a list of plugins")
+    private Path pluginFile;
+
+    @Option(names = {"-g", "--github-owner"}, description = "GitHub owner for forked repositories")
     private String githubOwner = Settings.GITHUB_OWNER;
 
     @Option(names = {"-n", "--dry-run"}, description = "Perform a dry run without making any changes.")
@@ -98,8 +104,25 @@ public class Main implements Runnable {
         }
     }
 
+    private List<String> loadPlugins() {
+        List<String> loadedPlugins = new ArrayList<>();
+
+        if (pluginFile != null) {
+            List<String> pluginsFromFile = PluginListParser.loadPluginsFromFile(pluginFile);
+            loadedPlugins.addAll(pluginsFromFile);
+        }
+
+        if (plugins != null) {
+            loadedPlugins.addAll(plugins);
+        }
+
+        return new ArrayList<>(new HashSet<>(loadedPlugins));
+    }
+
     @Override
     public void run() {
+        plugins = loadPlugins();
+
         if (listRecipes) {
             listAvailableRecipes();
             return;
