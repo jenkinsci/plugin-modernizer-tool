@@ -79,4 +79,4 @@ echo -e "\nYou can now proceed with the modernizer tool thanks to the following 
 echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner${color_reset}"
 
 echo -e "\nBy the way, you can copy/paste from/to the terminal to execute the commands. Enjoy! 🚀"
-echo -e " ${color_blue}https://www.gitpod.io/docs/configure/user-settings/browser-settings#browser-settings${color_reset}"
+echo -e "See ${color_blue}https://www.gitpod.io/docs/configure/user-settings/browser-settings#browser-settings${color_reset} to know more.\n"
