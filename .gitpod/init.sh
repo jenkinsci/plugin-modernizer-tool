@@ -72,10 +72,10 @@ response=$(curl -sH "Authorization: token $SCM_TOKEN" https://api.github.com/use
 GH_OWNER=$(echo $response | jq -r '.login')
 export GH_OWNER
 echo -e "\nThis tool also needs a GitHub handle to clone and fork plugin repositories"
-echo -e "We stored ${color_green}$GH_OWNER${color_reset} in the ${color_cyan}GH_OWNER${color_reset} environment variable."
+echo -e "We stored \"${color_green}$GH_OWNER${color_reset}\" in the ${color_cyan}GH_OWNER${color_reset} environment variable."
 echo -e "If you want to use another GitHub handle, please set the ${color_green}GH_OWNER${color_reset} variable accordingly."
 echo -e "\nAs a gentle reminder, we have already cloned two Jenkins plugin repositories: ${color_cyan}badge-plugin${color_reset} and ${color_cyan}build-timestamp-plugin${color_reset}."
-echo -e "You could, though, use other plugin repositories as well (like ${color_cyan}plot${color_reset}) by entering their name in the following ${color_cyan}java${color_reset} command."
+echo -e "You could, though, use other plugin repositories as well (like ${color_cyan}plot-plugin${color_reset}) by entering their name in the following ${color_cyan}java${color_reset} command."
 echo -e "\nYou can now proceed with the modernizer tool thanks to the following commands:"
 echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner${color_reset}"
 
