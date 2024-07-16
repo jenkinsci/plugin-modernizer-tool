@@ -142,14 +142,16 @@ public class GHService {
     }
 
     public void commitAndCreatePR(String pluginName, String branchName) throws IOException, GitAPIException {
+        Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
+
         if (config.isDryRun()) {
             LOG.info("Skipping commit and pull request creation for {}", pluginName);
+            Path patchFilePath = pluginDirectory.resolve("target/rewrite/rewrite.patch");
+            LOG.info("Patch file path: {}", patchFilePath);
             return;
         }
 
         LOG.info("Creating pull request for plugin: {}", pluginName);
-
-        Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
         commitChanges(pluginDirectory);
 
