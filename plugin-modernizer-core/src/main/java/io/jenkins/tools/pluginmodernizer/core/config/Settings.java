@@ -28,7 +28,7 @@ public class Settings {
 
     public static final String TEST_PLUGINS_DIRECTORY;
 
-    public static final String ORGANIZATION = "sridamul";
+    public static final String ORGANIZATION = "jenkinsci";
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
 
@@ -73,7 +73,7 @@ public class Settings {
 
     private static @Nullable String getUpdateCenterUrl() {
         String url = System.getenv("JENKINS_UC");
-        if(url == null) {
+        if (url == null) {
             url = readProperty("update.center.url", "update_center.properties");
         }
         return url;
