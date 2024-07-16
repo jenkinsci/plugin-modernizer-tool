@@ -59,7 +59,7 @@ else
 fi
 
 echo -e "\nHello ${color_green}$GITPOD_GIT_USER_NAME${color_reset} 👋"
-echo -e "\n\nThis tool needs a GitHub token to work."
+echo -e "\nThis tool needs a GitHub token to work."
 echo -e "GitPod created a temporary GitHub token for you: ${color_cyan}$SCM_TOKEN${color_reset}"
 echo -e "We stored it in the ${color_cyan}GH_TOKEN${color_reset} environment variable."
 echo -e "If you want to use a different token, please set it in the ${color_cyan}GH_TOKEN${color_reset} environment variable."
@@ -71,12 +71,12 @@ response=$(curl -sH "Authorization: token $SCM_TOKEN" https://api.github.com/use
 # Extract the GitHub handle from the response
 GH_OWNER=$(echo $response | jq -r '.login')
 export GH_OWNER
-echo -e "\n\nThis tool also needs a GitHub handle to clone and fork plugin repositories"
+echo -e "\nThis tool also needs a GitHub handle to clone and fork plugin repositories"
 echo -e "We stored ${color_green}$GH_OWNER${color_reset} in the ${color_cyan}GH_OWNER${color_reset} environment variable."
 echo -e "If you want to use another GitHub handle, please set the ${color_green}$GH_OWNER${color_reset} accordingly."
-echo -e "\n\nAs a gentle reminder, we have already cloned two Jenkins plugin repositories: ${color_cyan}badge-plugin${color_reset} and ${color_cyan}build-timestamp-plugin${color_reset}."
-echo -e "\n\nYou can now proceed with the modernizer tool thanks to the following commands:"
+echo -e "\nAs a gentle reminder, we have already cloned two Jenkins plugin repositories: ${color_cyan}badge-plugin${color_reset} and ${color_cyan}build-timestamp-plugin${color_reset}."
+echo -e "\nYou can now proceed with the modernizer tool thanks to the following commands:"
 echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner${color_reset}"
 
-echo -e "\n\nYou can copy/paste from/to the terminal to execute the commands. Enjoy! 🚀"
+echo -e "\nYou can copy/paste from/to the terminal to execute the commands. Enjoy! 🚀"
 echo -e " ${color_blue}https://www.gitpod.io/docs/configure/user-settings/browser-settings#browser-settings${color_reset}"
