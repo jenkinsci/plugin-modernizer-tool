@@ -10,6 +10,7 @@ import java.util.Optional;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -49,11 +50,15 @@ public class GHService {
     private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
     private static final String PR_TITLE = "Automated PR";
 
+    private String repoName;
+
     public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
+        repoName = JenkinsPluginInfo.extractRepoName(pluginName, config.getCachePath());
+
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
-        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + pluginName);
+        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
 
         forkRepository(github, originalRepo);
         fetchRepository(pluginDirectory, pluginName);
@@ -98,7 +103,6 @@ public class GHService {
     }
 
     private void forkRepository(GHRepository originalRepo, GHOrganization organization) throws IOException, InterruptedException {
-        LOG.info("Forking the repository to organization...");
         if (organization == null) {
             LOG.info("Forking the repository to personal account...");
             originalRepo.fork();
@@ -116,7 +120,7 @@ public class GHService {
     }
 
     private void fetchRepository(Path pluginDirectory, String pluginName) throws GitAPIException {
-        String uri = "https://github.com/" + config.getGithubOwner() + "/" + pluginName + ".git";
+        String uri = "https://github.com/" + config.getGithubOwner() + "/" + repoName + ".git";
         if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
             LOG.debug("Cloning {}", pluginName);
             Git.cloneRepository()
@@ -155,7 +159,7 @@ public class GHService {
 
         pushBranch(pluginDirectory, branchName);
 
-        createPullRequest(pluginName, branchName);
+        createPullRequest(branchName);
     }
 
     private void commitChanges(Path pluginDirectory) throws IOException, GitAPIException {
@@ -183,9 +187,9 @@ public class GHService {
         }
     }
 
-    private void createPullRequest(String pluginName, String branchName) throws IOException {
+    private void createPullRequest(String branchName) throws IOException {
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
-        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + pluginName);
+        GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
 
         Optional<GHPullRequest> existingPR = checkIfPullRequestExists(originalRepo, branchName);
 
