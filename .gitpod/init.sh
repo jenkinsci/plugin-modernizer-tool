@@ -78,5 +78,5 @@ echo -e "\nAs a gentle reminder, we have already cloned two Jenkins plugin repos
 echo -e "\nYou can now proceed with the modernizer tool thanks to the following commands:"
 echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins badge-plugin,build-timestamp-plugin --recipes AddPluginsBom,AddCodeOwner${color_reset}"
 
-echo -e "\nYou can copy/paste from/to the terminal to execute the commands. Enjoy! 🚀"
+echo -e "\nBy the way, you can copy/paste from/to the terminal to execute the commands. Enjoy! 🚀"
 echo -e " ${color_blue}https://www.gitpod.io/docs/configure/user-settings/browser-settings#browser-settings${color_reset}"
