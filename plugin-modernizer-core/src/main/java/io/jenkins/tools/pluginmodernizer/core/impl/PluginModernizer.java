@@ -18,10 +18,13 @@ public class PluginModernizer {
 
     private final GHService ghService;
 
+    private final CacheManager cacheManager;
+
     public PluginModernizer(Config config) {
         this.config = config;
         this.mavenInvoker = new MavenInvoker(config);
         this.ghService = new GHService(config);
+        this.cacheManager = new CacheManager(config.getCachePath());
     }
 
     public void start() {
@@ -31,6 +34,9 @@ public class PluginModernizer {
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
+
+        cacheManager.createCache();
+
         for (String plugin : config.getPlugins()) {
             String pluginPath = Settings.TEST_PLUGINS_DIRECTORY + plugin;
             String branchName = "apply-transformation-" + plugin;
