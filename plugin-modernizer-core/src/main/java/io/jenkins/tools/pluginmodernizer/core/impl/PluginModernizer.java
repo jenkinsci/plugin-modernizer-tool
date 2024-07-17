@@ -31,6 +31,7 @@ public class PluginModernizer {
         LOG.info("Plugins: {}", config.getPlugins());
         LOG.info("Recipes: {}", config.getRecipes());
         LOG.info("GitHub owner: {}", config.getGithubOwner());
+        LOG.info("Update Center Url: {}", config.getJenkinsUpdateCenter());
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
