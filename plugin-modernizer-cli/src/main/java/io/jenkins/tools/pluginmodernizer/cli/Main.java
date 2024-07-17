@@ -114,7 +114,9 @@ public class Main implements Runnable {
 
         if (pluginFile != null) {
             List<String> pluginsFromFile = PluginListParser.loadPluginsFromFile(pluginFile);
-            loadedPlugins.addAll(pluginsFromFile);
+            if (pluginsFromFile != null) {
+                loadedPlugins.addAll(pluginsFromFile);
+            }
         }
 
         if (plugins != null) {
