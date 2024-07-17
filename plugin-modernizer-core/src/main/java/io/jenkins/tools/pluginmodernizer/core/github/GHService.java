@@ -10,7 +10,6 @@ import java.util.Optional;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
-import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -30,11 +29,17 @@ public class GHService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GHService.class);
 
+    // TODO: Change commit message and PR title based on applied recipes
+    private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
+    private static final String PR_TITLE = "Automated PR";
+
     private final Config config;
+    private GitHub github;
 
     public GHService(Config config) {
         this.config = config;
         validate();
+        connect();
     }
 
     private void validate() {
@@ -46,22 +51,25 @@ public class GHService {
         }
     }
 
-    // TODO: Change commit message and PR title based on applied recipes
-    private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
-    private static final String PR_TITLE = "Automated PR";
+    private void connect() {
+        if (github != null) {
+            throw new IllegalArgumentException("GitHub client is already connected.");
+        }
+        try {
+            github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to connect to GitHub. Cannot use GitHub/SCM integration", e);
+        }
+    }
 
-    private String repoName;
-
-    public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
+    public void forkCloneAndCreateBranch(String repoName, String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
-
-        repoName = JenkinsPluginInfo.extractRepoName(pluginName, config.getCachePath(), config.getJenkinsUpdateCenter());
 
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
 
         forkRepository(github, originalRepo);
-        fetchRepository(pluginDirectory, pluginName);
+        fetchRepository(pluginDirectory, repoName, pluginName);
         createAndCheckoutBranch(pluginDirectory, branchName);
     }
 
@@ -119,7 +127,7 @@ public class GHService {
         forkRepository(originalRepo, null);
     }
 
-    private void fetchRepository(Path pluginDirectory, String pluginName) throws GitAPIException {
+    private void fetchRepository(Path pluginDirectory, String repoName, String pluginName) throws GitAPIException {
         String uri = "https://github.com/" + config.getGithubOwner() + "/" + repoName + ".git";
         if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
             LOG.debug("Cloning {}", pluginName);
@@ -145,7 +153,7 @@ public class GHService {
         }
     }
 
-    public void commitAndCreatePR(String pluginName, String branchName) throws IOException, GitAPIException {
+    public void commitAndCreatePR(String repoName, String pluginName, String branchName) throws IOException, GitAPIException {
         if (config.isDryRun()) {
             LOG.info("Skipping commit and pull request creation for {}", pluginName);
             return;
@@ -159,7 +167,7 @@ public class GHService {
 
         pushBranch(pluginDirectory, branchName);
 
-        createPullRequest(branchName);
+        createPullRequest(repoName, branchName);
     }
 
     private void commitChanges(Path pluginDirectory) throws IOException, GitAPIException {
@@ -187,7 +195,7 @@ public class GHService {
         }
     }
 
-    private void createPullRequest(String branchName) throws IOException {
+    private void createPullRequest(String repoName, String branchName) throws IOException {
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);
 
