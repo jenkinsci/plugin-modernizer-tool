@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
+import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +39,18 @@ public class PluginModernizer {
 
         cacheManager.createCache();
 
+        // TODO: Replace with some PluginInfo model that will containes for example
+        // plugin name, repo name, scmUrl, location on disk etc....
         for (String plugin : config.getPlugins()) {
             String pluginPath = Settings.TEST_PLUGINS_DIRECTORY + plugin;
             String branchName = "apply-transformation-" + plugin;
 
             try {
-                LOG.info("Forking and cloning {} locally", plugin);
-                ghService.forkCloneAndCreateBranch(plugin, branchName);
+
+                String repoName = JenkinsPluginInfo.extractRepoName(plugin, config.getCachePath(), config.getJenkinsUpdateCenter());
+
+                LOG.info("Forking and cloning plugin {} locally from repo {}", plugin, repoName);
+                ghService.forkCloneAndCreateBranch(repoName, plugin, branchName);
 
                 LOG.info("Invoking clean phase for plugin: {}", plugin);
                 mavenInvoker.invokeGoal(plugin, pluginPath, "clean");
@@ -52,7 +58,7 @@ public class PluginModernizer {
                 LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
                 mavenInvoker.invokeRewrite(plugin, pluginPath);
 
-                ghService.commitAndCreatePR(plugin, branchName);
+                ghService.commitAndCreatePR(repoName, plugin, branchName);
             } catch (Exception e) {
                 LOG.error("Failed to process plugin: {}", plugin, e);
             }
