@@ -1,5 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -9,16 +10,18 @@ public class Config {
     private final String version;
     private final List<String> plugins;
     private final List<String> recipes;
+    private final URL jenkinsUpdateCenter;
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
     private final String githubOwner;
 
-    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, Path cachePath, Path mavenHome, boolean dryRun) {
+    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, URL jenkinsUpdateCenter, Path cachePath, Path mavenHome, boolean dryRun) {
         this.version = version;
         this.githubOwner = githubOwner;
         this.plugins = plugins;
         this.recipes = recipes;
+        this.jenkinsUpdateCenter = jenkinsUpdateCenter;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
@@ -38,6 +41,10 @@ public class Config {
 
     public List<String> getRecipes() {
         return recipes;
+    }
+
+    public URL getJenkinsUpdateCenter() {
+        return jenkinsUpdateCenter;
     }
 
     public Path getCachePath() {
@@ -61,6 +68,7 @@ public class Config {
         private String githubOwner = Settings.GITHUB_OWNER;
         private List<String> plugins;
         private List<String> recipes;
+        private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
@@ -85,6 +93,13 @@ public class Config {
             return this;
         }
 
+        public Builder withJenkinsUpdateCenter(URL jenkinsUpdateCenter) {
+            if (jenkinsUpdateCenter != null) {
+                this.jenkinsUpdateCenter = jenkinsUpdateCenter;
+            }
+            return this;
+        }
+
         public Builder withCachePath(Path cachePath) {
             if (cachePath != null) {
                 this.cachePath = cachePath;
@@ -105,7 +120,7 @@ public class Config {
         }
 
         public Config build() {
-            return new Config(version, githubOwner, plugins, recipes, cachePath, mavenHome, dryRun);
+            return new Config(version, githubOwner, plugins, recipes, jenkinsUpdateCenter, cachePath, mavenHome, dryRun);
         }
     }
 

@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -138,6 +140,22 @@ public class MainTest {
         String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-c", "/tmp/cache"};
         commandLine.execute(args);
         assertEquals(Paths.get("/tmp/cache"), main.setup().getCachePath());
+    }
+
+    @Test
+    public void testJenkinsUpdateCenterOptionWithoutValidOption() throws MalformedURLException {
+        URL defaultUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
+        String[] args = {"--jenkins-update-center", "test-url"};
+        commandLine.execute(args);
+        assertEquals(defaultUrl, main.setup().getJenkinsUpdateCenter());
+    }
+
+    @Test
+    public void testJenkinsUpdateCenterOptionWithValidOption() throws MalformedURLException {
+        URL cliUrl = new URL("https://www.jenkins.io/");
+        String[] args = {"--jenkins-update-center", "https://www.jenkins.io/"};
+        commandLine.execute(args);
+        assertEquals(cliUrl, main.setup().getJenkinsUpdateCenter());
     }
 
     @Test

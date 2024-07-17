@@ -55,7 +55,7 @@ public class GHService {
     public void forkCloneAndCreateBranch(String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
-        repoName = JenkinsPluginInfo.extractRepoName(pluginName, config.getCachePath());
+        repoName = JenkinsPluginInfo.extractRepoName(pluginName, config.getCachePath(), config.getJenkinsUpdateCenter());
 
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
         GHRepository originalRepo = github.getRepository(Settings.ORGANIZATION + "/" + repoName);

@@ -2,6 +2,8 @@ package io.jenkins.tools.pluginmodernizer.core.config;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -15,6 +17,8 @@ import org.slf4j.LoggerFactory;
 public class Settings {
 
     private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
+
+    public static final URL DEFAULT_UPDATE_CENTER_URL;
 
     public static final Path DEFAULT_CACHE_PATH;
 
@@ -32,8 +36,6 @@ public class Settings {
 
     public static final String RECIPE_DATA_YAML_PATH = "recipe_data.yaml";
 
-    public static final String UPDATE_CENTER_URL;
-
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
     static {
@@ -50,10 +52,14 @@ public class Settings {
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
-        UPDATE_CENTER_URL = getUpdateCenterUrl();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
         TEST_PLUGINS_DIRECTORY = getTestPluginsDirectory();
+        try {
+            DEFAULT_UPDATE_CENTER_URL = getUpdateCenterUrl();
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid URL format", e);
+        }
     }
 
     private static Path getDefaultMavenHome() {
@@ -71,12 +77,29 @@ public class Settings {
         return readProperty("openrewrite.maven.plugin.version", "versions.properties");
     }
 
-    private static @Nullable String getUpdateCenterUrl() {
+    private static @Nullable URL getUpdateCenterUrl() throws MalformedURLException {
         String url = System.getenv("JENKINS_UC");
-        if (url == null) {
-            url = readProperty("update.center.url", "update_center.properties");
+
+        if (url != null) {
+            if (isValidURL(url)) {
+                return new URL(url);
+            } else {
+                LOG.warn("Invalid URL in JENKINS_UC environment variable: {}", url);
+                LOG.info("Using Default Update Center URL");
+            }
         }
-        return url;
+
+        url = readProperty("update.center.url", "update_center.properties");
+        return new URL(url);
+    }
+
+    private static boolean isValidURL(String url) {
+        try {
+            new URL(url);
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 
     private static String getGithubToken() {

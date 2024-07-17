@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +20,9 @@ public class JenkinsPluginInfo {
     private static final Logger LOG = LoggerFactory.getLogger(JenkinsPluginInfo.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String extractRepoName(String pluginName, Path cacheDir) {
+    public static String extractRepoName(String pluginName, Path cacheDir, URL updateCenterUrl) {
         try {
-            UpdateCenterData updateCenterData = getCachedUpdateCenterData(cacheDir);
+            UpdateCenterData updateCenterData = getCachedUpdateCenterData(cacheDir, updateCenterUrl);
             String scmUrl = updateCenterData.getScmUrl(pluginName);
 
             int lastSlashIndex = scmUrl.lastIndexOf('/');
@@ -38,14 +37,14 @@ public class JenkinsPluginInfo {
         }
     }
 
-    private static UpdateCenterData getCachedUpdateCenterData(Path cacheDir) throws IOException {
+    private static UpdateCenterData getCachedUpdateCenterData(Path cacheDir, URL updateCenterUrl) throws IOException {
         Path cacheFile = cacheDir.resolve("update-center.json");
 
         if (Files.exists(cacheFile)) {
             String jsonStr = Files.readString(cacheFile);
             return parseJson(jsonStr);
         } else {
-            String jsonStr = fetchUpdateCenterData();
+            String jsonStr = fetchUpdateCenterData(updateCenterUrl);
             Files.writeString(cacheFile, jsonStr);
             return parseJson(jsonStr);
         }
@@ -57,12 +56,10 @@ public class JenkinsPluginInfo {
     }
 
     @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "safe url")
-    private static String fetchUpdateCenterData() throws IOException {
-        URL apiUrl = new URL(Settings.UPDATE_CENTER_URL);
-
+    private static String fetchUpdateCenterData(URL updateCenterUrl) throws IOException {
         StringBuilder response = new StringBuilder();
 
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(apiUrl.openStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(updateCenterUrl.openStream(), StandardCharsets.UTF_8))) {
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
