@@ -43,15 +43,6 @@ public class PluginListParserTest {
     }
 
     @Test
-    public void testLoadPluginsFromFileFileNotFound() {
-        Path pluginFile = tempDir.resolve("nonexistent.txt");
-
-        List<String> plugins = PluginListParser.loadPluginsFromFile(pluginFile);
-
-        assertNull(plugins);
-    }
-
-    @Test
     public void testLoadPluginsFromResourceFile() {
         Path resourceFilePath = Path.of("src", "test", "resources", "plugins.txt");
 
@@ -63,5 +54,21 @@ public class PluginListParserTest {
         assertTrue(plugins.contains("login-theme"));
         assertTrue(plugins.contains("next-executions"));
         assertTrue(plugins.contains("cloudbees-bitbucket-branch-source"));
+    }
+
+    @Test
+    public void testLoadPluginsFromResourceFileWithEmptyLines() {
+        Path resourceFilePath = Path.of("src", "test", "resources", "empty-plugins.txt");
+
+        List<String> plugins = PluginListParser.loadPluginsFromFile(resourceFilePath);
+        assertEquals(0, plugins.size());
+    }
+
+    @Test
+    public void testLoadPluginsFromFileFileNotFound() {
+        Path resourceFilePath = Path.of("src", "test", "resources", "invalid-plugins.txt");
+
+        List<String> plugins = PluginListParser.loadPluginsFromFile(resourceFilePath);
+        assertNull(plugins);
     }
 }
