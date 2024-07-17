@@ -1,6 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,7 +54,7 @@ public class Main implements Runnable {
     public boolean debug;
 
     @Option(names = "--jenkins-update-center", description = "Sets main update center; will override JENKINS_UC environment variable. If not set via CLI option or environment variable, will use default update center url")
-    public String jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
+    public URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
 
     @Option(names = {"-c", "--cache-path"}, description = "Path to the cache directory.")
     public Path cachePath = Settings.DEFAULT_CACHE_PATH;

@@ -1,5 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -9,13 +10,13 @@ public class Config {
     private final String version;
     private final List<String> plugins;
     private final List<String> recipes;
-    private final String jenkinsUpdateCenter;
+    private final URL jenkinsUpdateCenter;
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
     private final String githubOwner;
 
-    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, String jenkinsUpdateCenter, Path cachePath, Path mavenHome, boolean dryRun) {
+    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, URL jenkinsUpdateCenter, Path cachePath, Path mavenHome, boolean dryRun) {
         this.version = version;
         this.githubOwner = githubOwner;
         this.plugins = plugins;
@@ -42,7 +43,7 @@ public class Config {
         return recipes;
     }
 
-    public String getJenkinsUpdateCenter() {
+    public URL getJenkinsUpdateCenter() {
         return jenkinsUpdateCenter;
     }
 
@@ -67,7 +68,7 @@ public class Config {
         private String githubOwner = Settings.GITHUB_OWNER;
         private List<String> plugins;
         private List<String> recipes;
-        private String jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
+        private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
@@ -92,7 +93,7 @@ public class Config {
             return this;
         }
 
-        public Builder withJenkinsUpdateCenter(String jenkinsUpdateCenter) {
+        public Builder withJenkinsUpdateCenter(URL jenkinsUpdateCenter) {
             if (jenkinsUpdateCenter != null) {
                 this.jenkinsUpdateCenter = jenkinsUpdateCenter;
             }

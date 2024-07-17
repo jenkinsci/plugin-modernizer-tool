@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -42,8 +44,8 @@ class JenkinsPluginInfoTest {
     }
 
     @Test
-    public void testExtractRepoNamePluginPresentWithUrl() {
-        String updateCenterUrl = "https://updates.jenkins.io/current/update-center.actual.json";
+    public void testExtractRepoNamePluginPresentWithUrl() throws MalformedURLException {
+        URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
 
         String resultLoginTheme = JenkinsPluginInfo.extractRepoName("login-theme", tempDir2, updateCenterUrl);
         assertEquals("login-theme-plugin", resultLoginTheme);
@@ -53,8 +55,8 @@ class JenkinsPluginInfoTest {
     }
 
     @Test
-    public void testExtractRepoNamePluginAbsentWithUrl() {
-        String updateCenterUrl = "https://updates.jenkins.io/current/update-center.actual.json";
+    public void testExtractRepoNamePluginAbsentWithUrl() throws MalformedURLException {
+        URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
             JenkinsPluginInfo.extractRepoName("not-present", tempDir2, updateCenterUrl);

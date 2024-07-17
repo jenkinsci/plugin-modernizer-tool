@@ -20,7 +20,7 @@ public class JenkinsPluginInfo {
     private static final Logger LOG = LoggerFactory.getLogger(JenkinsPluginInfo.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String extractRepoName(String pluginName, Path cacheDir, String updateCenterUrl) {
+    public static String extractRepoName(String pluginName, Path cacheDir, URL updateCenterUrl) {
         try {
             UpdateCenterData updateCenterData = getCachedUpdateCenterData(cacheDir, updateCenterUrl);
             String scmUrl = updateCenterData.getScmUrl(pluginName);
@@ -37,7 +37,7 @@ public class JenkinsPluginInfo {
         }
     }
 
-    private static UpdateCenterData getCachedUpdateCenterData(Path cacheDir, String updateCenterUrl) throws IOException {
+    private static UpdateCenterData getCachedUpdateCenterData(Path cacheDir, URL updateCenterUrl) throws IOException {
         Path cacheFile = cacheDir.resolve("update-center.json");
 
         if (Files.exists(cacheFile)) {
@@ -56,12 +56,10 @@ public class JenkinsPluginInfo {
     }
 
     @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "safe url")
-    private static String fetchUpdateCenterData(String updateCenterUrl) throws IOException {
-        URL apiUrl = new URL(updateCenterUrl);
-
+    private static String fetchUpdateCenterData(URL updateCenterUrl) throws IOException {
         StringBuilder response = new StringBuilder();
 
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(apiUrl.openStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(updateCenterUrl.openStream(), StandardCharsets.UTF_8))) {
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -15,12 +17,12 @@ import org.junit.jupiter.api.Test;
 public class ConfigTest {
 
     @Test
-    public void testConfigBuilderWithAllFields() {
+    public void testConfigBuilderWithAllFields() throws MalformedURLException {
         String version = "1.0";
         String githubOwner = "test-owner";
         List<String> plugins = Arrays.asList("plugin1", "plugin2");
         List<String> recipes = Arrays.asList("recipe1", "recipe2");
-        String jenkinsUpdateCenter = "https://updates.jenkins.io/current/update-center.actual.json";
+        URL jenkinsUpdateCenter = new URL("https://updates.jenkins.io/current/update-center.actual.json");
         Path cachePath = Paths.get("/path/to/cache");
         Path mavenHome = Paths.get("/path/to/maven");
         boolean dryRun = true;
