@@ -114,6 +114,36 @@ public class MainTest {
     }
 
     @Test
+    public void testPluginFilePluginOrder() throws IOException {
+        Path pluginFile = tempDir.resolve("plugins.txt");
+        Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
+        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
+        commandLine.execute(args);
+        List<String> plugins = main.setup().getPlugins();
+        assertNotNull(plugins);
+        assertEquals(3, plugins.size());
+        assertEquals("plugin1", plugins.get(0));
+        assertEquals("plugin2", plugins.get(1));
+        assertEquals("plugin3", plugins.get(2));
+    }
+
+    @Test
+    public void testPluginFileAlongWithPluginOptionPluginOrder() throws IOException {
+        Path pluginFile = tempDir.resolve("plugins.txt");
+        Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
+        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
+        commandLine.execute(args);
+        List<String> plugins = main.setup().getPlugins();
+        assertNotNull(plugins);
+        assertEquals(5, plugins.size());
+        assertEquals("plugin1", plugins.get(0));
+        assertEquals("plugin2", plugins.get(1));
+        assertEquals("plugin3", plugins.get(2));
+        assertEquals("plugin4", plugins.get(3));
+        assertEquals("plugin5", plugins.get(4));
+    }
+
+    @Test
     public void testMavenHome() throws IOException {
         String[] args = {"--maven-home", Files.createTempDirectory("unused").toString()};
         int exitCode = commandLine.execute(args);
