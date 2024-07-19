@@ -4,9 +4,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -124,8 +123,9 @@ public class Main implements Runnable {
             loadedPlugins.addAll(plugins);
         }
 
-        Set<String> uniquePlugins = new LinkedHashSet<>(loadedPlugins);
-        return new ArrayList<>(uniquePlugins);
+        return loadedPlugins.stream()
+                            .distinct()
+                            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override
