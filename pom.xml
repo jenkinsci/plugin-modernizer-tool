@@ -43,7 +43,7 @@
         <gitHubRepo>jenkinsci/plugin-modernizer-tool</gitHubRepo>
 
         <!-- Version -->
-        <openrewrite.bom.version>2.14.0</openrewrite.bom.version>
+        <openrewrite.bom.version>2.15.0</openrewrite.bom.version>
         <openrewrite.maven.plugin.version>5.36.0</openrewrite.maven.plugin.version>
         <openrewrite.jenkins.version>0.8.3</openrewrite.jenkins.version>
         <slf4j.version>2.0.13</slf4j.version>
