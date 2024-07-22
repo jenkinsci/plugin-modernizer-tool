@@ -1,0 +1,4 @@
+"The recipe","Source file count","Source file changed count","Cumulative scanning time","99th percentile scanning time","Max scanning time","Cumulative edit time","99th percentile edit time","Max edit time"
+"The recipe whose stats are being measured both individually and cumulatively.","The number of source files the recipe ran over.","The number of source files which were changed in the recipe run. Includes files created, deleted, and edited.","The total time spent across the scanning phase of this recipe.","99 out of 100 scans completed in this amount of time.","The max time scanning any one source file.","The total time spent across the editing phase of this recipe.","99 out of 100 edits completed in this amount of time.","The max time editing any one source file."
+"org.openrewrite.jenkins.AddPluginsBom","33","1","0","0.0","0","171793500","0.99","171727900"
+"org.openrewrite.config.CompositeRecipe","33","1","0","0.0","0","63800","0.99","22500"
