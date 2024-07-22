@@ -81,6 +81,7 @@ public class MavenInvoker {
         List<String> goals = new ArrayList<>();
         String mode = config.isDryRun() ? "dryRun" : "run";
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":" + mode);
+        goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
         try (InputStream inputStream = getClass().getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
             List<RecipeDescriptor> recipeDescriptors = new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});

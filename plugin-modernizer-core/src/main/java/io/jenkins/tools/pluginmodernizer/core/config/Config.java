@@ -14,9 +14,10 @@ public class Config {
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
+    private final boolean exportDatatables;
     private final String githubOwner;
 
-    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, URL jenkinsUpdateCenter, Path cachePath, Path mavenHome, boolean dryRun) {
+    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, URL jenkinsUpdateCenter, Path cachePath, Path mavenHome, boolean dryRun, boolean exportDatatables) {
         this.version = version;
         this.githubOwner = githubOwner;
         this.plugins = plugins;
@@ -25,6 +26,7 @@ public class Config {
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
+        this.exportDatatables = exportDatatables;
     }
 
     public String getVersion() {
@@ -59,6 +61,10 @@ public class Config {
         return dryRun;
     }
 
+    public boolean isExportDatatables() {
+        return exportDatatables;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -72,6 +78,7 @@ public class Config {
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
+        private boolean exportDatatables = false;
 
         public Builder withVersion(String version) {
             this.version = version;
@@ -119,8 +126,13 @@ public class Config {
             return this;
         }
 
+        public Builder withExportDatatables(boolean exportDatatables) {
+            this.exportDatatables = exportDatatables;
+            return this;
+        }
+
         public Config build() {
-            return new Config(version, githubOwner, plugins, recipes, jenkinsUpdateCenter, cachePath, mavenHome, dryRun);
+            return new Config(version, githubOwner, plugins, recipes, jenkinsUpdateCenter, cachePath, mavenHome, dryRun, exportDatatables);
         }
     }
 

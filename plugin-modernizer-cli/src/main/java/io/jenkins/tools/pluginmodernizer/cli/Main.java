@@ -50,6 +50,9 @@ public class Main implements Runnable {
     @Option(names = {"-n", "--dry-run"}, description = "Perform a dry run without making any changes.")
     public boolean dryRun;
 
+    @Option(names = {"-e", "--export-datatables"}, description = "Creates a report or summary of the changes made through OpenRewrite.")
+    public boolean exportDatatables;
+
     @Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
     public boolean debug;
 
@@ -73,6 +76,7 @@ public class Main implements Runnable {
                 .withPlugins(plugins)
                 .withRecipes(recipes)
                 .withDryRun(dryRun)
+                .withExportDatatables(exportDatatables)
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withCachePath(cachePath)
                 .withMavenHome(mavenHome)
