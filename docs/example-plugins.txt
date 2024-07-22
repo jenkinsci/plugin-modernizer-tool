@@ -1,6 +1,6 @@
 # Format
-plugin-name
-plugin-name:plugin-version
+plugin-artifact-ID
+plugin-artifact-ID:plugin-version
 
 # Examples
 jobcacher
