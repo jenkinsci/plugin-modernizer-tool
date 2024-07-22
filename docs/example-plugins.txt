@@ -1,0 +1,9 @@
+# Format
+plugin-artifact-ID
+plugin-artifact-ID:plugin-version
+
+# Examples
+jobcacher
+login-theme
+next-executions:1.0.0
+cloudbees-bitbucket-branch-source:2.4.4
