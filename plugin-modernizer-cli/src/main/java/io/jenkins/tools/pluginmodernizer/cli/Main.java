@@ -41,10 +41,10 @@ public class Main implements Runnable {
     @Option(names = {"-r", "--recipes"}, required = true, description = "List of Recipes to be applied.", split = ",", parameterConsumer = CommaSeparatedParameterConsumer.class)
     private List<String> recipes;
 
-    @Option(names = {"-f", "--plugin-file"}, description = "Path to the file that contains a list of plugins")
+    @Option(names = {"-f", "--plugin-file"}, description = "Path to the file that contains a list of plugins.")
     private Path pluginFile;
 
-    @Option(names = {"-g", "--github-owner"}, description = "GitHub owner for forked repositories")
+    @Option(names = {"-g", "--github-owner"}, description = "GitHub owner for forked repositories.")
     private String githubOwner = Settings.GITHUB_OWNER;
 
     @Option(names = {"-n", "--dry-run"}, description = "Perform a dry run without making any changes.")
@@ -53,7 +53,7 @@ public class Main implements Runnable {
     @Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
     public boolean debug;
 
-    @Option(names = "--jenkins-update-center", description = "Sets main update center; will override JENKINS_UC environment variable. If not set via CLI option or environment variable, will use default update center url")
+    @Option(names = "--jenkins-update-center", description = "Sets main update center; will override JENKINS_UC environment variable. If not set via CLI option or environment variable, will use default update center url.")
     public URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
 
     @Option(names = {"-c", "--cache-path"}, description = "Path to the cache directory.")
