@@ -158,6 +158,13 @@ public class MainTest {
     }
 
     @Test
+    public void testExportDatatablesOption() {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-n", "-e"};
+        commandLine.execute(args);
+        assertTrue(main.setup().isExportDatatables());
+    }
+
+    @Test
     public void testDebugOption() {
         String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-d"};
         commandLine.execute(args);
