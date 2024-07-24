@@ -1,0 +1,127 @@
+# This is a configuration file for the updatecli tool.
+# It defines a pipeline for updating the list of temurin installers from SDKMAN
+name: Bump the list of temurin installers from SDKMAN
+
+# The 'scms' section defines the source control management system to be used.
+scms:
+  default:
+    kind: github
+    spec:
+      # The GitHub username
+      user: "{{ .github.user }}"
+      # The GitHub user's email
+      email: "{{ .github.email }}"
+      # The owner of the GitHub repository
+      owner: "{{ .github.owner }}"
+      # The GitHub repository
+      repository: "{{ .github.repository }}"
+      # The GitHub token for authentication. It is required.
+      token: "{{ requiredEnv .github.token }}"
+      # The GitHub username for authentication
+      username: "{{ .github.username }}"
+      # The branch to be updated
+      branch: "{{ .github.branch }}"
+
+# The 'sources' section defines the sources of data to be used in the pipeline.
+sources:
+  JDK8:
+    name: Get the latest JDK8 version from SDKMAN
+    kind: shell
+    spec:
+      # The shell command to retrieve the latest JDK8 version from SDKMAN
+      command: bash updatecli/scripts/get-jdk-versions.sh 8
+      environments:
+        - name: HOME
+  JDK11:
+    name: Get the latest JDK11 version from SDKMAN
+    kind: shell
+    spec:
+      # The shell command to retrieve the latest JDK11 version from SDKMAN
+      command: bash updatecli/scripts/get-jdk-versions.sh 11
+      environments:
+        - name: HOME
+  JDK17:
+    name: Get the latest JDK17 version from SDKMAN
+    kind: shell
+    spec:
+      # The shell command to retrieve the latest JDK17 version from SDKMAN
+      command: bash updatecli/scripts/get-jdk-versions.sh 17
+      environments:
+        - name: HOME
+  JDK21:
+    name: Get the latest JDK21 version from SDKMAN
+    kind: shell
+    spec:
+      # The shell command to retrieve the latest JDK21 version from SDKMAN
+      command: bash updatecli/scripts/get-jdk-versions.sh 21
+      environments:
+        - name: HOME
+
+# The 'targets' section defines the targets to be updated.
+targets:
+  setJDK8:
+    kind: dockerfile
+    spec:
+      # The file to be updated
+      file: .gitpod/Dockerfile
+      instruction:
+        keyword: "ARG"
+        matcher: "JDK8_PACKAGE"
+    name: "[GitPod] Update the JDK8 version for SDKMAN"
+    # The source of data for the update
+    sourceid: JDK8
+    # The source control management system to be used
+    scmid: default
+  setJDK11:
+    kind: dockerfile
+    spec:
+      # The file to be updated
+      file: .gitpod/Dockerfile
+      instruction:
+        keyword: "ARG"
+        matcher: "JDK11_PACKAGE"
+    name: "[GitPod] Update the JDK11 version for SDKMAN"
+    # The source of data for the update
+    sourceid: JDK11
+    # The source control management system to be used
+    scmid: default
+  setJDK17:
+    kind: dockerfile
+    spec:
+      # The file to be updated
+      file: .gitpod/Dockerfile
+      instruction:
+        keyword: "ARG"
+        matcher: "JDK17_PACKAGE"
+    name: "[GitPod] Update the JDK17 version for SDKMAN"
+    # The source of data for the update
+    sourceid: JDK17
+    # The source control management system to be used
+    scmid: default
+  setJDK21:
+    kind: dockerfile
+    spec:
+      # The file to be updated
+      file: .gitpod/Dockerfile
+      instruction:
+        keyword: "ARG"
+        matcher: "JDK21_PACKAGE"
+    name: "[GitPod] Update the JDK21 version for SDKMAN"
+    # The source of data for the update
+    sourceid: JDK21
+    # The source control management system to be used
+    scmid: default
+
+# The 'actions' section defines the actions to be taken after the targets are updated.
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    title: "[plugins] Update the versions of the temurin installers from SDKMAN"
+    spec:
+      labels: # The labels to be added to the GitHub pull request
+        - chore
+        - JDK
+        - SDKMAN
+        - docker
+        - updatecli
