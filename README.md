@@ -79,9 +79,9 @@ Alternatively, you can pass the GitHub owner through the CLI option `-g` or `--g
 
 - `--list-recipes` or `-l`: (optional) Displays the list of available recipes.
 
-- `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes. The patch files will be generated at `target/rewrite/rewrite.patch` inside the plugin directory.
+- `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes. The patch files will be generated at `target/rewrite/rewrite.patch` inside the plugin directory if any change is made.
 
-- `--export-datatables` or `-e`: (optional) Creates a report or summary of the changes made through OpenRewrite in csv format. The report will be generated at `target/rewrite/datatables` inside the plugin directory.
+- `--export-datatables` or `-e`: (optional) Creates a report or summary of the changes made through OpenRewrite in CSV format. The report will be generated at `target/rewrite/datatables` inside the plugin directory.
 
 - `--debug` or `-d`: (optional) Enables debug mode.
 
@@ -108,7 +108,7 @@ Pass the plugin names directly using the `-p` or `--plugins option`. The expecte
 ```shell
 java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipes AddPluginsBom,AddCodeOwner
 ```
-Here, `git`, `git-client` and `jobcacher` are plugin artifact IDs (also known as plugin names), while `AddPluginsBom` and `AddCodeOwners` are recipe names. For more details about available recipes, refer to the [recipe_data.yaml](plugin-modernizer-core/src/main/resources/recipe_data.yaml) file.
+Here, `git`, `git-client`, and `jobcacher` are plugin artifact IDs (also known as plugin names), while `AddPluginsBom` and `AddCodeOwners` are recipe names. For more details about available recipes, refer to the [recipe_data.yaml](plugin-modernizer-core/src/main/resources/recipe_data.yaml) file.
 
 ### Plugin file option
 
