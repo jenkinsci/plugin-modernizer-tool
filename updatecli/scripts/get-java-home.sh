@@ -3,6 +3,9 @@
 # Store the current directory
 current_dir=$(pwd)
 
+# Store the directory of the current script
+script_dir=$(dirname "$0")
+
 # Check if exactly one argument is provided
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <major_java_version>"
@@ -12,7 +15,7 @@ fi
 major_version=$1
 
 # Change to the directory where the script is located
-cd "$(dirname "$0")" || exit
+cd "$script_dir" || exit
 
 # Call install-sdk.sh and redirect output
 # For silence:
@@ -23,7 +26,8 @@ cd "$(dirname "$0")" || exit
 # Initialize SDKMAN
 if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
     source "$HOME/.sdkman/bin/sdkman-init.sh"
-    install-jdk-versions.sh #> /dev/null 2>&1
+    # Call install-jdk-versions.sh using the script directory
+    "$script_dir/install-jdk-versions.sh" #> /dev/null 2>&1
 else
     echo "SDKMAN is not installed or not found."
     exit 2
