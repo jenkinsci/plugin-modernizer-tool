@@ -18,6 +18,12 @@ jobs:
       - name: Install Updatecli in the runner
         uses: updatecli/updatecli-action@v2.61.0
 
+      - name: Install SDKMAN in the runner
+        run: ./updatecli/scripts/install-sdk.sh
+
+      - name: Install needed JDKs in the runner
+        run: ./updatecli/scripts/install-jdk-versions.sh
+
       - name: Run Updatecli in Dry Run mode
         run: updatecli diff --config ./updatecli/updatecli.d --values ./updatecli/values.github-action.yaml
         env:
