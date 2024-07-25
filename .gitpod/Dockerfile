@@ -29,5 +29,5 @@ RUN file="$HOME/.bashrc.d/770-scm_token.sh" \
 RUN /bin/bash -c "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && \
     yes | sdk install java \"$JDK8_PACKAGE\" \
     && yes | sdk install java \"$JDK11_PACKAGE\" \
-    && yes | sdk install java \"$JDK17_PACKAGE\" \
-    && yes | sdk install java \"$JDK21_PACKAGE\""
+    && yes | sdk install java \"$JDK21_PACKAGE\" \
+    && yes | sdk install java \"$JDK17_PACKAGE\""
