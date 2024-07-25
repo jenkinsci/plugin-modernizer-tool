@@ -17,5 +17,6 @@ identifier=$(sdk list java | grep -E " $major_version\\.0.*-tem" | awk -v ver="$
 if [ -n "$identifier" ]; then
     echo "$identifier"
 else
-    echo "No Temurin JDK version found for Java $major_version"
+    echo "No Temurin JDK version found for Java $major_version" >&2
+    exit 2
 fi
