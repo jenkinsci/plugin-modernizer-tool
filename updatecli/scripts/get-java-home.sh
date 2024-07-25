@@ -19,7 +19,7 @@ cd "$script_dir" || exit
 
 # Call install-sdk.sh and redirect output
 # For silence:
-./install-sdk.sh #> /dev/null 2>&1
+./install-sdk.sh > /dev/null 2>&1
 # Or, to redirect all output to stderr:
 #./install-sdk.sh 2>&1 >&2
 
@@ -27,7 +27,7 @@ cd "$script_dir" || exit
 if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
     source "$HOME/.sdkman/bin/sdkman-init.sh"
     # Call install-jdk-versions.sh using the script directory
-    ./install-jdk-versions.sh #> /dev/null 2>&1
+    ./install-jdk-versions.sh > /dev/null 2>&1
 else
     echo "SDKMAN is not installed or not found."
     exit 2
