@@ -181,7 +181,7 @@ targets:
       matchpattern: >-
         (.*)JAVA_8_HOME=.*tem(\s?.*)
       replacepattern: >-
-        JAVA_8_HOME=$$HOME{{ source `JAVA_8_HOME` }}${2}
+        JAVA_8_HOME=${{ source `JAVA_8_HOME` }}${2}
   setJavaHomeForJDK11InProperties:
     name: "[sdkman.properties] Update the JDK11 JAVA_HOME"
     kind: file
@@ -194,7 +194,7 @@ targets:
       matchpattern: >-
         (.*)JAVA_11_HOME=.*tem(\s?.*)
       replacepattern: >-
-        JAVA_11_HOME=$$HOME{{ source `JAVA_11_HOME` }}${2}
+        JAVA_11_HOME=${{ source `JAVA_11_HOME` }}${2}
   setJavaHomeForJDK17InProperties:
     name: "[sdkman.properties] Update the JDK17 JAVA_HOME"
     kind: file
@@ -207,20 +207,20 @@ targets:
       matchpattern: >-
         (.*)JAVA_17_HOME=.*tem(\s?.*)
       replacepattern: >-
-        JAVA_17_HOME=$$HOME{{ source `JAVA_17_HOME` }}${2}
+        JAVA_17_HOME=${{ source `JAVA_17_HOME` }}${2}
   setJavaHomeForJDK21InProperties:
     name: "[sdkman.properties] Update the JDK21 JAVA_HOME"
     kind: file
     # If the file does not exist, it will be created
     forcecreate: true
-    sourceid: JAVA_21_HOME
+    disablesourceinput: true
     scmid: default
     spec:
       file: plugin-modernizer-cli/src/main/resources/sdkman.properties
       matchpattern: >-
         (.*)JAVA_21_HOME=.*tem(\s?.*)
       replacepattern: >-
-        JAVA_21_HOME=$$HOME{{ source `JAVA_21_HOME` }}${2}
+        JAVA_21_HOME=${{ source `JAVA_21_HOME` }}${2}
 
 # Define the actions to take after the targets are updated.
 actions:
