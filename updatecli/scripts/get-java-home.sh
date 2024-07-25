@@ -27,7 +27,7 @@ cd "$script_dir" || exit
 if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
     source "$HOME/.sdkman/bin/sdkman-init.sh"
     # Call install-jdk-versions.sh using the script directory
-    "$script_dir/install-jdk-versions.sh" #> /dev/null 2>&1
+    ./install-jdk-versions.sh #> /dev/null 2>&1
 else
     echo "SDKMAN is not installed or not found."
     exit 2
