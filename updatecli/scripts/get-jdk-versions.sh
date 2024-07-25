@@ -12,16 +12,16 @@ fi
 major_version=$1
 
 # Change to the directory where the script is located
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit
 
 # Call install-sdk.sh and redirect output
 # For silence:
-#./install-sdk.sh > /dev/null 2>&1
+./install-sdk.sh > /dev/null 2>&1
 # Or, to redirect all output to stderr:
-./install-sdk.sh 2>&1 >&2
+#./install-sdk.sh 2>&1 >&2
 
 # Change back to the original directory
-cd "$current_dir"
+cd "$current_dir" || exit
 
 # Initialize SDKMAN
 source "$HOME/.sdkman/bin/sdkman-init.sh"
