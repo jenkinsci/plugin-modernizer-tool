@@ -20,16 +20,17 @@ cd "$(dirname "$0")" || exit
 # Or, to redirect all output to stderr:
 #./install-sdk.sh 2>&1 >&2
 
-# Change back to the original directory
-cd "$current_dir" || exit
-
 # Initialize SDKMAN
 if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
     source "$HOME/.sdkman/bin/sdkman-init.sh"
+    jdk-versions.sh > /dev/null 2>&1
 else
     echo "SDKMAN is not installed or not found."
     exit 2
 fi
+
+# Change back to the original directory
+cd "$current_dir" || exit
 
 # Retrieve the version identifier for the requested major version of Temurin JDK
 identifier=$(sdk list java | grep -E " $major_version\\.0.*-tem" | awk -v ver="$major_version" '$0 ~ " " ver "\\.0.*-tem" {print $NF}' | head -n 1)

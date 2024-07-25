@@ -20,6 +20,15 @@ cd "$(dirname "$0")" || exit
 # Or, to redirect all output to stderr:
 #./install-sdk.sh 2>&1 >&2
 
+# Initialize SDKMAN
+if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    jdk-versions.sh > /dev/null 2>&1
+else
+    echo "SDKMAN is not installed or not found."
+    exit 2
+fi
+
 # Change back to the original directory
 cd "$current_dir" || exit
 
