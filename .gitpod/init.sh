@@ -45,7 +45,7 @@ echo -e "If you want to use another GitHub handle, please set the ${color_green}
 echo -e "\nWe propose you to work with two Jenkins plugin repositories: ${color_cyan}badge-plugin${color_reset} and ${color_cyan}build-timestamp-plugin${color_reset}."
 echo -e "You could, though, use other plugin repositories as well (like ${color_cyan}plot-plugin${color_reset}) by entering their name in the following ${color_cyan}java${color_reset} command."
 echo -e "\nYou can now proceed with the modernizer tool thanks to the following commands:"
-echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --dry-run --plugins badge,build-timestamp --recipes AddPluginsBom,AddCodeOwner${color_reset}"
+echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --dry-run --plugins badge,build-timestamp --recipes AddPluginsBom,AddCodeOwner --export-datatables${color_reset}"
 
 echo -e "\nBy the way, you can copy/paste from/to the terminal to execute the commands. Enjoy! 🚀"
 echo -e "See ${color_blue}https://www.gitpod.io/docs/configure/user-settings/browser-settings#browser-settings${color_reset} to know more.\n"
