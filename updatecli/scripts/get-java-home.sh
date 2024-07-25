@@ -16,14 +16,14 @@ cd "$(dirname "$0")" || exit
 
 # Call install-sdk.sh and redirect output
 # For silence:
-./install-sdk.sh > /dev/null 2>&1
+./install-sdk.sh #> /dev/null 2>&1
 # Or, to redirect all output to stderr:
 #./install-sdk.sh 2>&1 >&2
 
 # Initialize SDKMAN
 if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
     source "$HOME/.sdkman/bin/sdkman-init.sh"
-    install-jdk-versions.sh > /dev/null 2>&1
+    install-jdk-versions.sh #> /dev/null 2>&1
 else
     echo "SDKMAN is not installed or not found."
     exit 2
