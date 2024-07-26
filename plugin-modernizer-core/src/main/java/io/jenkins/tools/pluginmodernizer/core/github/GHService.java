@@ -163,23 +163,32 @@ public class GHService {
 
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
-        commitChanges(pluginDirectory);
+        boolean changesCommitted = commitChanges(pluginDirectory);
 
-        pushBranch(pluginDirectory, branchName);
-
-        createPullRequest(repoName, branchName);
+        if (changesCommitted) {
+            pushBranch(pluginDirectory, branchName);
+            createPullRequest(repoName, branchName);
+        } else {
+            LOG.info("Skipping pull request creation as no changes were committed for {}", pluginName);
+        }
     }
 
-    private void commitChanges(Path pluginDirectory) throws IOException, GitAPIException {
+    private boolean commitChanges(Path pluginDirectory) throws IOException, GitAPIException {
         try (Git git = Git.open(pluginDirectory.toFile())) {
-            git.add().addFilepattern(".").call();
+            if (git.status().call().hasUncommittedChanges()) {
+                git.add().addFilepattern(".").call();
 
-            git.commit()
-                    .setMessage(COMMIT_MESSAGE)
-                    .setSign(false)  // Maybe a new option to sign commit?
-                    .call();
+                git.commit()
+                        .setMessage(COMMIT_MESSAGE)
+                        .setSign(false)  // Maybe a new option to sign commit?
+                        .call();
 
-            LOG.info("Changes committed");
+                LOG.info("Changes committed");
+                return true;
+            } else {
+                LOG.info("No changes to commit");
+                return false;
+            }
         }
     }
 
