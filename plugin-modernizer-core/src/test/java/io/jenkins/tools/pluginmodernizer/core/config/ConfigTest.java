@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 public class ConfigTest {
@@ -66,10 +65,8 @@ public class ConfigTest {
         String version = "2.0";
         List<String> plugins = Arrays.asList("plugin1", "plugin2");
 
-        Config config = Config.builder()
-                .withVersion(version)
-                .withPlugins(plugins)
-                .build();
+        Config config =
+                Config.builder().withVersion(version).withPlugins(plugins).build();
 
         assertEquals(version, config.getVersion());
         assertEquals(plugins, config.getPlugins());
@@ -99,9 +96,7 @@ public class ConfigTest {
 
     @Test
     public void testConfigBuilderDryRun() {
-        Config config = Config.builder()
-                .withDryRun(true)
-                .build();
+        Config config = Config.builder().withDryRun(true).build();
 
         assertTrue(config.isDryRun());
     }

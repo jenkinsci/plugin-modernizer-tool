@@ -8,14 +8,11 @@ import static org.openrewrite.maven.Assertions.pomXml;
 
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.openrewrite.maven.tree.Dependency;
 import org.openrewrite.maven.tree.Parent;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
-
-
 
 public class MetadataCollectorTest implements RewriteTest {
     @Override
@@ -26,8 +23,9 @@ public class MetadataCollectorTest implements RewriteTest {
     @Test
     void testPlugin() {
         // language=xml
-        rewriteRun(pomXml(
-                """
+        rewriteRun(
+                pomXml(
+                        """
                         <?xml version="1.0" encoding="UTF-8"?>
                         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
                           <modelVersion>4.0.0</modelVersion>
@@ -142,8 +140,7 @@ public class MetadataCollectorTest implements RewriteTest {
                             </pluginRepository>
                           </pluginRepositories>
                         </project>
-                        """
-        ));
+                        """));
         PluginMetadata pluginMetadata = PluginMetadata.getInstance();
         String pluginName = pluginMetadata.getPluginName();
         assertEquals("GitLab Plugin", pluginName);

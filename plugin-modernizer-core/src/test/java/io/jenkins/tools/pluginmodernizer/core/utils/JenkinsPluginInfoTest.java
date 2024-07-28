@@ -8,7 +8,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,7 +22,8 @@ class JenkinsPluginInfoTest {
 
     @BeforeEach
     public void setup() throws IOException {
-        String jsonContent = "{\"plugins\": {\"login-theme\": {\"scm\": \"https://github.com/jenkinsci/login-theme-plugin\"}}}";
+        String jsonContent =
+                "{\"plugins\": {\"login-theme\": {\"scm\": \"https://github.com/jenkinsci/login-theme-plugin\"}}}";
         Path cacheFile = tempDir.resolve("update-center.json");
         Files.write(cacheFile, jsonContent.getBytes());
     }

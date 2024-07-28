@@ -2,15 +2,14 @@ package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import static java.util.Objects.requireNonNull;
 
+import com.google.gson.Gson;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
-
-import com.google.gson.Gson;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.SourceFile;
@@ -54,7 +53,9 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
     @Override
     public TreeVisitor<?, ExecutionContext> getScanner(Metadata acc) {
         return new TreeVisitor<Tree, ExecutionContext>() {
-            @SuppressFBWarnings(value = "NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE", justification = "false postive")
+            @SuppressFBWarnings(
+                    value = "NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE",
+                    justification = "false postive")
             @Override
             public Tree visit(@Nullable Tree tree, ExecutionContext ctx) {
                 SourceFile sourceFile = (SourceFile) requireNonNull(tree);
@@ -91,14 +92,16 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 pluginMetadata.setPluginParent(pom.getParent());
                 pluginMetadata.setDependencies(pom.getDependencies());
                 pluginMetadata.setProperties(properties);
-                pluginMetadata.setJenkinsVersion(resolvedPom.getManagedVersion("org.jenkins-ci.main", "jenkins-core", null, null));
+                pluginMetadata.setJenkinsVersion(
+                        resolvedPom.getManagedVersion("org.jenkins-ci.main", "jenkins-core", null, null));
                 pluginMetadata.setHasJavaLevel(pom.getProperties().get("java.level") != null);
                 pluginMetadata.setHasDevelopersTag(tagExtractor.hasDevelopersTag());
                 pluginMetadata.setLicensed(!pom.getLicenses().isEmpty());
                 pluginMetadata.setUsesHttps(tagExtractor.usesHttps());
                 pluginMetadata.setHasJenkinsfile(acc.hasJenkinsfile);
 
-                try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream("target/pluginMetadata.json"), StandardCharsets.UTF_8)) {
+                try (OutputStreamWriter writer = new OutputStreamWriter(
+                        new FileOutputStream("target/pluginMetadata.json"), StandardCharsets.UTF_8)) {
                     Gson gson = new Gson();
                     gson.toJson(pluginMetadata, writer);
                 } catch (IOException e) {

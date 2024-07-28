@@ -1,11 +1,10 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
+import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

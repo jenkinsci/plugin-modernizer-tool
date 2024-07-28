@@ -3,7 +3,6 @@ package io.jenkins.tools.pluginmodernizer.cli;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-
 import picocli.CommandLine.IParameterConsumer;
 import picocli.CommandLine.Model.ArgSpec;
 import picocli.CommandLine.Model.CommandSpec;

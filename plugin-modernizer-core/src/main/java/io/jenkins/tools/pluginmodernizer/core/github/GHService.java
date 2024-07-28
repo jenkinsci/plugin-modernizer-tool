@@ -1,15 +1,14 @@
 package io.jenkins.tools.pluginmodernizer.core.github;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.jenkins.tools.pluginmodernizer.core.config.Config;
-import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
@@ -44,10 +43,12 @@ public class GHService {
 
     private void validate() {
         if (Settings.GITHUB_TOKEN == null) {
-            throw new IllegalArgumentException("GitHub token is not set. Please set GH_TOKEN or GITHUB_TOKEN environment variable.");
+            throw new IllegalArgumentException(
+                    "GitHub token is not set. Please set GH_TOKEN or GITHUB_TOKEN environment variable.");
         }
         if (config.getGithubOwner() == null) {
-            throw new IllegalArgumentException("GitHub owner (username/organization) is not set. Please set GH_OWNER or GITHUB_OWNER environment variable.");
+            throw new IllegalArgumentException(
+                    "GitHub owner (username/organization) is not set. Please set GH_OWNER or GITHUB_OWNER environment variable.");
         }
     }
 
@@ -62,7 +63,8 @@ public class GHService {
         }
     }
 
-    public void forkCloneAndCreateBranch(String repoName, String pluginName, String branchName) throws IOException, GitAPIException, InterruptedException {
+    public void forkCloneAndCreateBranch(String repoName, String pluginName, String branchName)
+            throws IOException, GitAPIException, InterruptedException {
         Path pluginDirectory = Paths.get(Settings.TEST_PLUGINS_DIRECTORY, pluginName);
 
         GitHub github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
@@ -86,7 +88,9 @@ public class GHService {
         } else {
             if (isRepositoryForked(github, originalRepo.getName())) {
                 // TODO: Fn to sync upstream
-                LOG.info("Repository already forked to personal account {}", github.getMyself().getLogin());
+                LOG.info(
+                        "Repository already forked to personal account {}",
+                        github.getMyself().getLogin());
             } else {
                 forkRepository(originalRepo);
             }
@@ -110,13 +114,13 @@ public class GHService {
         return github.getMyself().getRepository(repoName) != null;
     }
 
-    private void forkRepository(GHRepository originalRepo, GHOrganization organization) throws IOException, InterruptedException {
+    private void forkRepository(GHRepository originalRepo, GHOrganization organization)
+            throws IOException, InterruptedException {
         if (organization == null) {
             LOG.info("Forking the repository to personal account...");
             originalRepo.fork();
             LOG.info("Repository forked to personal account successfully.");
-        }
-        else {
+        } else {
             LOG.info("Forking the repository to organisation...");
             originalRepo.forkTo(organization);
             LOG.info("Repository forked to organization successfully.");
@@ -136,8 +140,7 @@ public class GHService {
                     .setDirectory(pluginDirectory.toFile())
                     .call();
             LOG.debug("Cloned successfully from {}", uri);
-        }
-        else {
+        } else {
             // TODO: Cleanup and fetch latest changes. Also ensure on the main branch
         }
     }
@@ -153,7 +156,8 @@ public class GHService {
         }
     }
 
-    public void commitAndCreatePR(String repoName, String pluginName, String branchName) throws IOException, GitAPIException {
+    public void commitAndCreatePR(String repoName, String pluginName, String branchName)
+            throws IOException, GitAPIException {
         if (config.isDryRun()) {
             LOG.info("Skipping commit and pull request creation for {}", pluginName);
             return;
@@ -180,7 +184,7 @@ public class GHService {
 
                 git.commit()
                         .setMessage(COMMIT_MESSAGE)
-                        .setSign(false)  // Maybe a new option to sign commit?
+                        .setSign(false) // Maybe a new option to sign commit?
                         .call();
 
                 LOG.info("Changes committed");
@@ -215,20 +219,18 @@ public class GHService {
         } else {
             String prBody = String.format("Applied the following recipes: %s", String.join(", ", config.getRecipes()));
             GHPullRequest pr = originalRepo.createPullRequest(
-                    PR_TITLE,
-                    config.getGithubOwner() + ":" + branchName,
-                    originalRepo.getDefaultBranch(),
-                    prBody
-            );
+                    PR_TITLE, config.getGithubOwner() + ":" + branchName, originalRepo.getDefaultBranch(), prBody);
 
             LOG.info("Pull request created: {}", pr.getHtmlUrl());
         }
     }
 
-    private Optional<GHPullRequest> checkIfPullRequestExists(GHRepository originalRepo, String branchName) throws IOException {
+    private Optional<GHPullRequest> checkIfPullRequestExists(GHRepository originalRepo, String branchName)
+            throws IOException {
         List<GHPullRequest> pullRequests = originalRepo.getPullRequests(GHIssueState.OPEN);
         return pullRequests.stream()
-                .filter(pr -> pr.getHead().getRef().equals(branchName) && pr.getTitle().equals(PR_TITLE))
+                .filter(pr -> pr.getHead().getRef().equals(branchName)
+                        && pr.getTitle().equals(PR_TITLE))
                 .findFirst();
     }
 }
