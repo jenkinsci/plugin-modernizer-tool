@@ -17,7 +17,16 @@ public class Config {
     private final boolean exportDatatables;
     private final String githubOwner;
 
-    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, URL jenkinsUpdateCenter, Path cachePath, Path mavenHome, boolean dryRun, boolean exportDatatables) {
+    private Config(
+            String version,
+            String githubOwner,
+            List<String> plugins,
+            List<String> recipes,
+            URL jenkinsUpdateCenter,
+            Path cachePath,
+            Path mavenHome,
+            boolean dryRun,
+            boolean exportDatatables) {
         this.version = version;
         this.githubOwner = githubOwner;
         this.plugins = plugins;
@@ -132,8 +141,16 @@ public class Config {
         }
 
         public Config build() {
-            return new Config(version, githubOwner, plugins, recipes, jenkinsUpdateCenter, cachePath, mavenHome, dryRun, exportDatatables);
+            return new Config(
+                    version,
+                    githubOwner,
+                    plugins,
+                    recipes,
+                    jenkinsUpdateCenter,
+                    cachePath,
+                    mavenHome,
+                    dryRun,
+                    exportDatatables);
         }
     }
-
 }

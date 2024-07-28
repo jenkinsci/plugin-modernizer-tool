@@ -1,5 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -7,9 +9,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,8 +135,7 @@ public class Settings {
                 throw new IOException(String.format("Unable to load `%s`", resource));
             }
             properties.load(input);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             LOG.error("Error reading key {} from {}", key, resource, e);
             return null;
         }

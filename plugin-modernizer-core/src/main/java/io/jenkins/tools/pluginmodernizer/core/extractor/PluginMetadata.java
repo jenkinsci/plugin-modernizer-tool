@@ -2,7 +2,6 @@ package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import java.util.List;
 import java.util.Map;
-
 import org.openrewrite.maven.tree.Dependency;
 import org.openrewrite.maven.tree.Parent;
 

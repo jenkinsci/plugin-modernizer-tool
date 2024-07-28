@@ -47,7 +47,8 @@ public class PluginModernizer {
 
             try {
 
-                String repoName = JenkinsPluginInfo.extractRepoName(plugin, config.getCachePath(), config.getJenkinsUpdateCenter());
+                String repoName = JenkinsPluginInfo.extractRepoName(
+                        plugin, config.getCachePath(), config.getJenkinsUpdateCenter());
 
                 LOG.info("Forking and cloning plugin {} locally from repo {}", plugin, repoName);
                 ghService.forkCloneAndCreateBranch(repoName, plugin, branchName);
@@ -64,5 +65,4 @@ public class PluginModernizer {
             }
         }
     }
-
 }

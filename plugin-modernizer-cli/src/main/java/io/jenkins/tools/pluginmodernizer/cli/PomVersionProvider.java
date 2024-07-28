@@ -3,14 +3,13 @@ package io.jenkins.tools.pluginmodernizer.cli;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
 import picocli.CommandLine;
 
 public class PomVersionProvider implements CommandLine.IVersionProvider {
 
     @Override
     public String[] getVersion() throws Exception {
-        return new String[] { getVersionFromProperties() };
+        return new String[] {getVersionFromProperties()};
     }
 
     private String getVersionFromProperties() throws IOException {

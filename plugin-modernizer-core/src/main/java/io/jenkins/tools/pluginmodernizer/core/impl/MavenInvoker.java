@@ -1,5 +1,12 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -9,14 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import edu.umd.cs.findbugs.annotations.Nullable;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.jenkins.tools.pluginmodernizer.core.config.Config;
-import io.jenkins.tools.pluginmodernizer.core.config.Settings;
-import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
@@ -53,8 +52,7 @@ public class MavenInvoker {
             request.setOutputHandler(version::set);
             invoker.execute(request);
             return new ComparableVersion(version.get());
-        }
-        catch (MavenInvocationException e) {
+        } catch (MavenInvocationException e) {
             LOG.error("Failed to check for maven version", e);
             return null;
         }
@@ -84,7 +82,8 @@ public class MavenInvoker {
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
         try (InputStream inputStream = getClass().getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
-            List<RecipeDescriptor> recipeDescriptors = new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});
+            List<RecipeDescriptor> recipeDescriptors =
+                    new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});
 
             List<String> recipes = config.getRecipes();
             List<String> activeRecipes = getActiveRecipes(recipes, recipeDescriptors);
@@ -125,7 +124,9 @@ public class MavenInvoker {
             request.setBatchMode(true);
             request.setNoTransferProgress(false);
             request.setErrorHandler((message) -> {
-                LOG.error(MarkerFactory.getMarker(plugin), String.format("Something went wrong when running maven: %s", message));
+                LOG.error(
+                        MarkerFactory.getMarker(plugin),
+                        String.format("Something went wrong when running maven: %s", message));
             });
             request.setOutputHandler((message) -> {
                 LOG.info(MarkerFactory.getMarker(plugin), message);
@@ -166,7 +167,10 @@ public class MavenInvoker {
             throw new IllegalArgumentException("Failed to check Maven version.");
         }
         if (mavenVersion.compareTo(Settings.MAVEN_MINIMAL_VERSION) < 0) {
-            LOG.error("Maven version detected {}, is too old. Please use at least version {}", mavenVersion, Settings.MAVEN_MINIMAL_VERSION);
+            LOG.error(
+                    "Maven version detected {}, is too old. Please use at least version {}",
+                    mavenVersion,
+                    Settings.MAVEN_MINIMAL_VERSION);
             throw new IllegalArgumentException("Maven version is too old.");
         }
     }
@@ -183,7 +187,10 @@ public class MavenInvoker {
         if (result.getExitCode() != 0) {
             LOG.error(MarkerFactory.getMarker(plugin), "Build fail with code: {}", result.getExitCode());
             if (result.getExecutionException() != null) {
-                LOG.error(MarkerFactory.getMarker(plugin), "Execution exception occurred: ", result.getExecutionException());
+                LOG.error(
+                        MarkerFactory.getMarker(plugin),
+                        "Execution exception occurred: ",
+                        result.getExecutionException());
             }
         } else {
             LOG.info(MarkerFactory.getMarker(plugin), "Build success!");
