@@ -54,6 +54,10 @@
       <artifactId>rewrite-xml</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.openrewrite.recipe</groupId>
+      <artifactId>rewrite-jenkins</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -71,9 +75,16 @@
         <filtering>true</filtering>
         <directory>src/main/resources</directory>
         <includes>
-          <include>recipe_data.yaml</include>
           <include>versions.properties</include>
           <include>update_center.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <targetPath>META-INF/rewrite</targetPath>
+        <filtering>false</filtering>
+        <directory>src/main/resources/META-INF/rewrite</directory>
+        <includes>
+          <include>recipes.yml</include>
         </includes>
       </resource>
     </resources>

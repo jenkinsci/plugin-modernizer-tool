@@ -1,0 +1,18 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.FetchMetadata
+description: Extracts metadata from a Jenkins plugin
+recipeList:
+  - io.jenkins.tools.pluginmodernizer.core.extractor.MetadataCollector
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.AddPluginsBom
+description: Adds a BOM to a Jenkins plugin
+recipeList:
+  - org.openrewrite.jenkins.AddPluginsBom
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.AddCodeOwner
+description: Adds a CODEOWNERS file to a Jenkins plugin
+recipeList:
+  - org.openrewrite.jenkins.github.AddTeamToCodeowners

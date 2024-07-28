@@ -1,18 +1,19 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
-import io.jenkins.tools.pluginmodernizer.core.model.RecipeDescriptor;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginListParser;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.Collectors;
+import org.openrewrite.Recipe;
+import org.openrewrite.config.YamlResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -131,21 +132,22 @@ public class Main implements Runnable {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(Settings.RECIPE_DATA_YAML_PATH);
         if (inputStream == null) {
             LOG.error("Failed to load the available recipes.");
-            return;
+            throw new IllegalArgumentException("Failed to load the available recipes.");
         }
         try {
-            List<RecipeDescriptor> recipeDescriptors =
-                    new YAMLMapper().readValue(inputStream, new TypeReference<List<RecipeDescriptor>>() {});
-
-            if (recipeDescriptors == null || recipeDescriptors.isEmpty()) {
-                LOG.error("No recipes found in the YAML file.");
-                return;
-            }
-
+            YamlResourceLoader yamlResourceLoader =
+                    new YamlResourceLoader(inputStream, URI.create(Settings.RECIPE_DATA_YAML_PATH), new Properties());
+            List<Recipe> recipeDescriptors =
+                    yamlResourceLoader.listRecipes().stream().toList();
             LOG.info("Available recipes:");
-            recipeDescriptors.forEach(recipe -> LOG.info("{} - {}", recipe.name(), recipe.description()));
+            // Strip the FQDN prefix from the recipe name
+            recipeDescriptors.forEach(recipe -> LOG.info(
+                    "{} - {}",
+                    recipe.getName().replaceAll(Settings.RECIPE_FQDN_PREFIX + ".", ""),
+                    recipe.getDescription()));
         } catch (Exception e) {
             LOG.error("Error loading recipes from YAML: {}", e.getMessage());
+            throw new IllegalArgumentException("Error loading recipes from YAML: " + e.getMessage());
         }
     }
 
