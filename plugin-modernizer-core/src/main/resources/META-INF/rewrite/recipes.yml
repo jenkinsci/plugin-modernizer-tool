@@ -18,3 +18,12 @@ name: io.jenkins.tools.pluginmodernizer.AddCodeOwner
 description: Adds a CODEOWNERS file to a Jenkins plugin
 recipeList:
   - org.openrewrite.jenkins.github.AddTeamToCodeowners
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UpgradeParentVersion
+description: Upgrade the parent version to latest available
+recipeList:
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.jenkins-ci.plugins
+      artifactId: plugin
+      newVersion: 4.X
