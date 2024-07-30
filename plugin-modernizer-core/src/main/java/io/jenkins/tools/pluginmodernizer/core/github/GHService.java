@@ -135,11 +135,12 @@ public class GHService {
         String uri = "https://github.com/" + config.getGithubOwner() + "/" + repoName + ".git";
         if (!Files.exists(pluginDirectory) || !Files.isDirectory(pluginDirectory)) {
             LOG.debug("Cloning {}", pluginName);
-            Git.cloneRepository()
+            try (Git git = Git.cloneRepository()
                     .setURI(uri)
                     .setDirectory(pluginDirectory.toFile())
-                    .call();
-            LOG.debug("Cloned successfully from {}", uri);
+                    .call()) {
+                LOG.debug("Cloned successfully from {}", uri);
+            }
         } else {
             // TODO: Cleanup and fetch latest changes. Also ensure on the main branch
         }
