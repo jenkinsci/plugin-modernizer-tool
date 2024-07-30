@@ -10,6 +10,8 @@ name: io.jenkins.tools.pluginmodernizer.AddPluginsBom
 description: Adds a BOM to a Jenkins plugin
 recipeList:
   - org.openrewrite.jenkins.AddPluginsBom
+  - org.openrewrite.maven.RemoveProperty: # Provided by bom. Will cleanup unused property
+      propertyName: configuration-as-code.version
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddCodeOwner
