@@ -20,12 +20,29 @@ recipeList:
   - org.openrewrite.jenkins.github.AddTeamToCodeowners
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UpgradeParentVersion
+description: Upgrade the parent version to latest available
+recipeList:
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.jenkins-ci.plugins
+      artifactId: plugin
+      newVersion: 4.X
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.ReplaceLibrariesWithApiPlugin
+description: Use JSON API plugin instead of direct dependency
+recipeList:
+    # More API plugin on the list
+  - io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
 description: Use JSON API plugin instead of direct dependency
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
       pluginArtifactId: json-api
+      # TODO: version from bom and filtered here ? or managed by renovate ?
       pluginVersion: 20240303-41.v94e11e6de726
       replaces:
         - groupId: org.json
