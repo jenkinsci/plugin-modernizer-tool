@@ -56,6 +56,33 @@
     <dependency>
       <groupId>org.openrewrite.recipe</groupId>
       <artifactId>rewrite-jenkins</artifactId>
+      <!-- Allow testing more recent version of rewrite jenkins before bom is published -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.openrewrite</groupId>
+          <artifactId>rewrite-groovy</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openrewrite</groupId>
+          <artifactId>rewrite-java</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openrewrite</groupId>
+          <artifactId>rewrite-java-11</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openrewrite</groupId>
+          <artifactId>rewrite-maven</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openrewrite</groupId>
+          <artifactId>rewrite-yaml</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.openrewrite.recipe</groupId>
+          <artifactId>rewrite-java-dependencies</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
