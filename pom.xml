@@ -58,7 +58,7 @@
     <maven.version>3.9.8</maven.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jgit.version>6.10.0.202406032230-r</jgit.version>
-    <github-api.version>1.323</github-api.version>
+    <github-api.version>1.324-SNAPSHOT</github-api.version>
   </properties>
 
   <dependencyManagement>

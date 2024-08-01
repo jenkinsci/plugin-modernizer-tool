@@ -4,16 +4,11 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginListParser;
-import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.stream.Collectors;
-import org.openrewrite.Recipe;
-import org.openrewrite.config.YamlResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -73,6 +68,16 @@ public class Main implements Runnable {
     public boolean dryRun;
 
     @Option(
+            names = {"--skip-push"},
+            description = "Skip pushing changes to the forked repositories. Always true if --dry-run is set.")
+    public boolean skipPush;
+
+    @Option(
+            names = {"--skip-pull-request"},
+            description = "Skip creating pull requests but pull changes to the fork. Always true if --dry-run is set.")
+    public boolean skipPullRequest;
+
+    @Option(
             names = {"-e", "--export-datatables"},
             description = "Creates a report or summary of the changes made through OpenRewrite.")
     public boolean exportDatatables;
@@ -112,6 +117,8 @@ public class Main implements Runnable {
                 .withPlugins(plugins)
                 .withRecipes(recipes)
                 .withDryRun(dryRun)
+                .withSkipPush(skipPush)
+                .withSkipPullRequest(skipPullRequest)
                 .withExportDatatables(exportDatatables)
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withCachePath(cachePath)
@@ -129,26 +136,12 @@ public class Main implements Runnable {
     }
 
     public void listAvailableRecipes() {
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(Settings.RECIPE_DATA_YAML_PATH);
-        if (inputStream == null) {
-            LOG.error("Failed to load the available recipes.");
-            throw new IllegalArgumentException("Failed to load the available recipes.");
-        }
-        try {
-            YamlResourceLoader yamlResourceLoader =
-                    new YamlResourceLoader(inputStream, URI.create(Settings.RECIPE_DATA_YAML_PATH), new Properties());
-            List<Recipe> recipeDescriptors =
-                    yamlResourceLoader.listRecipes().stream().toList();
-            LOG.info("Available recipes:");
-            // Strip the FQDN prefix from the recipe name
-            recipeDescriptors.forEach(recipe -> LOG.info(
-                    "{} - {}",
-                    recipe.getName().replaceAll(Settings.RECIPE_FQDN_PREFIX + ".", ""),
-                    recipe.getDescription()));
-        } catch (Exception e) {
-            LOG.error("Error loading recipes from YAML: {}", e.getMessage());
-            throw new IllegalArgumentException("Error loading recipes from YAML: " + e.getMessage());
-        }
+        LOG.info("Available recipes:");
+        // Strip the FQDN prefix from the recipe name
+        Settings.AVAILABLE_RECIPES.forEach(recipe -> LOG.info(
+                "{} - {}",
+                recipe.getName().replaceAll(Settings.RECIPE_FQDN_PREFIX + ".", ""),
+                recipe.getDescription()));
     }
 
     private List<String> loadPlugins() {

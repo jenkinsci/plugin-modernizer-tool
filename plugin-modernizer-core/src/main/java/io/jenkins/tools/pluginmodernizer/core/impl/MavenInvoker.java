@@ -4,15 +4,11 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -23,7 +19,6 @@ import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.openrewrite.Recipe;
-import org.openrewrite.config.YamlResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
@@ -31,16 +26,31 @@ import org.slf4j.MarkerFactory;
 @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "false positive")
 public class MavenInvoker {
 
+    /**
+     * The logger to use
+     */
     private static final Logger LOG = LoggerFactory.getLogger(MavenInvoker.class);
 
+    /**
+     * The configuration to use
+     */
     private final Config config;
 
+    /**
+     * Create a new MavenInvoker
+     * @param config The configuration to use
+     */
     public MavenInvoker(Config config) {
         this.config = config;
         validateMavenHome();
         validateMavenVersion();
+        validateSelectedRecipes();
     }
 
+    /**
+     * Get the maven version
+     * @return The maven version
+     */
     public @Nullable ComparableVersion getMavenVersion() {
         AtomicReference<String> version = new AtomicReference<>();
         try {
@@ -59,74 +69,81 @@ public class MavenInvoker {
         }
     }
 
-    public void invokeGoal(String plugin, String pluginPath, String goal) {
-        invokeGoals(plugin, pluginPath, List.of(goal));
+    /**
+     * Invoke a goal on a plugin
+     * @param plugin The plugin to run the goal on
+     * @param goal The goal to run. For example, "clean"
+     */
+    public void invokeGoal(Plugin plugin, String goal) {
+        LOG.info(
+                "Invoking clean phase for plugin {} on directory {}",
+                plugin.getName(),
+                plugin.getLocalRepository().toAbsolutePath().toFile());
+        invokeGoals(plugin, goal);
     }
 
-    public void invokeRewrite(String plugin, String pluginPath) {
-        try {
-            List<String> goals = createGoalsList();
-            if (goals == null) {
-                LOG.info(MarkerFactory.getMarker(plugin), "No active recipes.");
-                return;
-            }
-            invokeGoals(plugin, pluginPath, goals);
-        } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
-        }
+    /**
+     * Invoke the rewrite modernization for a given plugin
+     * @param plugin The plugin to run the rewrite on
+     */
+    public void invokeRewrite(Plugin plugin) {
+        LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
+        invokeGoals(plugin, getRewriteArgs());
     }
 
-    private List<String> createGoalsList() throws IOException {
+    /**
+     * Get the rewrite arguments to be executed for each plugin
+     * @return The list of arguments to be passed to the rewrite plugin
+     */
+    private String[] getRewriteArgs() {
         List<String> goals = new ArrayList<>();
         String mode = config.isDryRun() ? "dryRun" : "run";
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":" + mode);
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
-        try (InputStream inputStream = getClass().getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
-            YamlResourceLoader yamlResourceLoader =
-                    new YamlResourceLoader(inputStream, URI.create(Settings.RECIPE_DATA_YAML_PATH), new Properties());
-            List<Recipe> recipeDescriptors =
-                    yamlResourceLoader.listRecipes().stream().toList();
-
-            List<String> recipes = config.getRecipes();
-            List<String> activeRecipes = getActiveRecipes(recipes, recipeDescriptors);
-            LOG.debug("Active recipes: {}", activeRecipes);
-            if (activeRecipes.isEmpty()) {
-                return null;
-            }
-            goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipes));
-            goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
-                    + config.getVersion());
-        }
-        return goals;
+        List<String> activeRecipes = getActiveRecipes();
+        LOG.debug("Active recipes: {}", activeRecipes);
+        goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipes));
+        goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
+                + config.getVersion());
+        return goals.toArray(String[]::new);
     }
 
-    private List<String> getActiveRecipes(List<String> recipes, List<Recipe> recipeDescriptors) {
-        return recipes.stream()
+    /**
+     * Get the list of active recipes to be passed to the rewrite plugin based on the one selected on config
+     * @return The list of active recipes
+     */
+    private List<String> getActiveRecipes() {
+        return config.getRecipes().stream()
                 .flatMap(recipe ->
-                        recipeDescriptors.stream().map(Recipe::getName).filter(name -> name.endsWith(recipe)))
+                        Settings.AVAILABLE_RECIPES.stream().map(Recipe::getName).filter(name -> name.endsWith(recipe)))
                 .collect(Collectors.toList());
     }
 
-    private void invokeGoals(String plugin, String pluginPath, List<String> goals) {
+    /**
+     * Invoke a list of maven goal on the plugin
+     * @param plugin The plugin to run the goals on
+     * @param goals The list of goals to run
+     */
+    private void invokeGoals(Plugin plugin, String... goals) {
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(config.getMavenHome().toFile());
         try {
-            InvocationRequest request = createInvocationRequest(pluginPath, goals);
+            InvocationRequest request = createInvocationRequest(plugin, goals);
             request.setBatchMode(true);
             request.setNoTransferProgress(false);
             request.setErrorHandler((message) -> {
                 LOG.error(
-                        MarkerFactory.getMarker(plugin),
+                        MarkerFactory.getMarker(plugin.getName()),
                         String.format("Something went wrong when running maven: %s", message));
             });
             request.setOutputHandler((message) -> {
-                LOG.info(MarkerFactory.getMarker(plugin), message);
+                LOG.info(MarkerFactory.getMarker(plugin.getName()), message);
             });
             InvocationResult result = invoker.execute(request);
             handleInvocationResult(plugin, result);
         } catch (MavenInvocationException e) {
-            LOG.error(MarkerFactory.getMarker(plugin), "Maven invocation failed: ", e);
+            LOG.error(plugin.getMarker(), "Maven invocation failed: ", e);
         }
     }
 
@@ -167,25 +184,40 @@ public class MavenInvoker {
         }
     }
 
-    private InvocationRequest createInvocationRequest(String pluginPath, List<String> goals) {
+    /**
+     * Validate if there is at least one recipe to run
+     */
+    private void validateSelectedRecipes() {
+        if (getActiveRecipes().isEmpty()) {
+            throw new IllegalArgumentException("No valid recipes selected. Please select at least one recipe.");
+        }
+    }
+
+    /**
+     * Create an invocation request for the plugin.
+     * @param plugin The plugin to run the goals on
+     * @param args The list of args
+     * @return The invocation request
+     */
+    private InvocationRequest createInvocationRequest(Plugin plugin, String... args) {
         InvocationRequest request = new DefaultInvocationRequest();
-        Path pomPath = Paths.get(pluginPath, "pom.xml");
-        request.setPomFile(pomPath.toFile());
-        request.setGoals(goals);
+        request.setPomFile(plugin.getLocalRepository().resolve("pom.xml").toFile());
+        request.addArgs(List.of(args));
         return request;
     }
 
-    private void handleInvocationResult(String plugin, InvocationResult result) {
+    /**
+     * Handle invocation result for the plugin
+     * @param plugin The plugin
+     * @param result The invocation result
+     */
+    private void handleInvocationResult(Plugin plugin, InvocationResult result) {
         if (result.getExitCode() != 0) {
-            LOG.error(MarkerFactory.getMarker(plugin), "Build fail with code: {}", result.getExitCode());
+            LOG.error(MarkerFactory.getMarker(plugin.getName()), "Build fail with code: {}", result.getExitCode());
             if (result.getExecutionException() != null) {
-                LOG.error(
-                        MarkerFactory.getMarker(plugin),
-                        "Execution exception occurred: ",
-                        result.getExecutionException());
+                LOG.error(plugin.getMarker(), "Execution exception occurred: ", result.getExecutionException());
+                plugin.addError(result.getExecutionException());
             }
-        } else {
-            LOG.info(MarkerFactory.getMarker(plugin), "Build success!");
         }
     }
 }
