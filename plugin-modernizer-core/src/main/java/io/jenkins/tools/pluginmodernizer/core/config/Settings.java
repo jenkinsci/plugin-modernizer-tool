@@ -5,11 +5,15 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Properties;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.openrewrite.Recipe;
+import org.openrewrite.config.YamlResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,8 @@ public class Settings {
 
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
+    public static final List<Recipe> AVAILABLE_RECIPES;
+
     static {
         String cacheBaseDir = System.getProperty("user.home");
         if (cacheBaseDir == null) {
@@ -60,6 +66,16 @@ public class Settings {
             DEFAULT_UPDATE_CENTER_URL = getUpdateCenterUrl();
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid URL format", e);
+        }
+
+        // Get recipes module
+        try (InputStream inputStream = Settings.class.getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
+            YamlResourceLoader yamlResourceLoader =
+                    new YamlResourceLoader(inputStream, URI.create(Settings.RECIPE_DATA_YAML_PATH), new Properties());
+            AVAILABLE_RECIPES = yamlResourceLoader.listRecipes().stream().toList();
+        } catch (IOException e) {
+            LOG.error("Error reading recipes", e);
+            throw new IllegalArgumentException("Error reading recipes", e);
         }
     }
 

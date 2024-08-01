@@ -8,33 +8,39 @@ public class Config {
 
     public static boolean DEBUG = false;
     private final String version;
-    private final List<String> plugins;
+    private final List<String> pluginNames;
     private final List<String> recipes;
     private final URL jenkinsUpdateCenter;
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
+    private final boolean skipPush;
+    private final boolean skipPullRequest;
     private final boolean exportDatatables;
     private final String githubOwner;
 
     private Config(
             String version,
             String githubOwner,
-            List<String> plugins,
+            List<String> pluginNames,
             List<String> recipes,
             URL jenkinsUpdateCenter,
             Path cachePath,
             Path mavenHome,
             boolean dryRun,
+            boolean skipPush,
+            boolean skipPullRequest,
             boolean exportDatatables) {
         this.version = version;
         this.githubOwner = githubOwner;
-        this.plugins = plugins;
+        this.pluginNames = pluginNames;
         this.recipes = recipes;
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
+        this.skipPush = skipPush;
+        this.skipPullRequest = skipPullRequest;
         this.exportDatatables = exportDatatables;
     }
 
@@ -46,8 +52,8 @@ public class Config {
         return githubOwner;
     }
 
-    public List<String> getPlugins() {
-        return plugins;
+    public List<String> getPluginNames() {
+        return pluginNames;
     }
 
     public List<String> getRecipes() {
@@ -70,6 +76,14 @@ public class Config {
         return dryRun;
     }
 
+    public boolean isSkipPullRequest() {
+        return skipPullRequest;
+    }
+
+    public boolean isSkipPush() {
+        return skipPush;
+    }
+
     public boolean isExportDatatables() {
         return exportDatatables;
     }
@@ -87,6 +101,8 @@ public class Config {
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
+        private boolean skipPush = false;
+        private boolean skipPullRequest = false;
         private boolean exportDatatables = false;
 
         public Builder withVersion(String version) {
@@ -135,6 +151,16 @@ public class Config {
             return this;
         }
 
+        public Builder withSkipPush(boolean skipPush) {
+            this.skipPush = skipPush;
+            return this;
+        }
+
+        public Builder withSkipPullRequest(boolean skipPullRequest) {
+            this.skipPullRequest = skipPullRequest;
+            return this;
+        }
+
         public Builder withExportDatatables(boolean exportDatatables) {
             this.exportDatatables = exportDatatables;
             return this;
@@ -150,6 +176,8 @@ public class Config {
                     cachePath,
                     mavenHome,
                     dryRun,
+                    skipPush,
+                    skipPullRequest,
                     exportDatatables);
         }
     }
