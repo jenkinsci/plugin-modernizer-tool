@@ -42,7 +42,7 @@ public class MainTest {
         String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2"};
         commandLine.execute(args);
 
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(2, plugins.size());
         assertEquals("plugin1", plugins.get(0));
@@ -74,7 +74,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
         assertTrue(plugins.contains("plugin1"));
@@ -88,7 +88,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(5, plugins.size());
         assertTrue(plugins.contains("plugin1"));
@@ -104,7 +104,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin2,plugin3"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
         assertTrue(plugins.contains("plugin1"));
@@ -118,7 +118,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
         assertEquals("plugin1", plugins.get(0));
@@ -132,7 +132,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(5, plugins.size());
         assertEquals("plugin1", plugins.get(0));
