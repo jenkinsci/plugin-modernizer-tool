@@ -78,6 +78,17 @@ public class Main implements Runnable {
     public boolean skipPullRequest;
 
     @Option(
+            names = {"--clean-local-data"},
+            description = "Remove local plugin data before and after the modernization process.")
+    public boolean removeLocalData;
+
+    @Option(
+            names = {"--clean-forks"},
+            description =
+                    "Remove forked repositories before and after the modernization process. Might cause data loss if you have other changes pushed on those forks. Forks with open pull request targeting original repo are not removed to prevent closing unmerged pull requests.")
+    public boolean removeForks;
+
+    @Option(
             names = {"-e", "--export-datatables"},
             description = "Creates a report or summary of the changes made through OpenRewrite.")
     public boolean exportDatatables;
@@ -119,6 +130,8 @@ public class Main implements Runnable {
                 .withDryRun(dryRun)
                 .withSkipPush(skipPush)
                 .withSkipPullRequest(skipPullRequest)
+                .withRemoveLocalData(removeLocalData)
+                .withRemoveForks(removeForks)
                 .withExportDatatables(exportDatatables)
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withCachePath(cachePath)

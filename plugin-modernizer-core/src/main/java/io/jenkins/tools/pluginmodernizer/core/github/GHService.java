@@ -110,8 +110,10 @@ public class GHService {
      */
     public boolean isForked(Plugin plugin) {
         try {
-            return isRepositoryForked(plugin.getRepositoryName())
-                    || isRepositoryForked(getOrganization(), plugin.getRepositoryName());
+            if (getOrganization() != null) {
+                return isRepositoryForked(getOrganization(), plugin.getRepositoryName());
+            }
+            return isRepositoryForked(plugin.getRepositoryName());
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to check if repository is forked", e);
         }
@@ -267,6 +269,10 @@ public class GHService {
         }
         if (!isForked(plugin)) {
             LOG.info("Plugin {} is not forked. Not attempting delete", plugin);
+            return;
+        }
+        if (hasAnyPullRequestFrom(plugin)) {
+            LOG.warn("Skipping delete fork for plugin {} as it has open pull requests", plugin);
             return;
         }
         GHRepository repository = getRepositoryFork(plugin);
@@ -438,6 +444,10 @@ public class GHService {
             LOG.info("Skipping pull request for plugin {}", plugin);
             return;
         }
+        if (!plugin.hasCommits()) {
+            LOG.info("No commits to open pull request for plugin {}", plugin.getName());
+            return;
+        }
 
         // Check if existing PR exists
         GHRepository repository = plugin.getRemoteRepository(this);
@@ -457,6 +467,38 @@ public class GHService {
             LOG.error("Failed to create pull request", e);
             plugin.addError(e);
         }
+    }
+
+    /**
+     * Return if the given repository has any pull request originating from it
+     * Typically to avoid deleting fork with open pull requests
+     * @param plugin The plugin to check
+     * @return True if the repository has any pull request
+     */
+    private boolean hasAnyPullRequestFrom(Plugin plugin) {
+        if (config.isDryRun()) {
+            LOG.info("Skipping check for pull requests in dry-run mode");
+            return false;
+        }
+        GHRepository originalRepo = plugin.getRemoteRepository(this);
+        GHRepository forkRepo = plugin.getRemoteForkRepository(this);
+
+        try {
+            boolean hasPullRequest = originalRepo.getPullRequests(GHIssueState.OPEN).stream()
+                    .peek(pr -> LOG.debug("Checking pull request: {}", pr.getHtmlUrl()))
+                    .anyMatch(pr -> pr.getHead().getRepository().getFullName().equals(forkRepo.getFullName()));
+            if (hasPullRequest) {
+                LOG.debug("Found open pull request from {} to {}", forkRepo.getFullName(), originalRepo.getFullName());
+                return true;
+            }
+        } catch (IOException e) {
+            LOG.error("Failed to check for pull requests", e);
+            plugin.addError(e);
+            return false;
+        }
+        LOG.info(
+                "No open pull requests found for plugin {} targeting {}", plugin.getName(), originalRepo.getFullName());
+        return false;
     }
 
     /**

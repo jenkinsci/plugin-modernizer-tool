@@ -143,6 +143,39 @@ public class MainTest {
     }
 
     @Test
+    public void testSkipPushOptions() throws IOException {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--skip-push"};
+        commandLine.execute(args);
+        assertTrue(main.setup().isSkipPush());
+    }
+
+    @Test
+    public void testSkipPullRequestOptions() throws IOException {
+        String[] args = {
+            "-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--skip-pull-request"
+        };
+        commandLine.execute(args);
+        assertTrue(main.setup().isSkipPullRequest());
+    }
+
+    @Test
+    public void voidTestCleanLocalData() throws IOException {
+        String[] args = {
+            "-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--clean-local-data"
+        };
+        commandLine.execute(args);
+        assertTrue(main.setup().isRemoveLocalData());
+    }
+
+    @Test
+    public void voidTestCleanForks() throws IOException {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--clean-forks"
+        };
+        commandLine.execute(args);
+        assertTrue(main.setup().isRemoveForks());
+    }
+
+    @Test
     public void testMavenHome() throws IOException {
         String[] args = {"--maven-home", Files.createTempDirectory("unused").toString()};
         int exitCode = commandLine.execute(args);
