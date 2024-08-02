@@ -436,6 +436,14 @@ public class Plugin {
     }
 
     /**
+     * Fork sync this plugin
+     * @param service The GitHub service
+     */
+    public void sync(GHService service) {
+        service.sync(this);
+    }
+
+    /**
      * Return if this plugin is forked
      * @param service The GitHub service
      */

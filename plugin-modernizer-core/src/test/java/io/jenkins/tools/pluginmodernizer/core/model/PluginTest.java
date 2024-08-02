@@ -121,6 +121,14 @@ public class PluginTest {
     }
 
     @Test
+    public void testSync() {
+        Plugin plugin = Plugin.build("example");
+        plugin.sync(ghService);
+        verify(ghService).sync(plugin);
+        verifyNoMoreInteractions(ghService);
+    }
+
+    @Test
     public void testIsFork() {
         Plugin plugin = Plugin.build("example");
         plugin.isForked(ghService);

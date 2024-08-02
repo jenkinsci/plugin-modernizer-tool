@@ -18,6 +18,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.kohsuke.github.GHBranchSync;
 import org.kohsuke.github.GHEmail;
 import org.kohsuke.github.GHFileNotFoundException;
 import org.kohsuke.github.GHIssueState;
@@ -274,6 +275,36 @@ public class GHService {
      */
     private GHRepository getRepositoryFork(String repoName) throws IOException {
         return github.getMyself().getRepository(repoName);
+    }
+
+    /**
+     * Sync a fork repository from its original upstream. Only the main branch is synced in case multiple branches exist.
+     * @param plugin The plugin to sync
+     */
+    public void sync(Plugin plugin) {
+        if (config.isDryRun()) {
+            LOG.info("Skipping sync plugin {} in dry-run mode", plugin);
+            return;
+        }
+        if (!isForked(plugin)) {
+            LOG.info("Plugin {} is not forked. Not attempting sync", plugin);
+            return;
+        }
+        try {
+            syncRepository(getRepositoryFork(plugin));
+        } catch (IOException e) {
+            plugin.addError("Failed to sync the repository", e);
+        }
+    }
+
+    /**
+     * Sync a fork repository from its original upstream. Only the main branch is synced in case multiple branches exist.
+     * @param forkedRepo Forked repository
+     * @throws IOException if an error occurs while syncing the repository
+     */
+    private GHBranchSync syncRepository(GHRepository forkedRepo) throws IOException {
+        LOG.info("Syncing the forked repository {}", forkedRepo.getFullName());
+        return forkedRepo.sync(forkedRepo.getDefaultBranch());
     }
 
     /**
