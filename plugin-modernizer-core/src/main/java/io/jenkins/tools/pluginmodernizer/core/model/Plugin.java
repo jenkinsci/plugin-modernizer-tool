@@ -186,6 +186,15 @@ public class Plugin {
     }
 
     /**
+     * Return if this plugin is archived
+     * @param service The GitHub service
+     * @return True if the plugin is archived
+     */
+    public boolean isArchived(GHService service) {
+        return service.isArchived(this);
+    }
+
+    /**
      * Delete the plugin fork
      * @param service  The GitHub service
      */

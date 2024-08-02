@@ -110,13 +110,20 @@ public class GHService {
      */
     public boolean isForked(Plugin plugin) {
         try {
-            if (getOrganization() != null) {
-                return isRepositoryForked(getOrganization(), plugin.getRepositoryName());
-            }
-            return isRepositoryForked(plugin.getRepositoryName());
+            return isRepositoryForked(plugin.getRepositoryName())
+                    || isRepositoryForked(getOrganization(), plugin.getRepositoryName());
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to check if repository is forked", e);
         }
+    }
+
+    /**
+     * Check if the plugin repository is archived
+     * @param plugin The plugin to check
+     * @return True if the repository is archived
+     */
+    public boolean isArchived(Plugin plugin) {
+        return plugin.getRemoteRepository(this).isArchived();
     }
 
     /**
@@ -126,6 +133,10 @@ public class GHService {
     public void fork(Plugin plugin) {
         if (config.isDryRun()) {
             LOG.info("Skipping forking plugin {} in dry-run mode", plugin);
+            return;
+        }
+        if (isArchived(plugin)) {
+            LOG.info("Plugin {} is archived. Not forking", plugin);
             return;
         }
         LOG.info("Forking plugin {} locally from repo {}...", plugin, plugin.getRepositoryName());
@@ -298,7 +309,8 @@ public class GHService {
      * @param plugin The plugin to fork
      */
     public void fetch(Plugin plugin) {
-        GHRepository repository = config.isDryRun() ? getRepository(plugin) : getRepositoryFork(plugin);
+        GHRepository repository =
+                config.isDryRun() || plugin.isArchived(this) ? getRepository(plugin) : getRepositoryFork(plugin);
         LOG.info(
                 "Fetch plugin {} from {} into directory {}...",
                 plugin,
@@ -320,7 +332,8 @@ public class GHService {
      */
     private void fetchRepository(Plugin plugin) throws GitAPIException {
         LOG.debug("Fetching {}", plugin.getName());
-        GHRepository repository = config.isDryRun() ? getRepository(plugin) : getRepositoryFork(plugin);
+        GHRepository repository =
+                config.isDryRun() || plugin.isArchived(this) ? getRepository(plugin) : getRepositoryFork(plugin);
         String remoteUrl = repository.getHttpTransportUrl();
         // Fetch latest changes
         if (Files.isDirectory(plugin.getLocalRepository())) {
@@ -358,7 +371,9 @@ public class GHService {
             try {
                 git.checkout().setCreateBranch(true).setName(BRANCH_NAME).call();
             } catch (RefAlreadyExistsException e) {
-                String defaultBranch = plugin.getRemoteForkRepository(this).getDefaultBranch();
+                String defaultBranch = config.isDryRun() || plugin.isArchived(this)
+                        ? plugin.getRemoteRepository(this).getDefaultBranch()
+                        : plugin.getRemoteForkRepository(this).getDefaultBranch();
                 LOG.info("Branch already exists. Checking out the branch");
                 git.checkout().setName(BRANCH_NAME).call();
                 git.reset()
@@ -380,6 +395,10 @@ public class GHService {
     public void commitChanges(Plugin plugin) {
         if (config.isDryRun()) {
             LOG.info("Skipping commits changes for plugin {} in dry-run mode", plugin);
+            return;
+        }
+        if (plugin.isArchived(this)) {
+            LOG.info("Plugin {} is archived. Not committing changes", plugin);
             return;
         }
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
@@ -417,6 +436,10 @@ public class GHService {
             LOG.info("No commits to push for plugin {}", plugin.getName());
             return;
         }
+        if (plugin.isArchived(this)) {
+            LOG.info("Plugin {} is archived. Not pushing changes", plugin);
+            return;
+        }
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
             git.push()
                     .setCredentialsProvider(new UsernamePasswordCredentialsProvider(Settings.GITHUB_TOKEN, ""))
@@ -446,6 +469,10 @@ public class GHService {
         }
         if (!plugin.hasCommits()) {
             LOG.info("No commits to open pull request for plugin {}", plugin.getName());
+            return;
+        }
+        if (plugin.isArchived(this)) {
+            LOG.info("Plugin {} is archived. Not opening pull request", plugin);
             return;
         }
 
