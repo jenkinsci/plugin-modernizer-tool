@@ -37,6 +37,11 @@ public class PluginModernizer {
      * Entry point to start the plugin modernization process
      */
     public void start() {
+
+        // Setup
+        this.ghService.connect();
+        cacheManager.createCache();
+
         LOG.info("Plugins: {}", config.getPluginNames());
         LOG.info("Recipes: {}", config.getRecipes());
         LOG.info("GitHub owner: {}", config.getGithubOwner());
@@ -46,7 +51,7 @@ public class PluginModernizer {
         LOG.debug("Skip Push: {}", config.isSkipPush());
         LOG.debug("Skip Pull Request: {}", config.isSkipPullRequest());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
-        cacheManager.createCache();
+
         config.getPluginNames().stream().map(Plugin::build).toList().forEach(this::process);
     }
 

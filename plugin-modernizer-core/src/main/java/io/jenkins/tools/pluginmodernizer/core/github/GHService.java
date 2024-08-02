@@ -43,7 +43,6 @@ public class GHService {
     public GHService(Config config) {
         this.config = config;
         validate();
-        connect();
     }
 
     /**
@@ -63,7 +62,7 @@ public class GHService {
     /**
      * Connect to GitHub using the GitHub auth token
      */
-    private void connect() {
+    public void connect() {
         if (github != null) {
             throw new IllegalArgumentException("GitHub client is already connected.");
         }
