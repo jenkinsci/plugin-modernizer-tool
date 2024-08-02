@@ -16,6 +16,8 @@ public class Config {
     private final boolean dryRun;
     private final boolean skipPush;
     private final boolean skipPullRequest;
+    private final boolean removeLocalData;
+    private final boolean removeForks;
     private final boolean exportDatatables;
     private final String githubOwner;
 
@@ -30,6 +32,8 @@ public class Config {
             boolean dryRun,
             boolean skipPush,
             boolean skipPullRequest,
+            boolean removeLocalData,
+            boolean removeForks,
             boolean exportDatatables) {
         this.version = version;
         this.githubOwner = githubOwner;
@@ -41,6 +45,8 @@ public class Config {
         this.dryRun = dryRun;
         this.skipPush = skipPush;
         this.skipPullRequest = skipPullRequest;
+        this.removeLocalData = removeLocalData;
+        this.removeForks = removeForks;
         this.exportDatatables = exportDatatables;
     }
 
@@ -84,6 +90,14 @@ public class Config {
         return skipPush;
     }
 
+    public boolean isRemoveLocalData() {
+        return removeLocalData;
+    }
+
+    public boolean isRemoveForks() {
+        return removeForks;
+    }
+
     public boolean isExportDatatables() {
         return exportDatatables;
     }
@@ -104,6 +118,8 @@ public class Config {
         private boolean skipPush = false;
         private boolean skipPullRequest = false;
         private boolean exportDatatables = false;
+        public boolean removeLocalData = false;
+        public boolean removeForks = false;
 
         public Builder withVersion(String version) {
             this.version = version;
@@ -161,6 +177,16 @@ public class Config {
             return this;
         }
 
+        public Builder withRemoveLocalData(boolean removeLocalData) {
+            this.removeLocalData = removeLocalData;
+            return this;
+        }
+
+        public Builder withRemoveForks(boolean removeForks) {
+            this.removeForks = removeForks;
+            return this;
+        }
+
         public Builder withExportDatatables(boolean exportDatatables) {
             this.exportDatatables = exportDatatables;
             return this;
@@ -178,6 +204,8 @@ public class Config {
                     dryRun,
                     skipPush,
                     skipPullRequest,
+                    removeLocalData,
+                    removeForks,
                     exportDatatables);
         }
     }

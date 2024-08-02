@@ -61,7 +61,14 @@ public class PluginModernizer {
             plugin.withRepositoryName(JenkinsPluginInfo.extractRepoName(
                     plugin.getName(), config.getCachePath(), config.getJenkinsUpdateCenter()));
 
+            if (config.isRemoveForks()) {
+                plugin.deleteFork(ghService);
+            }
             plugin.fork(ghService);
+            if (config.isRemoveLocalData()) {
+                LOG.info("Removing local data for plugin: {} at {}", plugin, plugin.getLocalRepository());
+                plugin.removeLocalData();
+            }
             plugin.fetch(ghService);
             plugin.clean(mavenInvoker);
             plugin.checkoutBranch(ghService);
@@ -69,6 +76,9 @@ public class PluginModernizer {
             plugin.commit(ghService);
             plugin.push(ghService);
             plugin.openPullRequest(ghService);
+            if (config.isRemoveForks()) {
+                plugin.deleteFork(ghService);
+            }
 
         } catch (Exception e) {
             LOG.error("Failed to process plugin: {}", plugin, e);
