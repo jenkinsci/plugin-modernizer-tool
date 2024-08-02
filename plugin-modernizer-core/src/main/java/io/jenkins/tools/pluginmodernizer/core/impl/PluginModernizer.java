@@ -82,6 +82,7 @@ public class PluginModernizer {
                 plugin.deleteFork(ghService);
             }
             plugin.fork(ghService);
+            plugin.sync(ghService);
             if (config.isRemoveLocalData()) {
                 LOG.info("Removing local data for plugin: {} at {}", plugin, plugin.getLocalRepository());
                 plugin.removeLocalData();
