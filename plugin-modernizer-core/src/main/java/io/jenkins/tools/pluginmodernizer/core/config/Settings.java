@@ -41,6 +41,8 @@ public class Settings {
 
     public static final String RECIPE_FQDN_PREFIX = "io.jenkins.tools.pluginmodernizer";
 
+    public static final String ADOPTIUM_GITHUB_API_URL = "https://api.github.com/repos/adoptium";
+
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
 
     public static final List<Recipe> AVAILABLE_RECIPES;

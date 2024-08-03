@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.slf4j.Logger;
@@ -29,7 +31,6 @@ import org.slf4j.LoggerFactory;
 public class JdkFetcher {
     private static final Logger LOG = LoggerFactory.getLogger(JdkFetcher.class);
 
-    private static final String GITHUB_API_URL = "https://api.github.com/repos/adoptium";
     private static final String DOWNLOAD_DIR = System.getProperty("user.home") + "/.jdks/";
 
     /**
@@ -118,7 +119,7 @@ public class JdkFetcher {
      * @throws InterruptedException If the operation is interrupted.
      */
     private String fetchLatestReleaseUrl(String jdkVersion) throws IOException, InterruptedException {
-        String latestUrl = String.format("%s/temurin%s-binaries/releases", GITHUB_API_URL, jdkVersion);
+        String latestUrl = String.format("%s/temurin%s-binaries/releases", Settings.ADOPTIUM_GITHUB_API_URL, jdkVersion);
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request =
                 HttpRequest.newBuilder().uri(URI.create(latestUrl)).build();
