@@ -35,6 +35,11 @@ public class ConfigTest {
                 .withCachePath(cachePath)
                 .withMavenHome(mavenHome)
                 .withDryRun(dryRun)
+                .withSkipPullRequest(true)
+                .withSkipPush(true)
+                .withExportDatatables(true)
+                .withRemoveForks(true)
+                .withRemoveLocalData(true)
                 .build();
 
         assertEquals(version, config.getVersion());
@@ -44,6 +49,12 @@ public class ConfigTest {
         assertEquals(jenkinsUpdateCenter, config.getJenkinsUpdateCenter());
         assertEquals(cachePath, config.getCachePath());
         assertEquals(mavenHome, config.getMavenHome());
+        assertTrue(config.isRemoveForks());
+        assertTrue(config.isSkipPush());
+        assertTrue(config.isSkipPullRequest());
+        assertTrue(config.isRemoveForks());
+        assertTrue(config.isRemoveLocalData());
+        assertTrue(config.isExportDatatables());
         assertTrue(config.isDryRun());
     }
 
@@ -57,6 +68,12 @@ public class ConfigTest {
         assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
         assertEquals(Settings.DEFAULT_MAVEN_HOME, config.getMavenHome());
+        assertFalse(config.isRemoveForks());
+        assertFalse(config.isSkipPush());
+        assertFalse(config.isSkipPullRequest());
+        assertFalse(config.isRemoveForks());
+        assertFalse(config.isRemoveLocalData());
+        assertFalse(config.isExportDatatables());
         assertFalse(config.isDryRun());
     }
 
