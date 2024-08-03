@@ -1,9 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.github;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -13,9 +10,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,6 +117,21 @@ public class GHServiceTest {
     }
 
     @Test
+    public void isArchivedTest() throws Exception {
+        // Mock
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        GHMyself myself = Mockito.mock(GHMyself.class);
+
+        doReturn(true).when(repository).isArchived();
+        doReturn(repository).when(plugin).getRemoteRepository(eq(service));
+
+        // Test and verify
+        assertTrue(service.isArchived(plugin));
+        doReturn(false).when(repository).isArchived();
+        assertFalse(service.isArchived(plugin));
+    }
+
+    @Test
     public void shouldFailToGetForkRepositoryInDryRunMode() throws Exception {
 
         // Mock
@@ -177,6 +191,54 @@ public class GHServiceTest {
     }
 
     @Test
+    public void shouldNotForkInDryRunMode() throws Exception {
+
+        // Mock
+        doReturn(true).when(config).isDryRun();
+
+        // Test
+        service.fork(plugin);
+        verifyNoInteractions(github);
+    }
+
+    @Test
+    public void shouldNotForkArchivedRepos() throws Exception {
+
+        GHRepository repository = Mockito.mock(GHRepository.class);
+
+        // Mock
+        doReturn(true).when(plugin).isArchived(eq(service));
+
+        // Test
+        service.fork(plugin);
+        verifyNoInteractions(github);
+    }
+
+    @Test
+    public void shouldForkRepoToMyself() throws Exception {
+
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        GHRepository fork = Mockito.mock(GHRepository.class);
+        GHMyself myself = Mockito.mock(GHMyself.class);
+
+        // Mock
+        doReturn("fake-repo").when(repository).getName();
+        doReturn(Mockito.mock(URL.class)).when(fork).getHtmlUrl();
+        doReturn(repository).when(plugin).getRemoteRepository(eq(service));
+        doReturn(myself).when(github).getMyself();
+        doReturn(fork).when(repository).fork();
+
+        // Not yet forked
+        doReturn(null).when(myself).getRepository(eq("fake-repo"));
+
+        // Test
+        service.fork(plugin);
+
+        // Verify
+        verify(repository, times(1)).fork();
+    }
+
+    @Test
     public void shouldNotDeleteForkIsDryRunMode() throws Exception {
 
         // Mock
@@ -227,6 +289,71 @@ public class GHServiceTest {
         doReturn(head).when(pr).getHead();
         doReturn(fork).when(head).getRepository();
         doReturn(List.of(pr)).when(repository).getPullRequests(eq(GHIssueState.OPEN));
+
+        // Test
+        service.deleteFork(plugin);
+        verify(fork, never()).delete();
+    }
+
+    @Test
+    public void shouldNotDeleteRepoIfNotAFork() throws Exception {
+
+        // Mock
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        GHRepository fork = Mockito.mock(GHRepository.class);
+        GHMyself myself = Mockito.mock(GHMyself.class);
+        GHPullRequest pr = Mockito.mock(GHPullRequest.class);
+        GHCommitPointer head = Mockito.mock(GHCommitPointer.class);
+
+        doReturn(false).when(fork).isFork();
+        doReturn(fork).when(github).getRepository(eq("fake-owner/fake-repo"));
+        doReturn("fake-owner/fake-repo").when(fork).getFullName();
+        doReturn("fake-repo").when(plugin).getRepositoryName();
+        doReturn(myself).when(github).getMyself();
+        doReturn(fork).when(myself).getRepository(eq("fake-repo"));
+        doReturn(repository).when(plugin).getRemoteRepository(eq(service));
+        doReturn(fork).when(plugin).getRemoteForkRepository(eq(service));
+
+        // One PR open but not from the fork
+        doReturn(head).when(pr).getHead();
+        GHRepository otherFork = Mockito.mock(GHRepository.class);
+        doReturn("an/other").when(otherFork).getFullName();
+        doReturn(otherFork).when(head).getRepository();
+        doReturn(List.of(pr)).when(repository).getPullRequests(eq(GHIssueState.OPEN));
+
+        // Test
+        service.deleteFork(plugin);
+        verify(fork, never()).delete();
+    }
+
+    @Test
+    public void shouldNotDeleteRepoForkNotDetachedFromJenkinsOrg() throws Exception {
+
+        // Mock
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        GHRepository fork = Mockito.mock(GHRepository.class);
+        GHMyself myself = Mockito.mock(GHMyself.class);
+        GHPullRequest pr = Mockito.mock(GHPullRequest.class);
+        GHCommitPointer head = Mockito.mock(GHCommitPointer.class);
+
+        doReturn(true).when(fork).isFork();
+        doReturn(fork).when(github).getRepository(eq("fake-owner/fake-repo"));
+        doReturn("fake-owner/fake-repo").when(fork).getFullName();
+        doReturn("fake-repo").when(plugin).getRepositoryName();
+        doReturn(myself).when(github).getMyself();
+        doReturn(fork).when(myself).getRepository(eq("fake-repo"));
+        doReturn(repository).when(plugin).getRemoteRepository(eq(service));
+        doReturn(fork).when(plugin).getRemoteForkRepository(eq(service));
+
+        // One PR open but not from the fork
+        doReturn(head).when(pr).getHead();
+        GHRepository otherFork = Mockito.mock(GHRepository.class);
+        doReturn("an/other").when(otherFork).getFullName();
+        doReturn(otherFork).when(head).getRepository();
+        doReturn(List.of(pr)).when(repository).getPullRequests(eq(GHIssueState.OPEN));
+
+        // Owner of the fork is jenkinsci
+        doReturn(Settings.ORGANIZATION).when(fork).getOwnerName();
 
         // Test
         service.deleteFork(plugin);

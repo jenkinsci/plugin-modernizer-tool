@@ -134,7 +134,7 @@ public class GHService {
             LOG.info("Skipping forking plugin {} in dry-run mode", plugin);
             return;
         }
-        if (isArchived(plugin)) {
+        if (plugin.isArchived(this)) {
             LOG.info("Plugin {} is archived. Not forking", plugin);
             return;
         }
