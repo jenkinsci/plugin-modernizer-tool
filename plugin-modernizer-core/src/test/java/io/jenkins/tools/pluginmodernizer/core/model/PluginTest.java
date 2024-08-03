@@ -68,32 +68,32 @@ public class PluginTest {
     @Test
     public void testClean() {
         Plugin plugin = Plugin.build("example");
-        plugin.clean(mavenInvoker, null);
-        verify(mavenInvoker).invokeGoal(plugin, null, "clean");
+        plugin.clean(mavenInvoker);
+        verify(mavenInvoker).invokeGoal(plugin, "clean");
         verifyNoMoreInteractions(mavenInvoker);
     }
 
     @Test
     public void testCompile() {
         Plugin plugin = Plugin.build("example");
-        plugin.compile(mavenInvoker, null);
-        verify(mavenInvoker).invokeGoal(plugin, null, "compile");
+        plugin.compile(mavenInvoker);
+        verify(mavenInvoker).invokeGoal(plugin, "compile");
         verifyNoMoreInteractions(mavenInvoker);
     }
 
     @Test
     public void testVerify() {
         Plugin plugin = Plugin.build("example");
-        plugin.verify(mavenInvoker, null);
-        verify(mavenInvoker).invokeGoal(plugin, null, "verify");
+        plugin.verify(mavenInvoker);
+        verify(mavenInvoker).invokeGoal(plugin, "verify");
         verifyNoMoreInteractions(mavenInvoker);
     }
 
     @Test
     public void testRewrite() {
         Plugin plugin = Plugin.build("example");
-        plugin.runOpenRewrite(mavenInvoker, null);
-        verify(mavenInvoker).invokeRewrite(plugin, null);
+        plugin.runOpenRewrite(mavenInvoker);
+        verify(mavenInvoker).invokeRewrite(plugin);
         verifyNoMoreInteractions(mavenInvoker);
     }
 

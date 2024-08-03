@@ -72,10 +72,12 @@ public class PluginModernizer {
                 plugin.removeLocalData();
             }
             plugin.fetch(ghService);
-            plugin.compile(mavenInvoker, jdkFetcher.getJdkPath("8"));
+            plugin.withJdkPath(jdkFetcher.getJdkPath("8"));
+            plugin.compile(mavenInvoker);
             plugin.checkoutBranch(ghService);
-            plugin.runOpenRewrite(mavenInvoker, jdkFetcher.getJdkPath("17"));
-            plugin.verify(mavenInvoker, jdkFetcher.getJdkPath("17"));
+            plugin.withJdkPath(jdkFetcher.getJdkPath("17"));
+            plugin.runOpenRewrite(mavenInvoker);
+            plugin.verify(mavenInvoker);
             plugin.commit(ghService);
             plugin.push(ghService);
             plugin.openPullRequest(ghService);

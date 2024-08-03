@@ -30,6 +30,11 @@ public class Plugin {
     private String repositoryName;
 
     /**
+     * The path to the JDK directory
+     */
+    private Path jdkPath;
+
+    /**
      * Flag to indicate if the plugin has any commits to be pushed
      */
     private boolean hasCommits;
@@ -67,6 +72,16 @@ public class Plugin {
      */
     public Plugin withRepositoryName(String repositoryName) {
         this.repositoryName = repositoryName;
+        return this;
+    }
+
+    /***
+     * Set the path of the JDK directory
+     * @param jdkPath Path of the JDK directory
+     * @return Plugin object
+     */
+    public Plugin withJdkPath(Path jdkPath) {
+        this.jdkPath = jdkPath;
         return this;
     }
 
@@ -146,6 +161,14 @@ public class Plugin {
     }
 
     /**
+     * Get the path of the JDK directory
+     * @return Path of the JDK directory
+     */
+    public Path getJdkPath() {
+        return jdkPath;
+    }
+
+    /**
      * Get the login marker for the plugin
      * @return Marker object
      */
@@ -156,37 +179,33 @@ public class Plugin {
     /**
      * Execute maven clean on this plugin
      * @param maven The maven invoker instance
-     * @param jdkPath The path to the directory containing the JDK.
      */
-    public void clean(MavenInvoker maven, Path jdkPath) {
-        maven.invokeGoal(this, jdkPath, "clean");
+    public void clean(MavenInvoker maven) {
+        maven.invokeGoal(this, "clean");
     }
 
     /**
      * Execute maven compile on this plugin
      * @param maven The maven invoker instance
-     * @param jdkPath The path to the directory containing the JDK.
      */
-    public void compile(MavenInvoker maven, Path jdkPath) {
-        maven.invokeGoal(this, jdkPath, "compile");
+    public void compile(MavenInvoker maven) {
+        maven.invokeGoal(this, "compile");
     }
 
     /**
      * Execute maven verify on this plugin
      * @param maven The maven invoker instance
-     * @param jdkPath The path to the directory containing the JDK.
      */
-    public void verify(MavenInvoker maven, Path jdkPath) {
-        maven.invokeGoal(this, jdkPath, "verify");
+    public void verify(MavenInvoker maven) {
+        maven.invokeGoal(this, "verify");
     }
 
     /**
      * Run the openrewrite plugin on this plugin
      * @param maven The maven invoker instance
-     * @param jdkPath The path to the directory containing the JDK.
      */
-    public void runOpenRewrite(MavenInvoker maven, Path jdkPath) {
-        maven.invokeRewrite(this, jdkPath);
+    public void runOpenRewrite(MavenInvoker maven) {
+        maven.invokeRewrite(this);
     }
 
     /**

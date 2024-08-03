@@ -74,22 +74,22 @@ public class MavenInvoker {
      * @param plugin The plugin to run the goal on
      * @param goal The goal to run. For example, "clean"
      */
-    public void invokeGoal(Plugin plugin, Path jdkPath, String goal) {
+    public void invokeGoal(Plugin plugin, String goal) {
         LOG.info(
                 "Invoking {} phase for plugin {} on directory {}",
                 goal,
                 plugin.getName(),
                 plugin.getLocalRepository().toAbsolutePath().toFile());
-        invokeGoals(plugin, jdkPath, goal);
+        invokeGoals(plugin, goal);
     }
 
     /**
      * Invoke the rewrite modernization for a given plugin
      * @param plugin The plugin to run the rewrite on
      */
-    public void invokeRewrite(Plugin plugin, Path jdkPath) {
+    public void invokeRewrite(Plugin plugin) {
         LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
-        invokeGoals(plugin, jdkPath, getRewriteArgs());
+        invokeGoals(plugin, getRewriteArgs());
     }
 
     /**
@@ -126,11 +126,12 @@ public class MavenInvoker {
      * @param plugin The plugin to run the goals on
      * @param goals The list of goals to run
      */
-    private void invokeGoals(Plugin plugin, Path jdkPath, String... goals) {
+    private void invokeGoals(Plugin plugin, String... goals) {
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(config.getMavenHome().toFile());
         try {
             InvocationRequest request = createInvocationRequest(plugin, goals);
+            Path jdkPath = plugin.getJdkPath();
             if (jdkPath != null) {
                 request.setJavaHome(jdkPath.toFile());
                 LOG.info("JDK home: {}", jdkPath);
