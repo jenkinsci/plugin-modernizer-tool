@@ -1,0 +1,238 @@
+# This YAML configuration file is used by the updatecli tool to automate the process of updating Temurin JDK versions
+# managed by SDKMAN in a GitPod Dockerfile. It defines the sources from which to retrieve the latest JDK versions,
+# the targets where these versions should be applied, and the actions to take upon successful updates.
+
+# Define the source control management (SCM) configuration for GitHub.
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}" # The GitHub username to use for commits.
+      email: "{{ .github.email }}" # The email associated with the GitHub user.
+      owner: "{{ .github.owner }}" # The owner of the repository where changes will be made.
+      repository: "{{ .github.repository }}" # The repository to update.
+      token: "{{ requiredEnv .github.token }}" # GitHub token for authentication, marked as required.
+      username: "{{ .github.username }}" # GitHub username for authentication.
+      branch: "{{ .github.branch }}" # The branch to update with new JDK versions.
+
+# Define the sources from which to retrieve the latest JDK versions using SDKMAN.
+sources:
+  JDK8:
+    name: Get the latest JDK8 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-jdk-versions.sh 8 # Shell command to get JDK 8 version.
+      environments:
+        - name: HOME
+  JDK11:
+    name: Get the latest JDK11 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-jdk-versions.sh 11 # Shell command to get JDK 11 version.
+      environments:
+        - name: HOME
+  JDK17:
+    name: Get the latest JDK17 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-jdk-versions.sh 17 # Shell command to get JDK 17 version.
+      environments:
+        - name: HOME
+  JDK21:
+    name: Get the latest JDK21 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-jdk-versions.sh 21 # Shell command to get JDK 21 version.
+      environments:
+        - name: HOME
+  JAVA_8_HOME:
+    name: Get the latest JAVA_HOME for JDK8 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-java-home.sh 8 # Shell command to get JAVA_HOME for the JDK 8.
+      environments:
+        - name: HOME
+  JAVA_11_HOME:
+    name: Get the latest JAVA_HOME for JDK11 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-java-home.sh 11 # Shell command to get JAVA_HOME for the JDK 11.
+      environments:
+        - name: HOME
+  JAVA_17_HOME:
+    name: Get the latest JAVA_HOME for JDK17 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-java-home.sh 17 # Shell command to get JAVA_HOME for the JDK 17.
+      environments:
+        - name: HOME
+  JAVA_21_HOME:
+    name: Get the latest JAVA_HOME for JDK21 version from SDKMAN
+    kind: shell
+    spec:
+      command: bash updatecli/scripts/get-java-home.sh 21 # Shell command to get JAVA_HOME for the JDK 21.
+      environments:
+        - name: HOME
+
+# Define the targets where the JDK versions will be applied.
+targets:
+  setJDK8:
+    kind: dockerfile
+    spec:
+      file: .gitpod/Dockerfile # The Dockerfile to update.
+      instruction:
+        keyword: "ARG" # The Dockerfile instruction to target.
+        matcher: "JDK8_PACKAGE" # The specific ARG to update with the new JDK 8 version.
+    name: "[GitPod] Update the JDK8 version for SDKMAN"
+    sourceid: JDK8 # Link to the source of JDK 8 version.
+    scmid: default # Use the default SCM configuration.
+  setJDK11:
+    kind: dockerfile
+    spec:
+      file: .gitpod/Dockerfile # The Dockerfile to update.
+      instruction:
+        keyword: "ARG" # The Dockerfile instruction to target.
+        matcher: "JDK11_PACKAGE" # The specific ARG to update with the new JDK 11 version.
+    name: "[GitPod] Update the JDK11 version for SDKMAN"
+    sourceid: JDK11 # Link to the source of JDK 11 version.
+    scmid: default # Use the default SCM configuration.
+  setJDK17:
+    kind: dockerfile
+    spec:
+      file: .gitpod/Dockerfile # The Dockerfile to update.
+      instruction:
+        keyword: "ARG" # The Dockerfile instruction to target.
+        matcher: "JDK17_PACKAGE" # The specific ARG to update with the new JDK 17 version.
+    name: "[GitPod] Update the JDK17 version for SDKMAN"
+    sourceid: JDK17 # Link to the source of JDK 17 version.
+    scmid: default # Use the default SCM configuration.
+  setJDK21:
+    kind: dockerfile
+    spec:
+      file: .gitpod/Dockerfile # The Dockerfile to update.
+      instruction:
+        keyword: "ARG" # The Dockerfile instruction to target.
+        matcher: "JDK21_PACKAGE" # The specific ARG to update with the new JDK 21 version.
+    name: "[GitPod] Update the JDK21 version for SDKMAN"
+    sourceid: JDK21 # Link to the source of JDK 21 version.
+    scmid: default # Use the default SCM configuration.
+  # New target to update JDK 8 version in sdkman.properties
+  setJDK8InProperties:
+    name: "[sdkman.properties] Update the JDK8 version"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    sourceid: JDK8
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JDK8_PACKAGE=.*tem(\s?.*)
+      replacepattern: >-
+        JDK8_PACKAGE={{ source `JDK8` }}${2}
+  setJDK11InProperties:
+    name: "[sdkman.properties] Update the JDK11 version"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    sourceid: JDK11
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JDK11_PACKAGE=.*tem(\s?.*)
+      replacepattern: >-
+        JDK11_PACKAGE={{ source `JDK11` }}${2}
+  setJDK17InProperties:
+    name: "[sdkman.properties] Update the JDK17 version"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    sourceid: JDK17
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JDK17_PACKAGE=.*tem(\s?.*)
+      replacepattern: >-
+        JDK17_PACKAGE={{ source `JDK17` }}${2}
+  setJDK21InProperties:
+    name: "[sdkman.properties] Update the JDK21 version"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    sourceid: JDK21
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JDK21_PACKAGE=.*tem(\s?.*)
+      replacepattern: >-
+        JDK21_PACKAGE={{ source `JDK21` }}${2}
+  setJavaHomeForJDK8InProperties:
+    name: "[sdkman.properties] Update the JDK8 JAVA_HOME"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    sourceid: JAVA_8_HOME
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JAVA_8_HOME=.*tem(\s?.*)
+      replacepattern: >-
+        JAVA_8_HOME=${{ source `JAVA_8_HOME` }}${2}
+  setJavaHomeForJDK11InProperties:
+    name: "[sdkman.properties] Update the JDK11 JAVA_HOME"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    sourceid: JAVA_11_HOME
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JAVA_11_HOME=.*tem(\s?.*)
+      replacepattern: >-
+        JAVA_11_HOME=${{ source `JAVA_11_HOME` }}${2}
+  setJavaHomeForJDK17InProperties:
+    name: "[sdkman.properties] Update the JDK17 JAVA_HOME"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    sourceid: JAVA_17_HOME
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JAVA_17_HOME=.*tem(\s?.*)
+      replacepattern: >-
+        JAVA_17_HOME=${{ source `JAVA_17_HOME` }}${2}
+  setJavaHomeForJDK21InProperties:
+    name: "[sdkman.properties] Update the JDK21 JAVA_HOME"
+    kind: file
+    # If the file does not exist, it will be created
+    forcecreate: true
+    disablesourceinput: true
+    scmid: default
+    spec:
+      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      matchpattern: >-
+        (.*)JAVA_21_HOME=.*tem(\s?.*)
+      replacepattern: >-
+        JAVA_21_HOME=${{ source `JAVA_21_HOME` }}${2}
+
+# Define the actions to take after the targets are updated.
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default # Use the default SCM configuration.
+    title: "[SDKs] Update the versions of the temurin installers from SDKMAN"
+    spec:
+      labels: # Labels to add to the GitHub pull request.
+        - chore
+        - JDK
+        - SDKMAN
+        - docker
+        - updatecli
+        - properties
