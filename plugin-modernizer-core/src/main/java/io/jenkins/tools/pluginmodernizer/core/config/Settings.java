@@ -47,6 +47,8 @@ public class Settings {
 
     public static final List<Recipe> AVAILABLE_RECIPES;
 
+    private Settings() {}
+
     static {
         String cacheBaseDir = System.getProperty("user.home");
         if (cacheBaseDir == null) {
@@ -98,27 +100,10 @@ public class Settings {
 
     private static @Nullable URL getUpdateCenterUrl() throws MalformedURLException {
         String url = System.getenv("JENKINS_UC");
-
         if (url != null) {
-            if (isValidURL(url)) {
-                return new URL(url);
-            } else {
-                LOG.warn("Invalid URL in JENKINS_UC environment variable: {}", url);
-                LOG.info("Using Default Update Center URL");
-            }
+            return new URL(url);
         }
-
-        url = readProperty("update.center.url", "update_center.properties");
-        return new URL(url);
-    }
-
-    private static boolean isValidURL(String url) {
-        try {
-            new URL(url);
-            return true;
-        } catch (MalformedURLException e) {
-            return false;
-        }
+        return new URL(readProperty("update.center.url", "update_center.properties"));
     }
 
     private static String getGithubToken() {
@@ -147,25 +132,15 @@ public class Settings {
      * @param resource The resource file to read from
      * @return The value of the property or null if it could not be read
      */
-    private static @Nullable String readProperty(@NonNull final String key, @NonNull final String resource) {
+    private static String readProperty(@NonNull final String key, @NonNull final String resource) {
         Properties properties = new Properties();
         try (InputStream input = Settings.class.getClassLoader().getResourceAsStream(resource)) {
-            if (input == null) {
-                LOG.error("Error reading {} from settings", resource);
-                throw new IOException(String.format("Unable to load `%s`", resource));
-            }
             properties.load(input);
         } catch (IOException e) {
             LOG.error("Error reading key {} from {}", key, resource, e);
-            return null;
+            throw new IllegalArgumentException("Error reading key " + key + " from " + resource, e);
         }
 
-        String value = properties.getProperty(key);
-        if (value == null || value.isEmpty()) {
-            LOG.error(String.format("Unable to read `%s` from `%s`", key, resource));
-            return null;
-        }
-
-        return value.trim();
+        return properties.getProperty(key).trim();
     }
 }
