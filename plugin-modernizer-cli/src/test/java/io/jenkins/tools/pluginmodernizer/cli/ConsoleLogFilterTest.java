@@ -3,12 +3,11 @@ package io.jenkins.tools.pluginmodernizer.cli;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
-import java.util.List;
-
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.spi.FilterReply;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -14,8 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
-import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,7 +42,7 @@ public class MainTest {
         String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2"};
         commandLine.execute(args);
 
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(2, plugins.size());
         assertEquals("plugin1", plugins.get(0));
@@ -75,7 +74,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
         assertTrue(plugins.contains("plugin1"));
@@ -89,7 +88,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(5, plugins.size());
         assertTrue(plugins.contains("plugin1"));
@@ -105,7 +104,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin2,plugin3"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
         assertTrue(plugins.contains("plugin1"));
@@ -119,7 +118,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
         assertEquals("plugin1", plugins.get(0));
@@ -133,7 +132,7 @@ public class MainTest {
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
         String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPlugins();
+        List<String> plugins = main.setup().getPluginNames();
         assertNotNull(plugins);
         assertEquals(5, plugins.size());
         assertEquals("plugin1", plugins.get(0));
@@ -141,6 +140,39 @@ public class MainTest {
         assertEquals("plugin3", plugins.get(2));
         assertEquals("plugin4", plugins.get(3));
         assertEquals("plugin5", plugins.get(4));
+    }
+
+    @Test
+    public void testSkipPushOptions() throws IOException {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--skip-push"};
+        commandLine.execute(args);
+        assertTrue(main.setup().isSkipPush());
+    }
+
+    @Test
+    public void testSkipPullRequestOptions() throws IOException {
+        String[] args = {
+            "-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--skip-pull-request"
+        };
+        commandLine.execute(args);
+        assertTrue(main.setup().isSkipPullRequest());
+    }
+
+    @Test
+    public void voidTestCleanLocalData() throws IOException {
+        String[] args = {
+            "-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--clean-local-data"
+        };
+        commandLine.execute(args);
+        assertTrue(main.setup().isRemoveLocalData());
+    }
+
+    @Test
+    public void voidTestCleanForks() throws IOException {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--clean-forks"
+        };
+        commandLine.execute(args);
+        assertTrue(main.setup().isRemoveForks());
     }
 
     @Test
@@ -223,5 +255,4 @@ public class MainTest {
         int exitCode = commandLine.execute(args);
         assertNotEquals(CommandLine.ExitCode.OK, exitCode);
     }
-
 }

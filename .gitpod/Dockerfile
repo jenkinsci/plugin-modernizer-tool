@@ -25,6 +25,15 @@ RUN file="$HOME/.bashrc.d/770-scm_token.sh" \
     && printf '%s\n' 'if [[ "${GITPOD_WORKSPACE_CONTEXT_URL:-}" == *gitlab* ]]; then : "gitlab"; else : "github"; fi; scm_name="$_"' > "${file}" \
     && printf 'export SCM_TOKEN="$(%s)"\n' "gp credential-helper get <<<host=\${scm_name}.com | sed -n 's/^password=//p'" >> "${file}"
 
+# Install the gh cli tool 
+RUN (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
+    && sudo mkdir -p -m 755 /etc/apt/keyrings \
+    && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+    && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && sudo apt update \
+    && sudo apt install gh -y
+    
  # Initialize SDKMAN and install the various JDKs thanks to SDKMAN
 RUN /bin/bash -c "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && \
     yes | sdk install java \"$JDK8_PACKAGE\" \

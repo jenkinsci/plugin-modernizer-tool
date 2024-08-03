@@ -8,24 +8,45 @@ public class Config {
 
     public static boolean DEBUG = false;
     private final String version;
-    private final List<String> plugins;
+    private final List<String> pluginNames;
     private final List<String> recipes;
     private final URL jenkinsUpdateCenter;
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
+    private final boolean skipPush;
+    private final boolean skipPullRequest;
+    private final boolean removeLocalData;
+    private final boolean removeForks;
     private final boolean exportDatatables;
     private final String githubOwner;
 
-    private Config(String version, String githubOwner, List<String> plugins, List<String> recipes, URL jenkinsUpdateCenter, Path cachePath, Path mavenHome, boolean dryRun, boolean exportDatatables) {
+    private Config(
+            String version,
+            String githubOwner,
+            List<String> pluginNames,
+            List<String> recipes,
+            URL jenkinsUpdateCenter,
+            Path cachePath,
+            Path mavenHome,
+            boolean dryRun,
+            boolean skipPush,
+            boolean skipPullRequest,
+            boolean removeLocalData,
+            boolean removeForks,
+            boolean exportDatatables) {
         this.version = version;
         this.githubOwner = githubOwner;
-        this.plugins = plugins;
+        this.pluginNames = pluginNames;
         this.recipes = recipes;
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
+        this.skipPush = skipPush;
+        this.skipPullRequest = skipPullRequest;
+        this.removeLocalData = removeLocalData;
+        this.removeForks = removeForks;
         this.exportDatatables = exportDatatables;
     }
 
@@ -37,8 +58,8 @@ public class Config {
         return githubOwner;
     }
 
-    public List<String> getPlugins() {
-        return plugins;
+    public List<String> getPluginNames() {
+        return pluginNames;
     }
 
     public List<String> getRecipes() {
@@ -61,6 +82,22 @@ public class Config {
         return dryRun;
     }
 
+    public boolean isSkipPullRequest() {
+        return skipPullRequest;
+    }
+
+    public boolean isSkipPush() {
+        return skipPush;
+    }
+
+    public boolean isRemoveLocalData() {
+        return removeLocalData;
+    }
+
+    public boolean isRemoveForks() {
+        return removeForks;
+    }
+
     public boolean isExportDatatables() {
         return exportDatatables;
     }
@@ -78,7 +115,11 @@ public class Config {
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
+        private boolean skipPush = false;
+        private boolean skipPullRequest = false;
         private boolean exportDatatables = false;
+        public boolean removeLocalData = false;
+        public boolean removeForks = false;
 
         public Builder withVersion(String version) {
             this.version = version;
@@ -126,14 +167,46 @@ public class Config {
             return this;
         }
 
+        public Builder withSkipPush(boolean skipPush) {
+            this.skipPush = skipPush;
+            return this;
+        }
+
+        public Builder withSkipPullRequest(boolean skipPullRequest) {
+            this.skipPullRequest = skipPullRequest;
+            return this;
+        }
+
+        public Builder withRemoveLocalData(boolean removeLocalData) {
+            this.removeLocalData = removeLocalData;
+            return this;
+        }
+
+        public Builder withRemoveForks(boolean removeForks) {
+            this.removeForks = removeForks;
+            return this;
+        }
+
         public Builder withExportDatatables(boolean exportDatatables) {
             this.exportDatatables = exportDatatables;
             return this;
         }
 
         public Config build() {
-            return new Config(version, githubOwner, plugins, recipes, jenkinsUpdateCenter, cachePath, mavenHome, dryRun, exportDatatables);
+            return new Config(
+                    version,
+                    githubOwner,
+                    plugins,
+                    recipes,
+                    jenkinsUpdateCenter,
+                    cachePath,
+                    mavenHome,
+                    dryRun,
+                    skipPush,
+                    skipPullRequest,
+                    removeLocalData,
+                    removeForks,
+                    exportDatatables);
         }
     }
-
 }

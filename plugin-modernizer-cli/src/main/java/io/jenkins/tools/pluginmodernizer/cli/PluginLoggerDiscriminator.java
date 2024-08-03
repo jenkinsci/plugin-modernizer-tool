@@ -1,9 +1,8 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
-import java.util.List;
-
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.sift.AbstractDiscriminator;
+import java.util.List;
 import org.slf4j.Marker;
 
 public class PluginLoggerDiscriminator extends AbstractDiscriminator<ILoggingEvent> {
@@ -22,5 +21,4 @@ public class PluginLoggerDiscriminator extends AbstractDiscriminator<ILoggingEve
     public String getKey() {
         return "filename";
     }
-
 }

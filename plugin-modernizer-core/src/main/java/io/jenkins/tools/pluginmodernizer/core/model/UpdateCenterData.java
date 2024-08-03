@@ -1,10 +1,9 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 public class UpdateCenterData {
     private final JsonNode jsonNode;

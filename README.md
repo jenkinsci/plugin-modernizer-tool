@@ -81,6 +81,14 @@ Alternatively, you can pass the GitHub owner through the CLI option `-g` or `--g
 
 - `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes. The patch files will be generated at `target/rewrite/rewrite.patch` inside the plugin directory if any change is made.
 
+- `--skip-push` (optional) Skips pushing changes to the remote repository. Always enabled in dry-run mode.
+
+- `--skip-pull-request` (optional) Skips creating pull requests in the remote repository. Always enabled in dry-run mode.
+
+- `--clean-local-data` (optional) Deletes the local plugin directory before and after the process is completed.
+
+- `--clean-forks` (optional) Remove forked repositories before and after the modernization process. Might cause data loss if you have other changes pushed on those forks. Forks with open pull request targeting original repo are not removed to prevent closing unmerged pull requests.
+
 - `--export-datatables` or `-e`: (optional) Creates a report or summary of the changes made through OpenRewrite in CSV format. The report will be generated at `target/rewrite/datatables` inside the plugin directory.
 
 - `--debug` or `-d`: (optional) Enables debug mode.

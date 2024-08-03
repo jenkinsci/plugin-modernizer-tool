@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,10 @@ public class PluginModernizer {
 
     private final CacheManager cacheManager;
 
+    /**
+     * Create a new PluginModernizer
+     * @param config The configuration to use
+     */
     public PluginModernizer(Config config) {
         this.config = config;
         this.mavenInvoker = new MavenInvoker(config);
@@ -28,41 +33,56 @@ public class PluginModernizer {
         this.cacheManager = new CacheManager(config.getCachePath());
     }
 
+    /**
+     * Entry point to start the plugin modernization process
+     */
     public void start() {
-        LOG.info("Plugins: {}", config.getPlugins());
+        LOG.info("Plugins: {}", config.getPluginNames());
         LOG.info("Recipes: {}", config.getRecipes());
         LOG.info("GitHub owner: {}", config.getGithubOwner());
         LOG.info("Update Center Url: {}", config.getJenkinsUpdateCenter());
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
+        LOG.debug("Skip Push: {}", config.isSkipPush());
+        LOG.debug("Skip Pull Request: {}", config.isSkipPullRequest());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
-
         cacheManager.createCache();
-
-        // TODO: Replace with some PluginInfo model that will containes for example
-        // plugin name, repo name, scmUrl, location on disk etc....
-        for (String plugin : config.getPlugins()) {
-            String pluginPath = Settings.TEST_PLUGINS_DIRECTORY + plugin;
-            String branchName = "apply-transformation-" + plugin;
-
-            try {
-
-                String repoName = JenkinsPluginInfo.extractRepoName(plugin, config.getCachePath(), config.getJenkinsUpdateCenter());
-
-                LOG.info("Forking and cloning plugin {} locally from repo {}", plugin, repoName);
-                ghService.forkCloneAndCreateBranch(repoName, plugin, branchName);
-
-                LOG.info("Invoking clean phase for plugin: {}", plugin);
-                mavenInvoker.invokeGoal(plugin, pluginPath, "clean");
-
-                LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
-                mavenInvoker.invokeRewrite(plugin, pluginPath);
-
-                ghService.commitAndCreatePR(repoName, plugin, branchName);
-            } catch (Exception e) {
-                LOG.error("Failed to process plugin: {}", plugin, e);
-            }
-        }
+        config.getPluginNames().stream().map(Plugin::build).toList().forEach(this::process);
     }
 
+    /**
+     * Process a plugin
+     * @param plugin The plugin to process
+     */
+    private void process(Plugin plugin) {
+        try {
+
+            // Determine repo name
+            plugin.withRepositoryName(JenkinsPluginInfo.extractRepoName(
+                    plugin.getName(), config.getCachePath(), config.getJenkinsUpdateCenter()));
+
+            if (config.isRemoveForks()) {
+                plugin.deleteFork(ghService);
+            }
+            plugin.fork(ghService);
+            if (config.isRemoveLocalData()) {
+                LOG.info("Removing local data for plugin: {} at {}", plugin, plugin.getLocalRepository());
+                plugin.removeLocalData();
+            }
+            plugin.fetch(ghService);
+            plugin.clean(mavenInvoker);
+            plugin.checkoutBranch(ghService);
+            plugin.runOpenRewrite(mavenInvoker);
+            plugin.commit(ghService);
+            plugin.push(ghService);
+            plugin.openPullRequest(ghService);
+            if (config.isRemoveForks()) {
+                plugin.deleteFork(ghService);
+            }
+
+        } catch (Exception e) {
+            LOG.error("Failed to process plugin: {}", plugin, e);
+            plugin.addError(e);
+        }
+    }
 }

@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 public class ConfigTest {
@@ -40,7 +39,7 @@ public class ConfigTest {
 
         assertEquals(version, config.getVersion());
         assertEquals(githubOwner, config.getGithubOwner());
-        assertEquals(plugins, config.getPlugins());
+        assertEquals(plugins, config.getPluginNames());
         assertEquals(recipes, config.getRecipes());
         assertEquals(jenkinsUpdateCenter, config.getJenkinsUpdateCenter());
         assertEquals(cachePath, config.getCachePath());
@@ -53,7 +52,7 @@ public class ConfigTest {
         Config config = Config.builder().build();
 
         assertNull(config.getVersion());
-        assertNull(config.getPlugins());
+        assertNull(config.getPluginNames());
         assertNull(config.getRecipes());
         assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
@@ -66,13 +65,11 @@ public class ConfigTest {
         String version = "2.0";
         List<String> plugins = Arrays.asList("plugin1", "plugin2");
 
-        Config config = Config.builder()
-                .withVersion(version)
-                .withPlugins(plugins)
-                .build();
+        Config config =
+                Config.builder().withVersion(version).withPlugins(plugins).build();
 
         assertEquals(version, config.getVersion());
-        assertEquals(plugins, config.getPlugins());
+        assertEquals(plugins, config.getPluginNames());
         assertNull(config.getRecipes());
         assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
@@ -89,7 +86,7 @@ public class ConfigTest {
                 .build();
 
         assertNull(config.getVersion());
-        assertNull(config.getPlugins());
+        assertNull(config.getPluginNames());
         assertNull(config.getRecipes());
         assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
@@ -99,9 +96,7 @@ public class ConfigTest {
 
     @Test
     public void testConfigBuilderDryRun() {
-        Config config = Config.builder()
-                .withDryRun(true)
-                .build();
+        Config config = Config.builder().withDryRun(true).build();
 
         assertTrue(config.isDryRun());
     }
