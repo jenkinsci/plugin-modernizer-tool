@@ -5,6 +5,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,8 @@ public class PluginModernizer {
     private void process(Plugin plugin) {
         try {
 
+            JdkFetcher jdkFetcher = new JdkFetcher();
+
             // Determine repo name
             plugin.withRepositoryName(JenkinsPluginInfo.extractRepoName(
                     plugin.getName(), config.getCachePath(), config.getJenkinsUpdateCenter()));
@@ -70,9 +73,10 @@ public class PluginModernizer {
                 plugin.removeLocalData();
             }
             plugin.fetch(ghService);
-            plugin.clean(mavenInvoker);
+            plugin.compile(mavenInvoker, jdkFetcher.getJdkPath("8"));
             plugin.checkoutBranch(ghService);
-            plugin.runOpenRewrite(mavenInvoker);
+            plugin.runOpenRewrite(mavenInvoker, jdkFetcher.getJdkPath("17"));
+            plugin.verify(mavenInvoker, jdkFetcher.getJdkPath("17"));
             plugin.commit(ghService);
             plugin.push(ghService);
             plugin.openPullRequest(ghService);

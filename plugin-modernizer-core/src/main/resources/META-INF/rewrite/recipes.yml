@@ -47,3 +47,9 @@ recipeList:
       replaces:
         - groupId: org.json
           artifactId: json
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UpgradeToJava17
+description: Migrate from Java 8 to Java 11
+recipeList:
+  - org.openrewrite.java.migrate.UpgradeToJava17

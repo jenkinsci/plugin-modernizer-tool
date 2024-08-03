@@ -74,21 +74,22 @@ public class MavenInvoker {
      * @param plugin The plugin to run the goal on
      * @param goal The goal to run. For example, "clean"
      */
-    public void invokeGoal(Plugin plugin, String goal) {
+    public void invokeGoal(Plugin plugin, Path jdkPath, String goal) {
         LOG.info(
-                "Invoking clean phase for plugin {} on directory {}",
+                "Invoking {} phase for plugin {} on directory {}",
+                goal,
                 plugin.getName(),
                 plugin.getLocalRepository().toAbsolutePath().toFile());
-        invokeGoals(plugin, goal);
+        invokeGoals(plugin, jdkPath, goal);
     }
 
     /**
      * Invoke the rewrite modernization for a given plugin
      * @param plugin The plugin to run the rewrite on
      */
-    public void invokeRewrite(Plugin plugin) {
+    public void invokeRewrite(Plugin plugin, Path jdkPath) {
         LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
-        invokeGoals(plugin, getRewriteArgs());
+        invokeGoals(plugin, jdkPath, getRewriteArgs());
     }
 
     /**
@@ -125,11 +126,15 @@ public class MavenInvoker {
      * @param plugin The plugin to run the goals on
      * @param goals The list of goals to run
      */
-    private void invokeGoals(Plugin plugin, String... goals) {
+    private void invokeGoals(Plugin plugin, Path jdkPath, String... goals) {
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(config.getMavenHome().toFile());
         try {
             InvocationRequest request = createInvocationRequest(plugin, goals);
+            if (jdkPath != null) {
+                request.setJavaHome(jdkPath.toFile());
+                LOG.info("JDK home: {}", jdkPath);
+            }
             request.setBatchMode(true);
             request.setNoTransferProgress(false);
             request.setErrorHandler((message) -> {

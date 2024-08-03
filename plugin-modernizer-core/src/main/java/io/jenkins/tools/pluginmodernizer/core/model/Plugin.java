@@ -156,17 +156,37 @@ public class Plugin {
     /**
      * Execute maven clean on this plugin
      * @param maven The maven invoker instance
+     * @param jdkPath The path to the directory containing the JDK.
      */
-    public void clean(MavenInvoker maven) {
-        maven.invokeGoal(this, "clean");
+    public void clean(MavenInvoker maven, Path jdkPath) {
+        maven.invokeGoal(this, jdkPath, "clean");
+    }
+
+    /**
+     * Execute maven compile on this plugin
+     * @param maven The maven invoker instance
+     * @param jdkPath The path to the directory containing the JDK.
+     */
+    public void compile(MavenInvoker maven, Path jdkPath) {
+        maven.invokeGoal(this, jdkPath, "compile");
+    }
+
+    /**
+     * Execute maven verify on this plugin
+     * @param maven The maven invoker instance
+     * @param jdkPath The path to the directory containing the JDK.
+     */
+    public void verify(MavenInvoker maven, Path jdkPath) {
+        maven.invokeGoal(this, jdkPath, "verify");
     }
 
     /**
      * Run the openrewrite plugin on this plugin
      * @param maven The maven invoker instance
+     * @param jdkPath The path to the directory containing the JDK.
      */
-    public void runOpenRewrite(MavenInvoker maven) {
-        maven.invokeRewrite(this);
+    public void runOpenRewrite(MavenInvoker maven, Path jdkPath) {
+        maven.invokeRewrite(this, jdkPath);
     }
 
     /**
