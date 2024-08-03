@@ -23,6 +23,8 @@ public class PluginModernizer {
 
     private final CacheManager cacheManager;
 
+    private final JdkFetcher jdkFetcher = new JdkFetcher();
+
     /**
      * Create a new PluginModernizer
      * @param config The configuration to use
@@ -57,9 +59,6 @@ public class PluginModernizer {
      */
     private void process(Plugin plugin) {
         try {
-
-            JdkFetcher jdkFetcher = new JdkFetcher();
-
             // Determine repo name
             plugin.withRepositoryName(JenkinsPluginInfo.extractRepoName(
                     plugin.getName(), config.getCachePath(), config.getJenkinsUpdateCenter()));

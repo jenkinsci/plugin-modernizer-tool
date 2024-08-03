@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -17,8 +18,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.slf4j.Logger;
@@ -119,7 +118,8 @@ public class JdkFetcher {
      * @throws InterruptedException If the operation is interrupted.
      */
     private String fetchLatestReleaseUrl(String jdkVersion) throws IOException, InterruptedException {
-        String latestUrl = String.format("%s/temurin%s-binaries/releases", Settings.ADOPTIUM_GITHUB_API_URL, jdkVersion);
+        String latestUrl =
+                String.format("%s/temurin%s-binaries/releases", Settings.ADOPTIUM_GITHUB_API_URL, jdkVersion);
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request =
                 HttpRequest.newBuilder().uri(URI.create(latestUrl)).build();
