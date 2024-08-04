@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Updatecli in the runner
-        uses: updatecli/updatecli-action@v2.61.0
+        uses: updatecli/updatecli-action@v2.65.0
 
       - name: Install SDKMAN in the runner
         run: ./updatecli/scripts/install-sdk.sh
