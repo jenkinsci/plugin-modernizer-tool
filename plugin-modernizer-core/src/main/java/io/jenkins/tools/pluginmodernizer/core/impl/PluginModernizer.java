@@ -23,7 +23,7 @@ public class PluginModernizer {
 
     private final CacheManager cacheManager;
 
-    private final JdkFetcher jdkFetcher = new JdkFetcher();
+    private final JdkFetcher jdkFetcher;
 
     /**
      * Create a new PluginModernizer
@@ -34,6 +34,7 @@ public class PluginModernizer {
         this.mavenInvoker = new MavenInvoker(config);
         this.ghService = new GHService(config);
         this.cacheManager = new CacheManager(config.getCachePath());
+        this.jdkFetcher = new JdkFetcher(config.getCachePath());
     }
 
     /**

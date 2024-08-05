@@ -30,7 +30,11 @@ import org.slf4j.LoggerFactory;
 public class JdkFetcher {
     private static final Logger LOG = LoggerFactory.getLogger(JdkFetcher.class);
 
-    private static final String DOWNLOAD_DIR = System.getProperty("user.home") + "/.jdks/";
+    private final Path cacheDir;
+
+    public JdkFetcher(Path cacheDir) {
+        this.cacheDir = cacheDir;
+    }
 
     /**
      * Gets the path to the JDK directory for the specified JDK version. If the JDK is not already downloaded,
@@ -42,9 +46,9 @@ public class JdkFetcher {
      * @throws InterruptedException If the operation is interrupted.
      */
     public Path getJdkPath(String jdkVersion) throws IOException, InterruptedException {
-        Path jdkPath = Paths.get(DOWNLOAD_DIR, "plugin-modernizer-jdk-" + jdkVersion);
+        Path jdkPath = getJdkDirectoryPath(jdkVersion);
         if (Files.notExists(jdkPath)) {
-            downloadAndSetupJdk(jdkVersion);
+            downloadAndSetupJdk(jdkVersion, jdkPath);
         }
         return jdkPath;
     }
@@ -54,23 +58,34 @@ public class JdkFetcher {
      * method based on the operating system.
      *
      * @param jdkVersion The version of the JDK (e.g., "8").
+     * @param extractionDir The directory where the JDK will be extracted.
      * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the operation is interrupted.
      */
-    private void downloadAndSetupJdk(String jdkVersion) throws IOException, InterruptedException {
-        LOG.info("Downloading the jdk...");
+    private void downloadAndSetupJdk(String jdkVersion, Path extractionDir) throws IOException, InterruptedException {
+        LOG.info("Downloading the JDK...");
         Path downloadedFile = downloadJdk(jdkVersion);
-        LOG.info("Download Successful");
-        String os = getOSName();
+        LOG.info("Download successful");
+
         LOG.info("Extracting...");
-        Path extractionDir = Paths.get(DOWNLOAD_DIR, "plugin-modernizer-jdk-" + jdkVersion);
         Files.createDirectories(extractionDir);
+        String os = getOSName();
         if (os.contains("windows")) {
             extractZip(downloadedFile, extractionDir);
         } else if (os.contains("linux") || os.contains("mac")) {
             extractTarGz(downloadedFile, extractionDir);
         }
         LOG.info("Extraction successful");
+    }
+
+    /**
+     * Gets the directory path for the specified JDK version in the cache directory.
+     *
+     * @param jdkVersion The version of the JDK (e.g., "8").
+     * @return The path to the JDK directory.
+     */
+    private Path getJdkDirectoryPath(String jdkVersion) {
+        return cacheDir.resolve(".jdks").resolve("plugin-modernizer-jdk-" + jdkVersion);
     }
 
     /**
@@ -85,7 +100,7 @@ public class JdkFetcher {
     private Path downloadJdk(String jdkVersion) throws IOException, InterruptedException {
         String downloadUrl = fetchLatestReleaseUrl(jdkVersion);
         if (downloadUrl != null) {
-            Path downloadPath = Paths.get(DOWNLOAD_DIR, "jdk" + jdkVersion + getExtension(downloadUrl));
+            Path downloadPath = cacheDir.resolve(".jdks").resolve("jdk" + jdkVersion + getExtension(downloadUrl));
             Path parentPath = downloadPath.getParent();
             if (parentPath != null) {
                 Files.createDirectories(parentPath);
