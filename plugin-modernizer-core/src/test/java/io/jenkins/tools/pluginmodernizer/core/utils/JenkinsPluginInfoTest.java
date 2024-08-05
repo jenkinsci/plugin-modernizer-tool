@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -15,17 +16,25 @@ import org.junit.jupiter.api.io.TempDir;
 class JenkinsPluginInfoTest {
 
     @TempDir
-    Path tempDir;
+    private Path tempDir;
 
     @TempDir
-    Path tempDir2;
+    private Path tempDir2;
+
+    private Path cacheFile;
 
     @BeforeEach
     public void setup() throws IOException {
         String jsonContent =
-                "{\"plugins\": {\"login-theme\": {\"scm\": \"https://github.com/jenkinsci/login-theme-plugin\"}}}";
-        Path cacheFile = tempDir.resolve("update-center.json");
+                "{\"plugins\": {\"login-theme\": {\"scm\": \"https://github.com/jenkinsci/login-theme-plugin\"}, \"invalid-plugin\": {\"scm\": \"invalid-scm-url\"}, \"invalid-plugin-2\": {\"scm\": \"/\"}}}";
+        cacheFile = tempDir.resolve("update-center.json");
         Files.write(cacheFile, jsonContent.getBytes());
+    }
+
+    @AfterEach
+    void teardown() throws IOException {
+        Files.deleteIfExists(cacheFile);
+        Files.deleteIfExists(tempDir);
     }
 
     @Test
@@ -63,5 +72,21 @@ class JenkinsPluginInfoTest {
         });
 
         assertEquals("Plugin not found in update center: not-present", exception.getMessage());
+    }
+
+    @Test
+    public void testExtractRepoNameInvalidScmUrlFormat() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            JenkinsPluginInfo.extractRepoName("invalid-plugin", tempDir, null);
+        });
+        assertEquals("Invalid SCM URL format: invalid-scm-url", exception.getMessage());
+    }
+
+    @Test
+    public void testExtractRepoNameInvalidScmUrlFormat2() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            JenkinsPluginInfo.extractRepoName("invalid-plugin-2", tempDir, null);
+        });
+        assertEquals("Invalid SCM URL format: /", exception.getMessage());
     }
 }
