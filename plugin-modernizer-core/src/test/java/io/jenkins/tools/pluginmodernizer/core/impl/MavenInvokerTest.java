@@ -52,6 +52,9 @@ class MavenInvokerTest {
     private Path getMavenHome() {
         String mavenHomePath = System.getenv("MAVEN_HOME");
         if (mavenHomePath == null) {
+            mavenHomePath = System.getenv("M2_HOME");
+        }
+        if (mavenHomePath == null) {
             mavenHomePath = System.getProperty("maven.home");
         }
         if (mavenHomePath == null) {
