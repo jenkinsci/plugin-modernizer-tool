@@ -241,6 +241,7 @@ public class JdkFetcher {
                 zipIn.closeEntry();
             }
         }
+        Files.delete(zipFile);
     }
 
     /**
@@ -262,6 +263,7 @@ public class JdkFetcher {
                 }
             }
         }
+        Files.delete(tarGzFile);
     }
 
     /**
