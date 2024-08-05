@@ -1,6 +1,9 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -122,6 +125,14 @@ public class PluginTest {
     }
 
     @Test
+    public void testIsArchived() {
+        Plugin plugin = Plugin.build("example");
+        plugin.isArchived(ghService);
+        verify(ghService).isArchived(plugin);
+        verifyNoMoreInteractions(ghService);
+    }
+
+    @Test
     public void testCheckoutBranch() {
         Plugin plugin = Plugin.build("example");
         plugin.checkoutBranch(ghService);
@@ -183,5 +194,11 @@ public class PluginTest {
         assertFalse(plugin.hasErrors());
         plugin.addError(new Exception("error"));
         assertTrue(plugin.hasErrors());
+    }
+
+    @Test
+    public void testToString() {
+        Plugin plugin = Plugin.build("example");
+        assertEquals("example", plugin.toString());
     }
 }

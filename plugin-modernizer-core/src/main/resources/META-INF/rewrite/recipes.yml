@@ -10,6 +10,7 @@ name: io.jenkins.tools.pluginmodernizer.AddPluginsBom
 description: Adds a BOM to a Jenkins plugin
 recipeList:
   - org.openrewrite.jenkins.AddPluginsBom
+  - io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
   - org.openrewrite.maven.RemoveProperty: # Provided by bom. Will cleanup unused property
       propertyName: configuration-as-code.version
 ---
@@ -27,6 +28,16 @@ recipeList:
       groupId: org.jenkins-ci.plugins
       artifactId: plugin
       newVersion: 4.X
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
+description: Upgrade the bom version to latest available. Doesn't change the artifact id
+recipeList:
+  - org.openrewrite.maven.UpgradeDependencyVersion:
+      groupId: io.jenkins.tools.bom
+      artifactId: "bom-*"
+      newVersion: latest.release
+      versionPattern: "\\.v[a-f0-9_]+"
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.ReplaceLibrariesWithApiPlugin
