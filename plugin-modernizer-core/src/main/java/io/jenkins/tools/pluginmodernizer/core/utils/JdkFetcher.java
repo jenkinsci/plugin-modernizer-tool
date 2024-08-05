@@ -40,12 +40,12 @@ public class JdkFetcher {
      * Gets the path to the JDK directory for the specified JDK version. If the JDK is not already downloaded,
      * it triggers the download and setup process.
      *
-     * @param jdkVersion The version of the JDK (e.g., "8").
+     * @param jdkVersion The version of the JDK (e.g., 8).
      * @return The path to the JDK directory.
      * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the operation is interrupted.
      */
-    public Path getJdkPath(String jdkVersion) throws IOException, InterruptedException {
+    public Path getJdkPath(int jdkVersion) throws IOException, InterruptedException {
         Path jdkPath = getJdkDirectoryPath(jdkVersion);
         if (Files.notExists(jdkPath)) {
             downloadAndSetupJdk(jdkVersion, jdkPath);
@@ -62,7 +62,7 @@ public class JdkFetcher {
      * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the operation is interrupted.
      */
-    private void downloadAndSetupJdk(String jdkVersion, Path extractionDir) throws IOException, InterruptedException {
+    private void downloadAndSetupJdk(int jdkVersion, Path extractionDir) throws IOException, InterruptedException {
         LOG.info("Downloading the JDK...");
         Path downloadedFile = downloadJdk(jdkVersion);
         LOG.info("Download successful");
@@ -84,7 +84,7 @@ public class JdkFetcher {
      * @param jdkVersion The version of the JDK (e.g., "8").
      * @return The path to the JDK directory.
      */
-    private Path getJdkDirectoryPath(String jdkVersion) {
+    private Path getJdkDirectoryPath(int jdkVersion) {
         return cacheDir.resolve(".jdks").resolve("plugin-modernizer-jdk-" + jdkVersion);
     }
 
@@ -97,7 +97,7 @@ public class JdkFetcher {
      * @throws InterruptedException If the operation is interrupted.
      */
     @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "false positive")
-    private Path downloadJdk(String jdkVersion) throws IOException, InterruptedException {
+    private Path downloadJdk(int jdkVersion) throws IOException, InterruptedException {
         String downloadUrl = fetchLatestReleaseUrl(jdkVersion);
         if (downloadUrl != null) {
             Path downloadPath = cacheDir.resolve(".jdks").resolve("jdk" + jdkVersion + getExtension(downloadUrl));
@@ -132,7 +132,7 @@ public class JdkFetcher {
      * @throws IOException          If an I/O error occurs.
      * @throws InterruptedException If the operation is interrupted.
      */
-    private String fetchLatestReleaseUrl(String jdkVersion) throws IOException, InterruptedException {
+    private String fetchLatestReleaseUrl(int jdkVersion) throws IOException, InterruptedException {
         String latestUrl =
                 String.format("%s/temurin%s-binaries/releases", Settings.ADOPTIUM_GITHUB_API_URL, jdkVersion);
         HttpClient client = HttpClient.newHttpClient();
@@ -163,7 +163,7 @@ public class JdkFetcher {
      * @param jdkVersion The version of the JDK (e.g., "8").
      * @return The download URL if a matching asset is found, otherwise null.
      */
-    private String getDownloadUrl(JsonArray assets, String jdkVersion) {
+    private String getDownloadUrl(JsonArray assets, int jdkVersion) {
         String jdkFileName = buildJDKFileName(jdkVersion);
         for (JsonElement element : assets) {
             JsonObject asset = element.getAsJsonObject();
@@ -184,14 +184,9 @@ public class JdkFetcher {
      * @return The constructed JDK file name.
      * @throws IllegalArgumentException If the JDK version or OS is null or empty.
      */
-    public String buildJDKFileName(String jdkVersion) {
+    public String buildJDKFileName(int jdkVersion) {
         String os = getOSName();
-        if (jdkVersion == null || jdkVersion.isEmpty() || os.isEmpty()) {
-            throw new IllegalArgumentException("JDK version and OS must not be null or empty");
-        }
-
         String normalizedOS = normalizeOS(os);
-
         return String.format("OpenJDK%sU-jdk_x64_%s_hotspot_%s", jdkVersion, normalizedOS, jdkVersion);
     }
 

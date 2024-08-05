@@ -115,6 +115,12 @@ public class Main implements Runnable {
     public Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
 
     @Option(
+            names = {"--minimal-java-major-version"},
+            description =
+                    "Minimal Java major version to compile the plugin before attempting to modernize it for recommended Java version")
+    public int minimalJavaMajorVersion = Settings.MINIMAL_JAVA_MAJOR_VERSION;
+
+    @Option(
             names = {"-l", "--list-recipes"},
             help = true,
             description = "List available recipes.")
@@ -136,6 +142,7 @@ public class Main implements Runnable {
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withCachePath(cachePath)
                 .withMavenHome(mavenHome)
+                .withMinimalJavaMajorVersion(minimalJavaMajorVersion)
                 .build();
     }
 
