@@ -41,7 +41,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.ReplaceLibrariesWithApiPlugin
-description: Use JSON API plugin instead of direct dependency
+description: Use API plugins instead of direct dependency
 recipeList:
     # More API plugin on the list
   - io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
@@ -58,3 +58,15 @@ recipeList:
       replaces:
         - groupId: org.json
           artifactId: json
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UpgradeToRecommendCoreVersion
+description: Upgrade to latest recommended core version and ensure the bom is matching the core version
+recipeList:
+    # TODO: https://github.com/jenkins-infra/jenkins.io/blob/master/updatecli/updatecli.d/jenkins-lts.yaml#L104
+    # https://github.com/jenkins-infra/jenkins-version?
+  - org.openrewrite.jenkins.UpgradeVersionProperty:
+      key: jenkins.version
+      minimumVersion: 2.440.3
+  - org.openrewrite.maven.RemoveProperty: # Provided by bom. Will cleanup unused property
+      propertyName: configuration-as-code.version
