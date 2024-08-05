@@ -16,12 +16,12 @@ import org.junit.jupiter.api.io.TempDir;
 class JenkinsPluginInfoTest {
 
     @TempDir
-    Path tempDir;
+    private Path tempDir;
 
     @TempDir
-    Path tempDir2;
+    private Path tempDir2;
 
-    Path cacheFile;
+    private Path cacheFile;
 
     @BeforeEach
     public void setup() throws IOException {
