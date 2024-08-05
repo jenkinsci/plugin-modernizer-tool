@@ -486,7 +486,6 @@ public class GHServiceTest {
     public void shouldFetchOriginalRepoInDryRunModeToNewFolder() throws Exception {
 
         // Mock
-        // Mock
         GHRepository repository = Mockito.mock(GHRepository.class);
         Git git = Mockito.mock(Git.class);
         CloneCommand cloneCommand = Mockito.mock(CloneCommand.class);
