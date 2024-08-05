@@ -85,6 +85,22 @@ public class PluginTest {
     }
 
     @Test
+    public void testCompile() {
+        Plugin plugin = Plugin.build("example");
+        plugin.compile(mavenInvoker);
+        verify(mavenInvoker).invokeGoal(plugin, "compile");
+        verifyNoMoreInteractions(mavenInvoker);
+    }
+
+    @Test
+    public void testVerify() {
+        Plugin plugin = Plugin.build("example");
+        plugin.verify(mavenInvoker);
+        verify(mavenInvoker).invokeGoal(plugin, "verify");
+        verifyNoMoreInteractions(mavenInvoker);
+    }
+
+    @Test
     public void testRewrite() {
         Plugin plugin = Plugin.build("example");
         plugin.runOpenRewrite(mavenInvoker);

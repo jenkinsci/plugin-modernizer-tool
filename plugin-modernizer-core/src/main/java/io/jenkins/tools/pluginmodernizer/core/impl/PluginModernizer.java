@@ -5,6 +5,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,8 @@ public class PluginModernizer {
 
     private final CacheManager cacheManager;
 
+    private final JdkFetcher jdkFetcher;
+
     /**
      * Create a new PluginModernizer
      * @param config The configuration to use
@@ -31,6 +34,7 @@ public class PluginModernizer {
         this.mavenInvoker = new MavenInvoker(config);
         this.ghService = new GHService(config);
         this.cacheManager = new CacheManager(config.getCachePath());
+        this.jdkFetcher = new JdkFetcher(config.getCachePath());
     }
 
     /**
@@ -61,7 +65,6 @@ public class PluginModernizer {
      */
     private void process(Plugin plugin) {
         try {
-
             // Determine repo name
             plugin.withRepositoryName(JenkinsPluginInfo.extractRepoName(
                     plugin.getName(), config.getCachePath(), config.getJenkinsUpdateCenter()));
@@ -75,9 +78,12 @@ public class PluginModernizer {
                 plugin.removeLocalData();
             }
             plugin.fetch(ghService);
-            plugin.clean(mavenInvoker);
+            plugin.withJdkPath(jdkFetcher.getJdkPath("8"));
+            plugin.compile(mavenInvoker);
             plugin.checkoutBranch(ghService);
+            plugin.withJdkPath(jdkFetcher.getJdkPath("17"));
             plugin.runOpenRewrite(mavenInvoker);
+            plugin.verify(mavenInvoker);
             plugin.commit(ghService);
             plugin.push(ghService);
             plugin.openPullRequest(ghService);

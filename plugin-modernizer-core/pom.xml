@@ -25,6 +25,10 @@
       <artifactId>gson</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
     </dependency>
@@ -81,6 +85,16 @@
         <exclusion>
           <groupId>org.openrewrite.recipe</groupId>
           <artifactId>rewrite-java-dependencies</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.openrewrite.recipe</groupId>
+      <artifactId>rewrite-migrate-java</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.openrewrite</groupId>
+          <artifactId>rewrite-java-21</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

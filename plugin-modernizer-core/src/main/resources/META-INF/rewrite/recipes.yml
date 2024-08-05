@@ -70,3 +70,9 @@ recipeList:
       minimumVersion: 2.440.3
   - org.openrewrite.maven.RemoveProperty: # Provided by bom. Will cleanup unused property
       propertyName: configuration-as-code.version
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UpgradeToJava17
+description: Migrate from Java 8 to Java 11
+recipeList:
+  - org.openrewrite.java.migrate.UpgradeToJava17

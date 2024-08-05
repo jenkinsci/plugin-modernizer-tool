@@ -76,7 +76,8 @@ public class MavenInvoker {
      */
     public void invokeGoal(Plugin plugin, String goal) {
         LOG.info(
-                "Invoking clean phase for plugin {} on directory {}",
+                "Invoking {} phase for plugin {} on directory {}",
+                goal,
                 plugin.getName(),
                 plugin.getLocalRepository().toAbsolutePath().toFile());
         invokeGoals(plugin, goal);
@@ -130,6 +131,11 @@ public class MavenInvoker {
         invoker.setMavenHome(config.getMavenHome().toFile());
         try {
             InvocationRequest request = createInvocationRequest(plugin, goals);
+            Path jdkPath = plugin.getJdkPath();
+            if (jdkPath != null) {
+                request.setJavaHome(jdkPath.toFile());
+                LOG.info("JDK home: {}", jdkPath);
+            }
             request.setBatchMode(true);
             request.setNoTransferProgress(false);
             request.setErrorHandler((message) -> {
