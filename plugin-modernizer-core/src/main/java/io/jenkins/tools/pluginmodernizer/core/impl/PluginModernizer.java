@@ -10,6 +10,7 @@ import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +58,14 @@ public class PluginModernizer {
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Skip Push: {}", config.isSkipPush());
         LOG.debug("Skip Pull Request: {}", config.isSkipPullRequest());
+        LOG.debug("Source Java Major Version: {}", config.getSourceJavaMajorVersion());
+        LOG.debug("Target Java Major Version: {}", config.getTargetJavaMajorVersion());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
 
-        config.getPluginNames().stream().map(Plugin::build).toList().forEach(this::process);
+        List<Plugin> plugins =
+                config.getPluginNames().stream().map(Plugin::build).toList();
+        plugins.forEach(this::process);
+        collectErrors(plugins);
     }
 
     /**
@@ -81,8 +87,8 @@ public class PluginModernizer {
                 plugin.removeLocalData();
             }
 
-            Path jdkSourcePath = getEffectiveJDKPath(config, jdkFetcher, config.getMinimalJavaMajorVersion());
-            Path jdkTargetPath = getEffectiveJDKPath(config, jdkFetcher, Settings.TARGET_JAVA_MAJOR_VERSION);
+            Path jdkSourcePath = getEffectiveJDKPath(config, jdkFetcher, config.getSourceJavaMajorVersion());
+            Path jdkTargetPath = getEffectiveJDKPath(config, jdkFetcher, config.getTargetJavaMajorVersion());
 
             LOG.info("Using JDK build path: {}", jdkSourcePath);
             LOG.info("Using JDK target path: {}", jdkTargetPath);
@@ -92,14 +98,37 @@ public class PluginModernizer {
             // Use source JDK path
             plugin.withJdkPath(jdkSourcePath);
 
+            // Compile
             plugin.compile(mavenInvoker);
+            if (plugin.hasErrors()) {
+                LOG.warn(
+                        "Skipping plugin {} due to compilation errors. Check logs for more details.", plugin.getName());
+                return;
+            }
+
             plugin.checkoutBranch(ghService);
 
             // Switch to the target JDK path
             plugin.withJdkPath(jdkTargetPath);
 
+            // Run OpenRewrite
             plugin.runOpenRewrite(mavenInvoker);
+            if (plugin.hasErrors()) {
+                LOG.warn(
+                        "Skipping plugin {} due to openrewrite recipes errors. Check logs for more details.",
+                        plugin.getName());
+                return;
+            }
+
+            // Verify
             plugin.verify(mavenInvoker);
+            if (plugin.hasErrors()) {
+                LOG.warn(
+                        "Skipping plugin {} due to verification errors after modernization. Check logs for more details.",
+                        plugin.getName());
+                return;
+            }
+
             plugin.commit(ghService);
             plugin.push(ghService);
             plugin.openPullRequest(ghService);
@@ -111,6 +140,14 @@ public class PluginModernizer {
             LOG.error("Failed to process plugin: {}", plugin, e);
             plugin.addError(e);
         }
+    }
+
+    /**
+     * Collect errors from the plugins and diplays a sumarry
+     * @param plugins
+     */
+    private void collectErrors(List<Plugin> plugins) {
+        // TODO: https://github.com/jenkinsci/plugin-modernizer-tool/issues/143
     }
 
     /**
