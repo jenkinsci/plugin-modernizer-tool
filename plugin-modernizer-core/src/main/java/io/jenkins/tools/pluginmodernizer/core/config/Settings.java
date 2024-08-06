@@ -48,7 +48,7 @@ public class Settings {
     public static final List<Recipe> AVAILABLE_RECIPES;
 
     // Default JDK home from sdk man
-    public static final int MINIMAL_JAVA_MAJOR_VERSION = 8;
+    public static final int SOURCE_JAVA_MAJOR_VERSION = 8;
     public static final int TARGET_JAVA_MAJOR_VERSION = 17;
 
     public static final Path DEFAULT_JAVA_8_HOME = getDefaultSdkManJava("JAVA_8_HOME");

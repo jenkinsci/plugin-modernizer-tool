@@ -101,6 +101,10 @@ Alternatively, you can pass the GitHub owner through the CLI option `-g` or `--g
 
 - `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set. The minimum required version is 3.9.7.
 
+- `--source-java-major-version`: (optional) Java major version to use before applying the recipes. Defaults to 8.
+
+- `--target-java-major-version`: (optional) Java major version to use to apply the recipes and the plugin after applying the recipes. Defaults to 17.
+
 - `--version` or `-v`: (optional) Displays the version of the Plugin Modernizer tool.
 
 ## Plugin Input Format

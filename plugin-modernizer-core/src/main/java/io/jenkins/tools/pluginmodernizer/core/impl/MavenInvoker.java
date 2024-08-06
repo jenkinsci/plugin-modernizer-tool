@@ -150,6 +150,7 @@ public class MavenInvoker {
             handleInvocationResult(plugin, result);
         } catch (MavenInvocationException e) {
             LOG.error(plugin.getMarker(), "Maven invocation failed: ", e);
+            plugin.addError(e);
         }
     }
 
@@ -223,6 +224,8 @@ public class MavenInvoker {
             if (result.getExecutionException() != null) {
                 LOG.error(plugin.getMarker(), "Execution exception occurred: ", result.getExecutionException());
                 plugin.addError(result.getExecutionException());
+            } else {
+                plugin.addError(new MavenInvocationException("Build failed with code: " + result.getExitCode()));
             }
         }
     }
