@@ -11,8 +11,7 @@ description: Adds a BOM to a Jenkins plugin
 recipeList:
   - org.openrewrite.jenkins.AddPluginsBom
   - io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
-  - org.openrewrite.maven.RemoveProperty: # Provided by bom. Will cleanup unused property
-      propertyName: configuration-as-code.version
+  - io.jenkins.tools.pluginmodernizer.RemoveExtraMavenProperties
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddCodeOwner
@@ -28,6 +27,7 @@ recipeList:
       groupId: org.jenkins-ci.plugins
       artifactId: plugin
       newVersion: 4.X
+  - io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
@@ -38,6 +38,21 @@ recipeList:
       artifactId: "bom-*"
       newVersion: latest.release
       versionPattern: "\\.v[a-f0-9_]+"
+  - io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
+description: Remove dependencies version override if managed from parent or bom
+recipeList:
+  - org.openrewrite.maven.RemoveRedundantDependencyVersions:
+      onlyIfVersionsMatch: false # Keep newer dependencies
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.RemoveExtraMavenProperties
+description: Remove extra maven properties from the pom
+recipeList:
+  - org.openrewrite.maven.RemoveProperty:
+      propertyName: configuration-as-code.version
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.ReplaceLibrariesWithApiPlugin
@@ -68,8 +83,8 @@ recipeList:
   - org.openrewrite.jenkins.UpgradeVersionProperty:
       key: jenkins.version
       minimumVersion: 2.440.3
-  - org.openrewrite.maven.RemoveProperty: # Provided by bom. Will cleanup unused property
-      propertyName: configuration-as-code.version
+  - io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
+  - io.jenkins.tools.pluginmodernizer.RemoveExtraMavenProperties
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToJava17
