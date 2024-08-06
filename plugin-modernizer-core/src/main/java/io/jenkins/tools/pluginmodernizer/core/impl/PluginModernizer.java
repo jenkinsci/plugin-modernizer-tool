@@ -7,6 +7,9 @@ import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,11 +80,24 @@ public class PluginModernizer {
                 LOG.info("Removing local data for plugin: {} at {}", plugin, plugin.getLocalRepository());
                 plugin.removeLocalData();
             }
+
+            Path jdkSourcePath = getEffectiveJDKPath(config, jdkFetcher, config.getMinimalJavaMajorVersion());
+            Path jdkTargetPath = getEffectiveJDKPath(config, jdkFetcher, Settings.TARGET_JAVA_MAJOR_VERSION);
+
+            LOG.info("Using JDK build path: {}", jdkSourcePath);
+            LOG.info("Using JDK target path: {}", jdkTargetPath);
+
             plugin.fetch(ghService);
-            plugin.withJdkPath(jdkFetcher.getJdkPath("8"));
+
+            // Use source JDK path
+            plugin.withJdkPath(jdkSourcePath);
+
             plugin.compile(mavenInvoker);
             plugin.checkoutBranch(ghService);
-            plugin.withJdkPath(jdkFetcher.getJdkPath("17"));
+
+            // Switch to the target JDK path
+            plugin.withJdkPath(jdkTargetPath);
+
             plugin.runOpenRewrite(mavenInvoker);
             plugin.verify(mavenInvoker);
             plugin.commit(ghService);
@@ -95,5 +111,21 @@ public class PluginModernizer {
             LOG.error("Failed to process plugin: {}", plugin, e);
             plugin.addError(e);
         }
+    }
+
+    /**
+     * Get the JDK source path for compiling/building the plugin before modernization process
+     * @param config The configuration
+     * @param jdkFetcher The JDK fetcher
+     * @return The JDK source path
+     * @return majorVersion The major version of the JDK
+     * @throws IOException IOException
+     * @throws InterruptedException InterruptedException
+     */
+    private Path getEffectiveJDKPath(Config config, JdkFetcher jdkFetcher, int majorVersion)
+            throws IOException, InterruptedException {
+        return Files.isDirectory(Settings.getJavaVersionPath(majorVersion))
+                ? Settings.getJavaVersionPath(majorVersion)
+                : jdkFetcher.getJdkPath(majorVersion);
     }
 }

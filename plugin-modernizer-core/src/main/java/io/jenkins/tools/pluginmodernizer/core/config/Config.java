@@ -13,6 +13,7 @@ public class Config {
     private final URL jenkinsUpdateCenter;
     private final Path cachePath;
     private final Path mavenHome;
+    private final int minimalJavaMajorVersion;
     private final boolean dryRun;
     private final boolean skipPush;
     private final boolean skipPullRequest;
@@ -29,6 +30,7 @@ public class Config {
             URL jenkinsUpdateCenter,
             Path cachePath,
             Path mavenHome,
+            int minimalJavaMajorVersion,
             boolean dryRun,
             boolean skipPush,
             boolean skipPullRequest,
@@ -42,6 +44,7 @@ public class Config {
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
+        this.minimalJavaMajorVersion = minimalJavaMajorVersion;
         this.dryRun = dryRun;
         this.skipPush = skipPush;
         this.skipPullRequest = skipPullRequest;
@@ -76,6 +79,10 @@ public class Config {
 
     public Path getMavenHome() {
         return mavenHome;
+    }
+
+    public int getMinimalJavaMajorVersion() {
+        return minimalJavaMajorVersion;
     }
 
     public boolean isDryRun() {
@@ -114,6 +121,7 @@ public class Config {
         private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
+        private int minimalJavaMajorVersion = Settings.MINIMAL_JAVA_MAJOR_VERSION;
         private boolean dryRun = false;
         private boolean skipPush = false;
         private boolean skipPullRequest = false;
@@ -162,6 +170,11 @@ public class Config {
             return this;
         }
 
+        public Builder withMinimalJavaMajorVersion(int minimalJavaMajorVersion) {
+            this.minimalJavaMajorVersion = minimalJavaMajorVersion;
+            return this;
+        }
+
         public Builder withDryRun(boolean dryRun) {
             this.dryRun = dryRun;
             return this;
@@ -201,6 +214,7 @@ public class Config {
                     jenkinsUpdateCenter,
                     cachePath,
                     mavenHome,
+                    minimalJavaMajorVersion,
                     dryRun,
                     skipPush,
                     skipPullRequest,

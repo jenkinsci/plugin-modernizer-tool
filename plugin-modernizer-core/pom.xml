@@ -131,6 +131,13 @@
         </includes>
       </resource>
       <resource>
+        <filtering>false</filtering>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>sdkman.properties</include>
+        </includes>
+      </resource>
+      <resource>
         <targetPath>META-INF/rewrite</targetPath>
         <filtering>false</filtering>
         <directory>src/main/resources/META-INF/rewrite</directory>

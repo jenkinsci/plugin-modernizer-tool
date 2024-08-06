@@ -120,12 +120,11 @@ targets:
   setJDK8InProperties:
     name: "[sdkman.properties] Update the JDK8 version"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     sourceid: JDK8
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JDK8_PACKAGE=.*tem(\s?.*)
       replacepattern: >-
@@ -133,12 +132,11 @@ targets:
   setJDK11InProperties:
     name: "[sdkman.properties] Update the JDK11 version"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     sourceid: JDK11
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JDK11_PACKAGE=.*tem(\s?.*)
       replacepattern: >-
@@ -146,12 +144,11 @@ targets:
   setJDK17InProperties:
     name: "[sdkman.properties] Update the JDK17 version"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     sourceid: JDK17
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JDK17_PACKAGE=.*tem(\s?.*)
       replacepattern: >-
@@ -159,12 +156,11 @@ targets:
   setJDK21InProperties:
     name: "[sdkman.properties] Update the JDK21 version"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     sourceid: JDK21
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JDK21_PACKAGE=.*tem(\s?.*)
       replacepattern: >-
@@ -172,12 +168,11 @@ targets:
   setJavaHomeForJDK8InProperties:
     name: "[sdkman.properties] Update the JDK8 JAVA_HOME"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     sourceid: JAVA_8_HOME
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JAVA_8_HOME=.*tem(\s?.*)
       replacepattern: >-
@@ -185,12 +180,11 @@ targets:
   setJavaHomeForJDK11InProperties:
     name: "[sdkman.properties] Update the JDK11 JAVA_HOME"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     sourceid: JAVA_11_HOME
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JAVA_11_HOME=.*tem(\s?.*)
       replacepattern: >-
@@ -198,12 +192,11 @@ targets:
   setJavaHomeForJDK17InProperties:
     name: "[sdkman.properties] Update the JDK17 JAVA_HOME"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     sourceid: JAVA_17_HOME
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JAVA_17_HOME=.*tem(\s?.*)
       replacepattern: >-
@@ -211,12 +204,11 @@ targets:
   setJavaHomeForJDK21InProperties:
     name: "[sdkman.properties] Update the JDK21 JAVA_HOME"
     kind: file
-    # If the file does not exist, it will be created
-    forcecreate: true
     disablesourceinput: true
     scmid: default
     spec:
-      file: plugin-modernizer-cli/src/main/resources/sdkman.properties
+      file: "*/src/main/resources/sdkman.properties"
+      searchpattern: true
       matchpattern: >-
         (.*)JAVA_21_HOME=.*tem(\s?.*)
       replacepattern: >-
