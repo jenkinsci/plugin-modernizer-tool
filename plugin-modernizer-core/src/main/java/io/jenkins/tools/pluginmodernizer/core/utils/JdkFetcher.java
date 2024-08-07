@@ -16,6 +16,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -74,6 +78,8 @@ public class JdkFetcher {
             extractZip(downloadedFile, extractionDir);
         } else if (os.contains("linux") || os.contains("mac")) {
             extractTarGz(downloadedFile, extractionDir);
+            LOG.info("Setting executable permissions for files in bin directory");
+            setJavaBinariesPermissions(extractionDir);
         }
         LOG.info("Extraction successful");
     }
@@ -279,5 +285,39 @@ public class JdkFetcher {
             Files.createDirectories(parentPath);
         }
         Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    /**
+     * Sets executable permissions on all binaries located in the /bin folder of the JDK.
+     *
+     * @param jdkPath The path to the JDK directory.
+     */
+    @SuppressFBWarnings(value = "OVERLY_PERMISSIVE_FILE_PERMISSION", justification = "bin requires to be executable")
+    private void setJavaBinariesPermissions(Path jdkPath) {
+        Path binDir = jdkPath.resolve("bin");
+
+        if (!Files.isDirectory(binDir)) {
+            LOG.error("The bin directory does not exist: {}", binDir);
+            return;
+        }
+
+        if (!binDir.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            LOG.error("POSIX file attribute views are not supported on this file system.");
+            return;
+        }
+
+        Set<PosixFilePermission> executablePermissions = PosixFilePermissions.fromString("rwxr-xr-x");
+
+        try (Stream<Path> files = Files.list(binDir)) {
+            files.filter(Files::isRegularFile).forEach(file -> {
+                try {
+                    Files.setPosixFilePermissions(file, executablePermissions);
+                } catch (IOException e) {
+                    LOG.error("Failed to set executable permissions for {}: {}", file, e.getMessage());
+                }
+            });
+        } catch (IOException e) {
+            LOG.error("Failed to list files in directory {}: {}", binDir, e.getMessage());
+        }
     }
 }
