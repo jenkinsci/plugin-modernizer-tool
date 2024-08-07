@@ -20,6 +20,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -254,7 +255,7 @@ public class JdkFetcher {
      */
     private void extractTarGz(Path tarGzFile, Path extractionDir) throws IOException {
         try (InputStream fileStream = Files.newInputStream(tarGzFile);
-                InputStream gzipStream = new java.util.zip.GZIPInputStream(fileStream);
+                InputStream gzipStream = new GZIPInputStream(fileStream);
                 TarArchiveInputStream tarStream = new TarArchiveInputStream(gzipStream)) {
 
             TarArchiveEntry entry;
