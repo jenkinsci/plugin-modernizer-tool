@@ -297,6 +297,8 @@ public class GHService {
         LOG.info("Deleting fork for plugin {} from repo {}...", plugin, repository.getHtmlUrl());
         try {
             repository.delete();
+            plugin.withoutCommits();
+            plugin.withoutChangesPushed();
         } catch (IOException e) {
             LOG.error("Failed to delete the fork", e);
             plugin.addError(e);
@@ -446,6 +448,7 @@ public class GHService {
                     .setRefSpecs(new RefSpec(BRANCH_NAME + ":" + BRANCH_NAME))
                     .call();
             plugin.withoutCommits();
+            plugin.withChangesPushed();
             LOG.info("Pushed changes to forked repository for plugin {}", plugin.getName());
         } catch (IOException | GitAPIException e) {
             LOG.error("Failed to push changes", e);
@@ -466,8 +469,8 @@ public class GHService {
             LOG.info("Skipping pull request for plugin {}", plugin);
             return;
         }
-        if (!plugin.hasCommits()) {
-            LOG.info("No commits to open pull request for plugin {}", plugin.getName());
+        if (!plugin.hasChangesPushed()) {
+            LOG.info("No changes pushed to open pull request for plugin {}", plugin.getName());
             return;
         }
         if (plugin.isArchived(this)) {

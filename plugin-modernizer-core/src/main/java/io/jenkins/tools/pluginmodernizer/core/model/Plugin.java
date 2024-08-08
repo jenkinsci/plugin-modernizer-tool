@@ -40,6 +40,11 @@ public class Plugin {
     private boolean hasCommits;
 
     /**
+     * Flag to indicate if the plugin has any changes pushed and ready to be merged
+     */
+    private boolean hasChangesPushed;
+
+    /**
      * Return if the plugin has any error
      */
     private final List<Exception> errors = new LinkedList<>();
@@ -104,11 +109,37 @@ public class Plugin {
     }
 
     /**
+     * Indicate that the plugin has changes pushed and ready to be merged
+     * @return Plugin object
+     */
+    public Plugin withChangesPushed() {
+        this.hasChangesPushed = true;
+        return this;
+    }
+
+    /**
+     * Indicate that the plugin has no changes pushed and ready to be merged
+     * @return Plugin object
+     */
+    public Plugin withoutChangesPushed() {
+        this.hasChangesPushed = false;
+        return this;
+    }
+
+    /**
      * Return if the plugin has any commits
      * @return True if the plugin has commits
      */
     public boolean hasCommits() {
         return hasCommits;
+    }
+
+    /**
+     * Return if the plugin has any changes pushed and ready to be merged
+     * @return True if the plugin has changes pushed
+     */
+    public boolean hasChangesPushed() {
+        return hasChangesPushed;
     }
 
     /**

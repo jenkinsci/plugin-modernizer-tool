@@ -480,6 +480,8 @@ public class GHServiceTest {
         // Test
         service.deleteFork(plugin);
         verify(fork, times(1)).delete();
+        verify(plugin, times(1)).withoutCommits();
+        verify(plugin, times(1)).withoutChangesPushed();
     }
 
     @Test
