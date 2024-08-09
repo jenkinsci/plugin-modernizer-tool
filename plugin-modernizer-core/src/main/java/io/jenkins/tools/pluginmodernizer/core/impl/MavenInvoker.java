@@ -210,6 +210,9 @@ public class MavenInvoker {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(plugin.getLocalRepository().resolve("pom.xml").toFile());
         request.addArgs(List.of(args));
+        if (config.isDebug()) {
+            request.addArg("-X");
+        }
         return request;
     }
 

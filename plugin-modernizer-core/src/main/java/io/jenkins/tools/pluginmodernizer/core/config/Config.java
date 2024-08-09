@@ -1,12 +1,15 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 
 public class Config {
 
+    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Because usage on ConsoleLogFilter")
     public static boolean DEBUG = false;
+
     private final String version;
     private final List<String> pluginNames;
     private final List<String> recipes;
@@ -94,6 +97,10 @@ public class Config {
 
     public boolean isDryRun() {
         return dryRun;
+    }
+
+    public boolean isDebug() {
+        return DEBUG;
     }
 
     public boolean isSkipPullRequest() {
