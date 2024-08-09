@@ -27,6 +27,7 @@ import picocli.CommandLine.Option;
 public class Main implements Runnable {
 
     static {
+        System.setProperty("slf4j.internal.verbosity", "WARN");
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
     }
