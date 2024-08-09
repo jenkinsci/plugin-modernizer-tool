@@ -134,7 +134,7 @@ public class MavenInvoker {
             Path jdkPath = plugin.getJdkPath();
             if (jdkPath != null) {
                 request.setJavaHome(jdkPath.toFile());
-                LOG.info("JDK home: {}", jdkPath);
+                LOG.debug("JDK home: {}", jdkPath);
             }
             request.setBatchMode(true);
             request.setNoTransferProgress(false);
