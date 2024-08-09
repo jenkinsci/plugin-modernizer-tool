@@ -98,8 +98,7 @@ public class MavenInvoker {
      */
     private String[] getRewriteArgs() {
         List<String> goals = new ArrayList<>();
-        String mode = config.isDryRun() ? "dryRun" : "run";
-        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":" + mode);
+        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
         List<String> activeRecipes = getActiveRecipes();
