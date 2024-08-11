@@ -3,11 +3,12 @@ package io.jenkins.tools.pluginmodernizer.core.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,21 +20,23 @@ public class JenkinsPluginInfo {
     private static final Logger LOG = LoggerFactory.getLogger(JenkinsPluginInfo.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String extractRepoName(String pluginName, Path cacheDir, URL updateCenterUrl) {
+    public static String extractRepoName(Plugin plugin, Path cacheDir, URL updateCenterUrl) {
         try {
             UpdateCenterData updateCenterData = getCachedUpdateCenterData(cacheDir, updateCenterUrl);
-            String scmUrl = updateCenterData.getScmUrl(pluginName);
+            String scmUrl = updateCenterData.getScmUrl(plugin);
 
             int lastSlashIndex = scmUrl.lastIndexOf('/');
             if (lastSlashIndex != -1 && lastSlashIndex < scmUrl.length() - 1) {
                 return scmUrl.substring(lastSlashIndex + 1);
             } else {
-                throw new IllegalArgumentException("Invalid SCM URL format: " + scmUrl);
+                plugin.addError("Invalid SCM URL format");
+                plugin.raiseLastError();
             }
         } catch (IOException e) {
-            LOG.error("Error extracting repository name: ", e);
-            throw new UncheckedIOException(e);
+            plugin.addError("Error extracting repository name", e);
+            plugin.raiseLastError();
         }
+        return null;
     }
 
     private static UpdateCenterData getCachedUpdateCenterData(Path cacheDir, URL updateCenterUrl) throws IOException {
@@ -55,7 +58,7 @@ public class JenkinsPluginInfo {
     }
 
     @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "safe url")
-    private static String fetchUpdateCenterData(URL updateCenterUrl) throws IOException {
+    private static String fetchUpdateCenterData(URL updateCenterUrl) {
         StringBuilder response = new StringBuilder();
 
         try (BufferedReader in =
@@ -65,7 +68,7 @@ public class JenkinsPluginInfo {
                 response.append(inputLine);
             }
         } catch (IOException e) {
-            throw new IOException("Error fetching update center data", e);
+            throw new ModernizerException("Error fetching update center data", e);
         }
 
         return response.toString();

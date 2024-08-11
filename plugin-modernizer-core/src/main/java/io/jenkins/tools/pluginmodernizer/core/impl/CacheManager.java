@@ -1,8 +1,8 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.Logger;
@@ -24,9 +24,9 @@ public class CacheManager {
                     Files.createDirectory(parent);
                 }
                 Files.createDirectory(cache);
-                LOG.info("Creating cache at {}", cache);
+                LOG.debug("Creating cache at {}", cache);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new ModernizerException("Unable to create cache", e);
             }
         }
     }
