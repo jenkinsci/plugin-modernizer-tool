@@ -126,6 +126,7 @@ public class MavenInvoker {
      * @param goals The list of goals to run
      */
     private void invokeGoals(Plugin plugin, String... goals) {
+        validatePom(plugin);
         Invoker invoker = new DefaultInvoker();
         invoker.setMavenHome(config.getMavenHome().toFile());
         try {
@@ -150,6 +151,17 @@ public class MavenInvoker {
         } catch (MavenInvocationException e) {
             LOG.error(plugin.getMarker(), "Maven invocation failed: ", e);
             plugin.addError(e);
+        }
+    }
+
+    /**
+     * Validate a pom exist for the given plugin
+     * @param plugin The plugin to validate
+     */
+    private void validatePom(Plugin plugin) {
+        LOG.debug("Validating POM for plugin: {}", plugin);
+        if (!plugin.getLocalRepository().resolve("pom.xml").toFile().isFile()) {
+            throw new IllegalArgumentException("POM file not found for plugin: " + plugin.getName());
         }
     }
 
