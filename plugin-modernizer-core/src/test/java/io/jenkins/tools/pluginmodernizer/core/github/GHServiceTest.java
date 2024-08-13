@@ -195,12 +195,9 @@ public class GHServiceTest {
 
         // Mock
         GHRepository fork = Mockito.mock(GHRepository.class);
-        GHMyself myself = Mockito.mock(GHMyself.class);
         GHOrganization org = Mockito.mock(GHOrganization.class);
 
         doReturn("fake-repo").when(plugin).getRepositoryName();
-        doReturn(myself).when(github).getMyself();
-        doReturn(null).when(myself).getRepository(eq("fake-repo"));
         doReturn(org).when(github).getOrganization(eq("fake-owner"));
         doReturn(fork).when(org).getRepository(eq("fake-repo"));
 

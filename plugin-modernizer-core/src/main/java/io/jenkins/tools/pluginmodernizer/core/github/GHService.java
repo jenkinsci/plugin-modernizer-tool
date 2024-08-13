@@ -109,8 +109,11 @@ public class GHService {
      */
     public boolean isForked(Plugin plugin) {
         try {
-            return isRepositoryForked(plugin.getRepositoryName())
-                    || isRepositoryForked(getOrganization(), plugin.getRepositoryName());
+            GHOrganization organization = getOrganization();
+            if (organization != null) {
+                return isRepositoryForked(organization, plugin.getRepositoryName());
+            }
+            return isRepositoryForked(plugin.getRepositoryName());
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to check if repository is forked", e);
         }
