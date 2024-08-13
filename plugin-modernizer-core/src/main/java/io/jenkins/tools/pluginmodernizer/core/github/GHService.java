@@ -16,6 +16,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.kohsuke.github.GHEmail;
 import org.kohsuke.github.GHFileNotFoundException;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHOrganization;
@@ -408,7 +409,14 @@ public class GHService {
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
             if (git.status().call().hasUncommittedChanges()) {
                 git.add().addFilepattern(".").call();
+                Optional<GHEmail> email = github.getMyself().getEmails2().stream()
+                        .filter(GHEmail::isPrimary)
+                        .findFirst();
+                if (email.isEmpty()) {
+                    throw new IllegalArgumentException("Primary email not found for GitHub user");
+                }
                 git.commit()
+                        .setAuthor(github.getMyself().getName(), email.get().getEmail())
                         .setMessage(COMMIT_MESSAGE)
                         .setSign(false) // Maybe a new option to sign commit?
                         .call();
