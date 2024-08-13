@@ -66,6 +66,12 @@ This tool requires forking repositories from GitHub, so you need to set the GitH
 Use either `GH_TOKEN` or `GITHUB_TOKEN` for the GitHub token, and either `GH_OWNER` or `GITHUB_OWNER` for the GitHub owner.
 Alternatively, you can pass the GitHub owner through the CLI option `-g` or `--github-owner`.
 
+Your classic token should have the following scopes
+
+- `repo` (Full control of private repositories)
+- `user:email` (Read-only access to email addresses)
+- `delete_repo` (Delete repositories) (Only if using the `--clean-forks` option)
+
 > [!Note]
 > The GitHub owner can be either a personal account or an organization.
 >
