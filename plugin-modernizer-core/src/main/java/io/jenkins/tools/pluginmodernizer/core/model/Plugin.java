@@ -7,8 +7,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.kohsuke.github.GHRepository;
 import org.slf4j.Marker;
@@ -48,6 +50,11 @@ public class Plugin {
      * Return if the plugin has any error
      */
     private final List<Exception> errors = new LinkedList<>();
+
+    /**
+     * Tags to apply on pull request for the applied changes
+     */
+    private final Set<String> tags = new HashSet<>();
 
     private Plugin() {}
 
@@ -159,6 +166,35 @@ public class Plugin {
     }
 
     /**
+     * Add a tag to the plugin
+     * @param tag Tag to add
+     * @return Plugin object
+     */
+    public Plugin addTag(String tag) {
+        tags.add(tag);
+        return this;
+    }
+
+    /**
+     * Add tags to the plugin
+     * @param tags Tags to add
+     * @return Plugin object
+     */
+    public Plugin addTags(Set<String> tags) {
+        this.tags.addAll(tags);
+        return this;
+    }
+
+    /**
+     * Remove tags from the plugin
+     * @return Plugin object
+     */
+    public Plugin withoutTags() {
+        tags.clear();
+        return this;
+    }
+
+    /**
      * Get the name of the plugin
      * @return Name of the plugin
      */
@@ -205,6 +241,14 @@ public class Plugin {
      */
     public Marker getMarker() {
         return MarkerFactory.getMarker(name);
+    }
+
+    /**
+     * Get the list of tags for the plugin
+     * @return List of tags
+     */
+    public Set<String> getTags() {
+        return tags;
     }
 
     /**
