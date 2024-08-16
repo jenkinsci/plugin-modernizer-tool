@@ -8,6 +8,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddPluginsBom
 description: Adds a BOM to a Jenkins plugin
+s: ['chore', 'dependencies']
 recipeList:
   - org.openrewrite.jenkins.AddPluginsBom
   - io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
@@ -16,12 +17,14 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddCodeOwner
 description: Adds a CODEOWNERS file to a Jenkins plugin
+tags: ['chore']
 recipeList:
   - org.openrewrite.jenkins.github.AddTeamToCodeowners
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeParentVersion
 description: Upgrade the parent version to latest available
+tags: ['dependencies']
 recipeList:
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.jenkins-ci.plugins
@@ -32,6 +35,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
 description: Upgrade the bom version to latest available. Doesn't change the artifact id
+tags: ['dependencies']
 recipeList:
   - org.openrewrite.maven.UpgradeDependencyVersion:
       groupId: io.jenkins.tools.bom
@@ -43,12 +47,14 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
 description: Remove dependencies version override if managed from parent or bom
+tags: ['dependencies']
 recipeList:
   - org.openrewrite.maven.RemoveRedundantDependencyVersions:
       onlyIfVersionsMatch: false # Keep newer dependencies
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.RemoveExtraMavenProperties
+tags: ['chore']
 description: Remove extra maven properties from the pom
 recipeList:
   - org.openrewrite.maven.RemoveProperty:
@@ -58,6 +64,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.ReplaceLibrariesWithApiPlugin
+tags: ['developer']
 description: Use API plugins instead of direct dependency
 recipeList:
     # More API plugin on the list
@@ -66,6 +73,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
 description: Use JSON API plugin instead of direct dependency
+tags: ['developer']
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
@@ -79,6 +87,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToRecommendCoreVersion
 description: Upgrade to latest recommended core version and ensure the bom is matching the core version
+tags: ['developer']
 recipeList:
     # TODO: https://github.com/jenkins-infra/jenkins.io/blob/master/updatecli/updatecli.d/jenkins-lts.yaml#L104
     # https://github.com/jenkins-infra/jenkins-version?
@@ -92,5 +101,6 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToJava17
 description: Migrate from Java 8 to Java 11
+tags: ['developer']
 recipeList:
   - org.openrewrite.java.migrate.UpgradeToJava17

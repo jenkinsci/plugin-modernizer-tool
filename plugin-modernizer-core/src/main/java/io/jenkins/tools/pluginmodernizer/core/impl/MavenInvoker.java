@@ -88,6 +88,9 @@ public class MavenInvoker {
      * @param plugin The plugin to run the rewrite on
      */
     public void invokeRewrite(Plugin plugin) {
+        plugin.addTags(getActiveRecipes().stream()
+                .flatMap(recipe -> recipe.getTags().stream())
+                .collect(Collectors.toSet()));
         LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
         invokeGoals(plugin, getRewriteArgs());
     }
@@ -101,9 +104,10 @@ public class MavenInvoker {
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
-        List<String> activeRecipes = getActiveRecipes();
-        LOG.debug("Active recipes: {}", activeRecipes);
-        goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipes));
+        List<Recipe> activeRecipes = getActiveRecipes();
+        String activeRecipesStr = activeRecipes.stream().map(Recipe::getName).collect(Collectors.joining(", "));
+        LOG.debug("Active recipes: {}", activeRecipesStr);
+        goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipesStr));
         goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
                 + config.getVersion());
         return goals.toArray(String[]::new);
@@ -113,10 +117,10 @@ public class MavenInvoker {
      * Get the list of active recipes to be passed to the rewrite plugin based on the one selected on config
      * @return The list of active recipes
      */
-    private List<String> getActiveRecipes() {
+    private List<Recipe> getActiveRecipes() {
         return config.getRecipes().stream()
-                .flatMap(recipe ->
-                        Settings.AVAILABLE_RECIPES.stream().map(Recipe::getName).filter(name -> name.endsWith(recipe)))
+                .flatMap(recipe -> Settings.AVAILABLE_RECIPES.stream()
+                        .filter(r -> r.getName().endsWith(recipe)))
                 .collect(Collectors.toList());
     }
 

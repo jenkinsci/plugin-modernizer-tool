@@ -502,7 +502,9 @@ public class GHService {
         try {
             GHPullRequest pr = repository.createPullRequest(
                     PR_TITLE, config.getGithubOwner() + ":" + BRANCH_NAME, repository.getDefaultBranch(), prBody);
+            pr.addLabels(plugin.getTags().toArray(String[]::new));
             LOG.info("Pull request created: {}", pr.getHtmlUrl());
+            plugin.withoutTags();
         } catch (IOException e) {
             LOG.error("Failed to create pull request", e);
             plugin.addError(e);
