@@ -5,10 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
@@ -198,9 +200,9 @@ public class PluginTest {
 
     @Test
     public void testHasErrors() {
-        Plugin plugin = Plugin.build("example");
+        Plugin plugin = Plugin.build("example").withConfig(mock(Config.class));
         assertFalse(plugin.hasErrors());
-        plugin.addError(new Exception("error"));
+        plugin.addError("error", new Exception("error"));
         assertTrue(plugin.hasErrors());
     }
 

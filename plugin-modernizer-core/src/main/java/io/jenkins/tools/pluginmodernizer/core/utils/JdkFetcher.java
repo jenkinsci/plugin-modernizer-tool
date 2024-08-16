@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -213,7 +214,7 @@ public class JdkFetcher {
         } else if (normalizedOS.contains("linux")) {
             return "linux";
         } else {
-            throw new IllegalArgumentException("Unsupported OS: " + os);
+            throw new ModernizerException("Unsupported OS: " + os);
         }
     }
 

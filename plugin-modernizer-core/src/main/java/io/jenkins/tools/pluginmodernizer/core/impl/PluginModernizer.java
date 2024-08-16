@@ -5,6 +5,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
 import java.io.IOException;
@@ -50,10 +51,11 @@ public class PluginModernizer {
         this.ghService.connect();
         cacheManager.createCache();
 
-        LOG.info("Plugins: {}", config.getPluginNames());
-        LOG.info("Recipes: {}", config.getRecipes());
-        LOG.info("GitHub owner: {}", config.getGithubOwner());
-        LOG.info("Update Center Url: {}", config.getJenkinsUpdateCenter());
+        // Debug config
+        LOG.debug("Plugins: {}", config.getPluginNames());
+        LOG.debug("Recipes: {}", config.getRecipes());
+        LOG.debug("GitHub owner: {}", config.getGithubOwner());
+        LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Skip Push: {}", config.isSkipPush());
@@ -65,7 +67,7 @@ public class PluginModernizer {
         List<Plugin> plugins =
                 config.getPluginNames().stream().map(Plugin::build).toList();
         plugins.forEach(this::process);
-        collectErrors(plugins);
+        printResults(plugins);
     }
 
     /**
@@ -74,24 +76,32 @@ public class PluginModernizer {
      */
     private void process(Plugin plugin) {
         try {
+
+            // Set config
+            plugin.withConfig(config);
+
             // Determine repo name
-            plugin.withRepositoryName(JenkinsPluginInfo.extractRepoName(
-                    plugin.getName(), config.getCachePath(), config.getJenkinsUpdateCenter()));
+            plugin.withRepositoryName(
+                    JenkinsPluginInfo.extractRepoName(plugin, config.getCachePath(), config.getJenkinsUpdateCenter()));
 
             if (config.isRemoveForks()) {
                 plugin.deleteFork(ghService);
             }
             plugin.fork(ghService);
             if (config.isRemoveLocalData()) {
-                LOG.info("Removing local data for plugin: {} at {}", plugin, plugin.getLocalRepository());
+                if (config.isDebug()) {
+                    LOG.debug("Removing local data for plugin: {} at {}", plugin, plugin.getLocalRepository());
+                } else {
+                    LOG.info("Removing local data for plugin: {}", plugin);
+                }
                 plugin.removeLocalData();
             }
 
             Path jdkSourcePath = getEffectiveJDKPath(config, jdkFetcher, config.getSourceJavaMajorVersion());
             Path jdkTargetPath = getEffectiveJDKPath(config, jdkFetcher, config.getTargetJavaMajorVersion());
 
-            LOG.info("Using JDK build path: {}", jdkSourcePath);
-            LOG.info("Using JDK target path: {}", jdkTargetPath);
+            LOG.debug("Using JDK build path: {}", jdkSourcePath);
+            LOG.debug("Using JDK target path: {}", jdkTargetPath);
 
             plugin.fetch(ghService);
 
@@ -136,18 +146,63 @@ public class PluginModernizer {
                 plugin.deleteFork(ghService);
             }
 
-        } catch (Exception e) {
-            LOG.error("Failed to process plugin: {}", plugin, e);
-            plugin.addError(e);
+        }
+        // Uncatched plugin processing errors
+        catch (PluginProcessingException e) {
+            if (!plugin.hasErrors()) {
+                plugin.addError("Plugin processing error. Check the logs at " + plugin.getLogFile(), e);
+            }
+        }
+        // Catch any unexpected exception here
+        catch (Exception e) {
+            if (!plugin.hasErrors()) {
+                plugin.addError("Unexpected processing error. Check the logs at " + plugin.getLogFile(), e);
+            }
         }
     }
 
     /**
-     * Collect errors from the plugins and diplays a sumarry
-     * @param plugins
+     * Collect results from the plugins and diplay a summarry
+     * @param plugins The plugins
      */
-    private void collectErrors(List<Plugin> plugins) {
-        // TODO: https://github.com/jenkinsci/plugin-modernizer-tool/issues/143
+    private void printResults(List<Plugin> plugins) {
+        for (Plugin plugin : plugins) {
+            LOG.info("*************");
+            LOG.info("Plugin: {}", plugin.getName());
+
+            // Display error
+            if (plugin.hasErrors()) {
+                for (PluginProcessingException error : plugin.getErrors()) {
+                    LOG.error("Error: {}", error.getMessage());
+                    if (config.isDebug()) {
+                        LOG.error("Stacktrace: ", error);
+                    }
+                }
+            }
+            // Display what's done
+            else {
+                if (config.isDryRun()) {
+                    LOG.info("Dry run mode. Changes were commited on on " + plugin.getLocalRepository()
+                            + " but not pushed");
+                } else {
+                    if (config.isSkipPush()) {
+                        LOG.info("Skip push mode. Changes were commited on on " + plugin.getLocalRepository()
+                                + " but not pushed");
+                    } else if (config.isSkipPullRequest()) {
+                        LOG.info("Skip pull request mode. Changes were pushed on "
+                                + plugin.getRemoteForkRepository(this.ghService).getHtmlUrl()
+                                + " but no pull request was open on "
+                                + plugin.getRemoteRepository(this.ghService).getHtmlUrl());
+                    }
+                    // Change were made
+                    else {
+                        LOG.info("Pull request was open on "
+                                + plugin.getRemoteRepository(this.ghService).getHtmlUrl());
+                    }
+                }
+            }
+            LOG.info("*************");
+        }
     }
 
     /**
