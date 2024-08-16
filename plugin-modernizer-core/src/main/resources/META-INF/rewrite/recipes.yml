@@ -8,7 +8,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddPluginsBom
 description: Adds a BOM to a Jenkins plugin
-s: ['chore', 'dependencies']
+tags: ['chore', 'dependencies']
 recipeList:
   - org.openrewrite.jenkins.AddPluginsBom
   - io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
