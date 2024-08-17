@@ -25,7 +25,7 @@ public class UpdateCenterData {
         JsonNode scmNode = pluginInfo.get("scm");
 
         if (scmNode == null) {
-            plugin.addError("SCM information is missing");
+            plugin.addError("SCM information is missing in the provided UC file");
             plugin.raiseLastError();
         }
 

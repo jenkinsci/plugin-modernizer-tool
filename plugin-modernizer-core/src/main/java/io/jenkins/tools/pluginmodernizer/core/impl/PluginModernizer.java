@@ -82,7 +82,7 @@ public class PluginModernizer {
 
             // Determine repo name
             plugin.withRepositoryName(
-                    JenkinsPluginInfo.extractRepoName(plugin, config.getCachePath(), config.getJenkinsUpdateCenter()));
+                    JenkinsPluginInfo.extractRepoName(plugin, cacheManager, config.getJenkinsUpdateCenter()));
 
             if (config.isRemoveForks()) {
                 plugin.deleteFork(ghService);
