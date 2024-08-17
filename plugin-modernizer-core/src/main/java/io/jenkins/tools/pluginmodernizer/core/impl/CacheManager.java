@@ -1,5 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -38,9 +39,9 @@ public class CacheManager {
                     Files.createDirectory(parent);
                 }
                 Files.createDirectory(cache);
-                LOG.info("Creating cache at {}", cache);
+                LOG.debug("Creating cache at {}", cache);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw new ModernizerException("Unable to create cache", e);
             }
         }
     }
@@ -50,7 +51,7 @@ public class CacheManager {
         try (Writer writer = Files.newBufferedWriter(fileToCache, StandardCharsets.UTF_8)) {
             writer.write(value);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw new ModernizerException("Unable to add cache", e);
         }
     }
 
@@ -99,7 +100,7 @@ public class CacheManager {
                 LOG.info("Cache entry removed for key: {}", cacheKey);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException("Failed to remove cache entry for key: " + cacheKey, e);
+            throw new ModernizerException("Failed to remove cache entry for key: " + cacheKey, e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
@@ -7,10 +8,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.kohsuke.github.GHRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
@@ -18,6 +23,13 @@ import org.slf4j.MarkerFactory;
  * Mutable class representing a Jenkins plugin to modernize and refactor
  */
 public class Plugin {
+
+    private static final Logger LOG = LoggerFactory.getLogger(Plugin.class);
+
+    /**
+     * The configuration to use
+     */
+    private Config config;
 
     /**
      * The plugin name
@@ -45,9 +57,19 @@ public class Plugin {
     private boolean hasChangesPushed;
 
     /**
+     * Flag to indicate if the plugin has any pull request open
+     */
+    private boolean hasPullRequest;
+
+    /**
      * Return if the plugin has any error
      */
-    private final List<Exception> errors = new LinkedList<>();
+    private final List<PluginProcessingException> errors = new LinkedList<>();
+
+    /**
+     * Tags to apply on pull request for the applied changes
+     */
+    private final Set<String> tags = new HashSet<>();
 
     private Plugin() {}
 
@@ -58,6 +80,16 @@ public class Plugin {
      */
     public static Plugin build(String name) {
         return new Plugin().withName(name);
+    }
+
+    /**
+     * Set the config of the plugin
+     * @param config The config
+     * @return Plugin object
+     */
+    public Plugin withConfig(Config config) {
+        this.config = config;
+        return this;
     }
 
     /**
@@ -127,6 +159,24 @@ public class Plugin {
     }
 
     /**
+     * Indicate that the plugin has a pull request open
+     * @return Plugin object
+     */
+    public Plugin withPullRequest() {
+        this.hasPullRequest = true;
+        return this;
+    }
+
+    /**
+     * Indicate that the plugin has no pull request open
+     * @return Plugin object
+     */
+    public Plugin withoutPullRequest() {
+        this.hasPullRequest = false;
+        return this;
+    }
+
+    /**
      * Return if the plugin has any commits
      * @return True if the plugin has commits
      */
@@ -143,6 +193,14 @@ public class Plugin {
     }
 
     /**
+     * Return if the plugin has any changes pushed and ready to be merged
+     * @return True if the plugin has changes pushed
+     */
+    public boolean hasPullRequest() {
+        return hasPullRequest;
+    }
+
+    /**
      * Return if the plugin has any errors
      * @return True if the plugin has errors
      */
@@ -151,11 +209,75 @@ public class Plugin {
     }
 
     /**
+     * Get the errors of the plugin
+     * @return List of errors
+     */
+    public List<PluginProcessingException> getErrors() {
+        return errors;
+    }
+
+    /**
      * Add an error to the plugin
+     * @param message The message
      * @param e The exception
      */
-    public void addError(Exception e) {
-        errors.add(e);
+    public void addError(String message, Exception e) {
+        LOG.error(getMarker(), message, e);
+        if (config.isDebug()) {
+            LOG.error(message, e);
+        } else {
+            LOG.error(message);
+        }
+        errors.add(new PluginProcessingException(message, e, this));
+    }
+
+    /**
+     * Add an error to the plugin
+     * @param message The message
+     */
+    public void addError(String message) {
+        LOG.error(message);
+        errors.add(new PluginProcessingException(message, this));
+    }
+
+    /**
+     * Raise the last error as exception of the plugin
+     * Do nothing if no errors
+     */
+    public void raiseLastError() throws PluginProcessingException {
+        if (!hasErrors()) {
+            return;
+        }
+        throw errors.get(errors.size() - 1);
+    }
+
+    /**
+     * Add a tag to the plugin
+     * @param tag Tag to add
+     * @return Plugin object
+     */
+    public Plugin addTag(String tag) {
+        tags.add(tag);
+        return this;
+    }
+
+    /**
+     * Add tags to the plugin
+     * @param tags Tags to add
+     * @return Plugin object
+     */
+    public Plugin addTags(Set<String> tags) {
+        this.tags.addAll(tags);
+        return this;
+    }
+
+    /**
+     * Remove tags from the plugin
+     * @return Plugin object
+     */
+    public Plugin withoutTags() {
+        tags.clear();
+        return this;
     }
 
     /**
@@ -200,11 +322,27 @@ public class Plugin {
     }
 
     /**
+     * Get the path of the log file for the plugin
+     * @return Path of the log file
+     */
+    public Path getLogFile() {
+        return Path.of("logs", getName() + ".log");
+    }
+
+    /**
      * Get the login marker for the plugin
      * @return Marker object
      */
     public Marker getMarker() {
         return MarkerFactory.getMarker(name);
+    }
+
+    /**
+     * Get the list of tags for the plugin
+     * @return List of tags
+     */
+    public Set<String> getTags() {
+        return tags;
     }
 
     /**
@@ -220,7 +358,9 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void compile(MavenInvoker maven) {
+        LOG.info("Compiling plugin {}... Please be patient", name);
         maven.invokeGoal(this, "compile");
+        LOG.info("Done");
     }
 
     /**
@@ -228,7 +368,9 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void verify(MavenInvoker maven) {
+        LOG.info("Verifying plugin {}... Please be patient", name);
         maven.invokeGoal(this, "verify");
+        LOG.info("Done");
     }
 
     /**

@@ -1,7 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -12,30 +11,34 @@ public class UpdateCenterData {
         this.jsonNode = Objects.requireNonNull(jsonNode, "jsonNode must not be null");
     }
 
-    public JsonNode getPlugin(String pluginName) {
+    public JsonNode getPlugin(Plugin plugin) {
         JsonNode plugins = jsonNode.get("plugins");
-        if (plugins == null || !plugins.has(pluginName)) {
-            throw new IllegalArgumentException("Plugin not found in update center: " + pluginName);
+        if (plugins == null || !plugins.has(plugin.getName())) {
+            plugin.addError("Plugin not found in update center");
+            plugin.raiseLastError();
         }
-        return plugins.get(pluginName);
+        return plugins.get(plugin.getName());
     }
 
-    public String getScmUrl(String pluginName) {
-        JsonNode pluginInfo = getPlugin(pluginName);
+    public String getScmUrl(Plugin plugin) {
+        JsonNode pluginInfo = getPlugin(plugin);
         JsonNode scmNode = pluginInfo.get("scm");
 
         if (scmNode == null) {
-            throw new NoSuchElementException("SCM information is missing for plugin: " + pluginName);
+            plugin.addError("SCM information is missing");
+            plugin.raiseLastError();
         }
 
         if (scmNode.isObject()) {
             return Optional.ofNullable(scmNode.get("url"))
                     .map(JsonNode::asText)
-                    .orElseThrow(() -> new NoSuchElementException("SCM URL is missing for plugin: " + pluginName));
+                    .orElseThrow(() -> new PluginProcessingException("SCM URL is missing", plugin));
         } else if (scmNode.isTextual()) {
             return scmNode.asText();
         } else {
-            throw new IllegalStateException("Unexpected type for SCM URL: " + scmNode.getNodeType());
+            plugin.addError("Unexpected type for SCM URL");
+            plugin.raiseLastError();
         }
+        return null;
     }
 }

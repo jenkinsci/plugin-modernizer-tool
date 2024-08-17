@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 class JenkinsPluginInfoTest {
 
@@ -46,27 +50,31 @@ class JenkinsPluginInfoTest {
 
     @Test
     public void testExtractRepoNamePluginPresentWithoutUrl() {
-        String result = JenkinsPluginInfo.extractRepoName("login-theme", cacheManager1, null);
+        String result = JenkinsPluginInfo.extractRepoName(
+                Plugin.build("login-theme").withConfig(Mockito.mock(Config.class)), cacheManager1, null);
         assertEquals("login-theme-plugin", result);
     }
 
     @Test
     public void testExtractRepoNamePluginAbsentWithoutUrl() {
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("not-present", cacheManager1, null);
+            JenkinsPluginInfo.extractRepoName(
+                    Plugin.build("not-present").withConfig(Mockito.mock(Config.class)), cacheManager1, null);
         });
 
-        assertEquals("Plugin not found in update center: not-present", exception.getMessage());
+        assertEquals("Plugin not found in update center", exception.getMessage());
     }
 
     @Test
     public void testExtractRepoNamePluginPresentWithUrl() throws MalformedURLException {
         URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
 
-        String resultLoginTheme = JenkinsPluginInfo.extractRepoName("login-theme", cacheManager2, updateCenterUrl);
+        String resultLoginTheme = JenkinsPluginInfo.extractRepoName(
+                Plugin.build("login-theme").withConfig(Mockito.mock(Config.class)), cacheManager2, updateCenterUrl);
         assertEquals("login-theme-plugin", resultLoginTheme);
 
-        String resultJobCacher = JenkinsPluginInfo.extractRepoName("jobcacher", cacheManager2, updateCenterUrl);
+        String resultJobCacher = JenkinsPluginInfo.extractRepoName(
+                Plugin.build("jobcacher").withConfig(Mockito.mock(Config.class)), cacheManager2, updateCenterUrl);
         assertEquals("jobcacher-plugin", resultJobCacher);
     }
 
@@ -75,28 +83,29 @@ class JenkinsPluginInfoTest {
         URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("not-present", cacheManager2, updateCenterUrl);
+            JenkinsPluginInfo.extractRepoName(
+                    Plugin.build("not-present").withConfig(Mockito.mock(Config.class)), cacheManager2, updateCenterUrl);
         });
 
-        assertEquals("Plugin not found in update center: not-present", exception.getMessage());
+        assertEquals("Plugin not found in update center", exception.getMessage());
     }
 
     @Test
-    public void testExtractRepoNameInvalidScmUrlFormat() throws MalformedURLException {
-        URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("invalid-plugin", cacheManager1, updateCenterUrl);
+    public void testExtractRepoNameInvalidScmUrlFormat() {
+        Exception exception = assertThrows(ModernizerException.class, () -> {
+            JenkinsPluginInfo.extractRepoName(
+                    Plugin.build("invalid-plugin").withConfig(Mockito.mock(Config.class)), cacheManager1, null);
         });
-        assertEquals("Invalid SCM URL format: invalid-scm-url", exception.getMessage());
+        assertEquals("Invalid SCM URL format", exception.getMessage());
     }
 
     @Test
     public void testExtractRepoNameInvalidScmUrlFormat2() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("invalid-plugin-2", cacheManager1, null);
+        Exception exception = assertThrows(ModernizerException.class, () -> {
+            JenkinsPluginInfo.extractRepoName(
+                    Plugin.build("invalid-plugin-2").withConfig(Mockito.mock(Config.class)), cacheManager1, null);
         });
-        assertEquals("Invalid SCM URL format: /", exception.getMessage());
+        assertEquals("Invalid SCM URL format", exception.getMessage());
     }
 
     @Test
@@ -104,7 +113,8 @@ class JenkinsPluginInfoTest {
         URL updateCenterUrl = new URL("https://www.example.com");
 
         // Should fetch from default UC url as a fallback
-        String resultLoginTheme = JenkinsPluginInfo.extractRepoName("login-theme", cacheManager2, updateCenterUrl);
+        String resultLoginTheme = JenkinsPluginInfo.extractRepoName( 
+                Plugin.build("login-theme").withConfig(Mockito.mock(Config.class)), cacheManager2, updateCenterUrl);
         assertEquals("login-theme-plugin", resultLoginTheme);
     }
 }

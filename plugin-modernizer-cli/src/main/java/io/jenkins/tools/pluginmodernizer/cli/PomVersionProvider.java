@@ -1,5 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -16,14 +17,14 @@ public class PomVersionProvider implements CommandLine.IVersionProvider {
         Properties properties = new Properties();
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("pom.properties")) {
             if (input == null) {
-                throw new IOException("Unable to find pom.properties");
+                throw new ModernizerException("Unable to find pom.properties");
             }
             properties.load(input);
         }
 
         String version = properties.getProperty("project.version");
         if (version == null || version.isEmpty()) {
-            throw new IOException("Version not found in pom.properties");
+            throw new ModernizerException("Version not found in pom.properties");
         }
 
         return version;

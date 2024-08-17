@@ -3,7 +3,9 @@ package io.jenkins.tools.pluginmodernizer.core.github;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -16,6 +18,7 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.kohsuke.github.GHEmail;
 import org.kohsuke.github.GHFileNotFoundException;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHOrganization;
@@ -50,11 +53,11 @@ public class GHService {
      */
     private void validate() {
         if (Settings.GITHUB_TOKEN == null) {
-            throw new IllegalArgumentException(
+            throw new ModernizerException(
                     "GitHub token is not set. Please set GH_TOKEN or GITHUB_TOKEN environment variable.");
         }
         if (config.getGithubOwner() == null) {
-            throw new IllegalArgumentException(
+            throw new ModernizerException(
                     "GitHub owner (username/organization) is not set. Please set GH_OWNER or GITHUB_OWNER environment variable.");
         }
     }
@@ -64,12 +67,12 @@ public class GHService {
      */
     public void connect() {
         if (github != null) {
-            throw new IllegalArgumentException("GitHub client is already connected.");
+            throw new ModernizerException("GitHub client is already connected.");
         }
         try {
             github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to connect to GitHub. Cannot use GitHub/SCM integration", e);
+            throw new ModernizerException("Failed to connect to GitHub. Cannot use GitHub/SCM integration", e);
         }
     }
 
@@ -82,7 +85,7 @@ public class GHService {
         try {
             return github.getRepository(Settings.ORGANIZATION + "/" + plugin.getRepositoryName());
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to get repository", e);
+            throw new PluginProcessingException("Failed to get repository", e, plugin);
         }
     }
 
@@ -93,12 +96,12 @@ public class GHService {
      */
     public GHRepository getRepositoryFork(Plugin plugin) {
         if (config.isDryRun()) {
-            throw new IllegalArgumentException("Cannot get fork repository in dry-run mode");
+            throw new PluginProcessingException("Cannot get fork repository in dry-run mode", plugin);
         }
         try {
             return github.getRepository(config.getGithubOwner() + "/" + plugin.getRepositoryName());
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to get repository", e);
+            throw new PluginProcessingException("Failed to get repository", e, plugin);
         }
     }
 
@@ -109,10 +112,13 @@ public class GHService {
      */
     public boolean isForked(Plugin plugin) {
         try {
-            return isRepositoryForked(plugin.getRepositoryName())
-                    || isRepositoryForked(getOrganization(), plugin.getRepositoryName());
+            GHOrganization organization = getOrganization();
+            if (organization != null) {
+                return isRepositoryForked(organization, plugin.getRepositoryName());
+            }
+            return isRepositoryForked(plugin.getRepositoryName());
         } catch (IOException e) {
-            throw new IllegalArgumentException("Failed to check if repository is forked", e);
+            throw new PluginProcessingException("Failed to check if repository is forked", e, plugin);
         }
     }
 
@@ -141,11 +147,9 @@ public class GHService {
         LOG.info("Forking plugin {} locally from repo {}...", plugin, plugin.getRepositoryName());
         try {
             GHRepository fork = forkPlugin(plugin);
-            Thread.sleep(5000); // Wait for the fork to be ready
-            LOG.info("Forked repository: {}", fork.getHtmlUrl());
+            LOG.debug("Forked repository: {}", fork.getHtmlUrl());
         } catch (IOException | InterruptedException e) {
-            LOG.error("Failed to fork the repository", e);
-            plugin.addError(e);
+            plugin.addError("Failed to fork the repository", e);
         }
     }
 
@@ -163,7 +167,9 @@ public class GHService {
                 LOG.info("Repository already forked to organization {}", organization.getLogin());
                 return getRepositoryFork(organization, originalRepo.getName());
             } else {
-                return forkRepository(originalRepo, organization);
+                GHRepository fork = forkRepository(originalRepo, organization);
+                Thread.sleep(5000); // Wait for the fork to be ready
+                return fork;
             }
         } else {
             if (isRepositoryForked(originalRepo.getName())) {
@@ -172,7 +178,9 @@ public class GHService {
                         github.getMyself().getLogin());
                 return getRepositoryFork(originalRepo.getName());
             } else {
-                return forkRepository(originalRepo);
+                GHRepository fork = forkRepository(originalRepo);
+                Thread.sleep(5000); // Wait for the fork to be ready
+                return fork;
             }
         }
     }
@@ -294,14 +302,17 @@ public class GHService {
             LOG.warn("Not attempting to delete fork from organization {}", repository.getHtmlUrl());
             return;
         }
-        LOG.info("Deleting fork for plugin {} from repo {}...", plugin, repository.getHtmlUrl());
+        if (config.isDebug()) {
+            LOG.debug("Deleting fork for plugin {} from repo {}...", plugin, repository.getHtmlUrl());
+        } else {
+            LOG.info("Deleting fork for plugin {}...", plugin);
+        }
         try {
             repository.delete();
             plugin.withoutCommits();
             plugin.withoutChangesPushed();
         } catch (IOException e) {
-            LOG.error("Failed to delete the fork", e);
-            plugin.addError(e);
+            plugin.addError("Failed to delete the fork", e);
         }
     }
 
@@ -312,17 +323,22 @@ public class GHService {
     public void fetch(Plugin plugin) {
         GHRepository repository =
                 config.isDryRun() || plugin.isArchived(this) ? getRepository(plugin) : getRepositoryFork(plugin);
-        LOG.info(
-                "Fetch plugin {} from {} into directory {}...",
-                plugin,
-                repository.getHtmlUrl(),
-                plugin.getRepositoryName());
+
+        if (config.isDebug()) {
+            LOG.debug(
+                    "Fetch plugin code {} from {} into directory {}...",
+                    plugin,
+                    repository.getHtmlUrl(),
+                    plugin.getRepositoryName());
+        } else {
+            LOG.info("Fetching plugin code locally {}...", plugin);
+        }
         try {
             fetchRepository(plugin);
-            LOG.info("Fetched repository from {}", repository.getHtmlUrl());
+            LOG.debug("Fetched repository from {}", repository.getHtmlUrl());
         } catch (GitAPIException e) {
             LOG.error("Failed to fetch the repository", e);
-            plugin.addError(e);
+            plugin.addError("Failed to fetch the repository", e);
         }
     }
 
@@ -348,8 +364,7 @@ public class GHService {
                 git.reset().setMode(ResetCommand.ResetType.HARD).call();
                 git.pull().setRemote("origin").setRemoteBranchName(repository.getDefaultBranch());
             } catch (IOException | URISyntaxException e) {
-                plugin.addError(e);
-                throw new IllegalArgumentException("Failed to open repository", e);
+                plugin.addError("Failed fetch repository", e);
             }
         }
         // Clone the repository
@@ -375,17 +390,16 @@ public class GHService {
                 String defaultBranch = config.isDryRun() || plugin.isArchived(this)
                         ? plugin.getRemoteRepository(this).getDefaultBranch()
                         : plugin.getRemoteForkRepository(this).getDefaultBranch();
-                LOG.info("Branch already exists. Checking out the branch");
+                LOG.debug("Branch already exists. Checking out the branch");
                 git.checkout().setName(BRANCH_NAME).call();
                 git.reset()
                         .setMode(ResetCommand.ResetType.HARD)
                         .setRef(defaultBranch)
                         .call();
-                LOG.info("Reseted the branch to Checking out the branch to default branch {}", defaultBranch);
+                LOG.debug("Reseted the branch to Checking out the branch to default branch {}", defaultBranch);
             }
         } catch (IOException | GitAPIException e) {
-            LOG.error("Failed to checkout branch", e);
-            plugin.addError(e);
+            plugin.addError("Failed to checkout branch", e);
         }
     }
 
@@ -405,7 +419,14 @@ public class GHService {
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
             if (git.status().call().hasUncommittedChanges()) {
                 git.add().addFilepattern(".").call();
+                Optional<GHEmail> email = github.getMyself().getEmails2().stream()
+                        .filter(GHEmail::isPrimary)
+                        .findFirst();
+                if (email.isEmpty()) {
+                    throw new IllegalArgumentException("Primary email not found for GitHub user");
+                }
                 git.commit()
+                        .setAuthor(github.getMyself().getName(), email.get().getEmail())
                         .setMessage(COMMIT_MESSAGE)
                         .setSign(false) // Maybe a new option to sign commit?
                         .call();
@@ -415,8 +436,7 @@ public class GHService {
                 LOG.debug("No changes to commit for plugin {}", plugin.getName());
             }
         } catch (IOException | GitAPIException e) {
-            LOG.error("Failed to commit changes", e);
-            plugin.addError(e);
+            plugin.addError("Failed to commit changes", e);
         }
     }
 
@@ -451,8 +471,7 @@ public class GHService {
             plugin.withChangesPushed();
             LOG.info("Pushed changes to forked repository for plugin {}", plugin.getName());
         } catch (IOException | GitAPIException e) {
-            LOG.error("Failed to push changes", e);
-            plugin.addError(e);
+            plugin.addError("Failed to push changes", e);
         }
     }
 
@@ -491,10 +510,12 @@ public class GHService {
         try {
             GHPullRequest pr = repository.createPullRequest(
                     PR_TITLE, config.getGithubOwner() + ":" + BRANCH_NAME, repository.getDefaultBranch(), prBody);
+            pr.addLabels(plugin.getTags().toArray(String[]::new));
             LOG.info("Pull request created: {}", pr.getHtmlUrl());
+            plugin.withoutTags();
+            plugin.withPullRequest();
         } catch (IOException e) {
-            LOG.error("Failed to create pull request", e);
-            plugin.addError(e);
+            plugin.addError("Failed to create pull request", e);
         }
     }
 
@@ -521,11 +542,10 @@ public class GHService {
                 return true;
             }
         } catch (IOException e) {
-            LOG.error("Failed to check for pull requests", e);
-            plugin.addError(e);
+            plugin.addError("Failed to check for pull requests", e);
             return false;
         }
-        LOG.info(
+        LOG.debug(
                 "No open pull requests found for plugin {} targeting {}", plugin.getName(), originalRepo.getFullName());
         return false;
     }
@@ -544,8 +564,7 @@ public class GHService {
                             && pr.getTitle().equals(PR_TITLE))
                     .findFirst();
         } catch (IOException e) {
-            LOG.error("Failed to check if pull request exists", e);
-            plugin.addError(e);
+            plugin.addError("Failed to check if pull request exists", e);
             return Optional.empty();
         }
     }

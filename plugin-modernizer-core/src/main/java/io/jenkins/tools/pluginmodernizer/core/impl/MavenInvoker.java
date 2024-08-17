@@ -4,7 +4,9 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -21,7 +23,6 @@ import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.openrewrite.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MarkerFactory;
 
 @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "false positive")
 public class MavenInvoker {
@@ -75,10 +76,9 @@ public class MavenInvoker {
      * @param goal The goal to run. For example, "clean"
      */
     public void invokeGoal(Plugin plugin, String goal) {
-        LOG.info(
-                "Invoking {} phase for plugin {} on directory {}",
-                goal,
-                plugin.getName(),
+        LOG.debug("Running {} phase for plugin {}", goal, plugin.getName());
+        LOG.debug(
+                "Running maven on directory {}",
                 plugin.getLocalRepository().toAbsolutePath().toFile());
         invokeGoals(plugin, goal);
     }
@@ -88,22 +88,28 @@ public class MavenInvoker {
      * @param plugin The plugin to run the rewrite on
      */
     public void invokeRewrite(Plugin plugin) {
-        LOG.info("Invoking rewrite plugin for plugin: {}", plugin);
+        plugin.addTags(getActiveRecipes().stream()
+                .flatMap(recipe -> recipe.getTags().stream())
+                .collect(Collectors.toSet()));
+        LOG.info(
+                "Running recipes {} for plugin {}... Please be patient", String.join(",", config.getRecipes()), plugin);
         invokeGoals(plugin, getRewriteArgs());
+        LOG.info("Done");
     }
 
     /**
      * Get the rewrite arguments to be executed for each plugin
-     * @return The list of arguments to be passed to the rewrite plugin
+     * @return The list of arguments to be passed tomv the rewrite plugin
      */
     private String[] getRewriteArgs() {
         List<String> goals = new ArrayList<>();
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
-        List<String> activeRecipes = getActiveRecipes();
-        LOG.debug("Active recipes: {}", activeRecipes);
-        goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipes));
+        List<Recipe> activeRecipes = getActiveRecipes();
+        String activeRecipesStr = activeRecipes.stream().map(Recipe::getName).collect(Collectors.joining(", "));
+        LOG.debug("Active recipes: {}", activeRecipesStr);
+        goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipesStr));
         goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
                 + config.getVersion());
         return goals.toArray(String[]::new);
@@ -113,10 +119,10 @@ public class MavenInvoker {
      * Get the list of active recipes to be passed to the rewrite plugin based on the one selected on config
      * @return The list of active recipes
      */
-    private List<String> getActiveRecipes() {
+    private List<Recipe> getActiveRecipes() {
         return config.getRecipes().stream()
-                .flatMap(recipe ->
-                        Settings.AVAILABLE_RECIPES.stream().map(Recipe::getName).filter(name -> name.endsWith(recipe)))
+                .flatMap(recipe -> Settings.AVAILABLE_RECIPES.stream()
+                        .filter(r -> r.getName().endsWith(recipe)))
                 .collect(Collectors.toList());
     }
 
@@ -139,18 +145,15 @@ public class MavenInvoker {
             request.setBatchMode(true);
             request.setNoTransferProgress(false);
             request.setErrorHandler((message) -> {
-                LOG.error(
-                        MarkerFactory.getMarker(plugin.getName()),
-                        String.format("Something went wrong when running maven: %s", message));
+                LOG.error(plugin.getMarker(), String.format("Something went wrong when running maven: %s", message));
             });
             request.setOutputHandler((message) -> {
-                LOG.info(MarkerFactory.getMarker(plugin.getName()), message);
+                LOG.info(plugin.getMarker(), message);
             });
             InvocationResult result = invoker.execute(request);
             handleInvocationResult(plugin, result);
         } catch (MavenInvocationException e) {
-            LOG.error(plugin.getMarker(), "Maven invocation failed: ", e);
-            plugin.addError(e);
+            plugin.addError("Maven invocation failed", e);
         }
     }
 
@@ -161,7 +164,8 @@ public class MavenInvoker {
     private void validatePom(Plugin plugin) {
         LOG.debug("Validating POM for plugin: {}", plugin);
         if (!plugin.getLocalRepository().resolve("pom.xml").toFile().isFile()) {
-            throw new IllegalArgumentException("POM file not found for plugin: " + plugin.getName());
+            plugin.addError("POM file not found");
+            throw new PluginProcessingException("POM file not found", plugin);
         }
     }
 
@@ -173,12 +177,12 @@ public class MavenInvoker {
         Path mavenHome = config.getMavenHome();
         if (mavenHome == null) {
             LOG.error("Neither MAVEN_HOME nor M2_HOME environment variables are set.");
-            throw new IllegalArgumentException("Maven home directory not set.");
+            throw new ModernizerException("Maven home directory not set.");
         }
 
         if (!Files.isDirectory(mavenHome) || !Files.isExecutable(mavenHome.resolve("bin/mvn"))) {
             LOG.error("Invalid Maven home directory. Aborting build.");
-            throw new IllegalArgumentException("Invalid Maven home directory.");
+            throw new ModernizerException("Invalid Maven home directory.");
         }
     }
 
@@ -191,14 +195,14 @@ public class MavenInvoker {
         LOG.debug("Maven version detected: {}", mavenVersion);
         if (mavenVersion == null) {
             LOG.error("Failed to check Maven version. Aborting build.");
-            throw new IllegalArgumentException("Failed to check Maven version.");
+            throw new ModernizerException("Failed to check Maven version.");
         }
         if (mavenVersion.compareTo(Settings.MAVEN_MINIMAL_VERSION) < 0) {
             LOG.error(
                     "Maven version detected {}, is too old. Please use at least version {}",
                     mavenVersion,
                     Settings.MAVEN_MINIMAL_VERSION);
-            throw new IllegalArgumentException("Maven version is too old.");
+            throw new ModernizerException("Maven version is too old.");
         }
     }
 
@@ -207,7 +211,7 @@ public class MavenInvoker {
      */
     private void validateSelectedRecipes() {
         if (getActiveRecipes().isEmpty()) {
-            throw new IllegalArgumentException("No valid recipes selected. Please select at least one recipe.");
+            throw new ModernizerException("No valid recipes selected. Please select at least one recipe.");
         }
     }
 
@@ -234,12 +238,12 @@ public class MavenInvoker {
      */
     private void handleInvocationResult(Plugin plugin, InvocationResult result) {
         if (result.getExitCode() != 0) {
-            LOG.error(MarkerFactory.getMarker(plugin.getName()), "Build fail with code: {}", result.getExitCode());
+            LOG.error(plugin.getMarker(), "Build fail with code: {}", result.getExitCode());
             if (result.getExecutionException() != null) {
-                LOG.error(plugin.getMarker(), "Execution exception occurred: ", result.getExecutionException());
-                plugin.addError(result.getExecutionException());
+                plugin.addError("Maven generic exception occurred", result.getExecutionException());
             } else {
-                plugin.addError(new MavenInvocationException("Build failed with code: " + result.getExitCode()));
+                String errorMessage = "Build failed with code: " + result.getExitCode();
+                plugin.addError(errorMessage, new MavenInvocationException(errorMessage));
             }
         }
     }

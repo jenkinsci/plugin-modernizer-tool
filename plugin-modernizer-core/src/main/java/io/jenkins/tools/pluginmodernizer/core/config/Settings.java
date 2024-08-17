@@ -2,6 +2,7 @@ package io.jenkins.tools.pluginmodernizer.core.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -80,7 +81,7 @@ public class Settings {
         try {
             DEFAULT_UPDATE_CENTER_URL = getUpdateCenterUrl();
         } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid URL format", e);
+            throw new ModernizerException("Invalid URL format", e);
         }
 
         // Get recipes module
@@ -90,7 +91,7 @@ public class Settings {
             AVAILABLE_RECIPES = yamlResourceLoader.listRecipes().stream().toList();
         } catch (IOException e) {
             LOG.error("Error reading recipes", e);
-            throw new IllegalArgumentException("Error reading recipes", e);
+            throw new ModernizerException("Error reading recipes", e);
         }
     }
 
@@ -175,7 +176,7 @@ public class Settings {
             properties.load(input);
         } catch (IOException e) {
             LOG.error("Error reading key {} from {}", key, resource, e);
-            throw new IllegalArgumentException("Error reading key " + key + " from " + resource, e);
+            throw new ModernizerException("Error reading key " + key + " from " + resource, e);
         }
 
         return properties.getProperty(key).trim();

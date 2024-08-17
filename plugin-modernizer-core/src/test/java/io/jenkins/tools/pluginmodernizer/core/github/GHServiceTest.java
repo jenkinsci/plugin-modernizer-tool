@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -101,7 +102,7 @@ public class GHServiceTest {
         doThrow(new IOException()).when(github).getRepository(eq("jenkinsci/fake-repo"));
 
         // Test
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(PluginProcessingException.class, () -> {
             service.getRepository(plugin);
         });
     }
@@ -129,7 +130,7 @@ public class GHServiceTest {
         doThrow(new IOException()).when(github).getRepository(eq("fake-owner/fake-repo"));
 
         // Test
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(PluginProcessingException.class, () -> {
             service.getRepositoryFork(plugin);
         });
     }
@@ -156,7 +157,7 @@ public class GHServiceTest {
         doReturn(true).when(config).isDryRun();
 
         // Test
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(PluginProcessingException.class, () -> {
             service.getRepositoryFork(plugin);
         });
     }
@@ -195,12 +196,9 @@ public class GHServiceTest {
 
         // Mock
         GHRepository fork = Mockito.mock(GHRepository.class);
-        GHMyself myself = Mockito.mock(GHMyself.class);
         GHOrganization org = Mockito.mock(GHOrganization.class);
 
         doReturn("fake-repo").when(plugin).getRepositoryName();
-        doReturn(myself).when(github).getMyself();
-        doReturn(null).when(myself).getRepository(eq("fake-repo"));
         doReturn(org).when(github).getOrganization(eq("fake-owner"));
         doReturn(fork).when(org).getRepository(eq("fake-repo"));
 
