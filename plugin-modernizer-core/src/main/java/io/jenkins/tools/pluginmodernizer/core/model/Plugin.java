@@ -42,9 +42,9 @@ public class Plugin {
     private String repositoryName;
 
     /**
-     * The path to the JDK directory
+     * The JDK to use
      */
-    private Path jdkPath;
+    private JDK jdk;
 
     /**
      * Flag to indicate if the plugin has any commits to be pushed
@@ -113,12 +113,12 @@ public class Plugin {
     }
 
     /***
-     * Set the path of the JDK directory
-     * @param jdkPath Path of the JDK directory
+     * Set the current JDK
+     * @param jdk The JDK
      * @return Plugin object
      */
-    public Plugin withJdkPath(Path jdkPath) {
-        this.jdkPath = jdkPath;
+    public Plugin withJDK(JDK jdk) {
+        this.jdk = jdk;
         return this;
     }
 
@@ -281,6 +281,15 @@ public class Plugin {
     }
 
     /**
+     * Remove errors from the plugin
+     * @return Plugin object
+     */
+    public Plugin withoutErrors() {
+        errors.clear();
+        return this;
+    }
+
+    /**
      * Get the name of the plugin
      * @return Name of the plugin
      */
@@ -317,8 +326,8 @@ public class Plugin {
      * Get the path of the JDK directory
      * @return Path of the JDK directory
      */
-    public Path getJdkPath() {
-        return jdkPath;
+    public JDK getJDK() {
+        return jdk;
     }
 
     /**
@@ -358,9 +367,14 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void compile(MavenInvoker maven) {
-        LOG.info("Compiling plugin {}... Please be patient", name);
+        LOG.info(
+                "Compiling plugin {} with JDK {} ... Please be patient",
+                name,
+                this.getJDK().getMajor());
         maven.invokeGoal(this, "compile");
-        LOG.info("Done");
+        if (!hasErrors()) {
+            LOG.info("Done");
+        }
     }
 
     /**
@@ -368,7 +382,10 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void verify(MavenInvoker maven) {
-        LOG.info("Verifying plugin {}... Please be patient", name);
+        LOG.info(
+                "Verifying plugin {} with JDK {}... Please be patient",
+                name,
+                this.getJDK().getMajor());
         maven.invokeGoal(this, "verify");
         LOG.info("Done");
     }

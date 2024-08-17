@@ -4,14 +4,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +35,10 @@ public class PluginModernizer {
      */
     public PluginModernizer(Config config) {
         this.config = config;
-        this.mavenInvoker = new MavenInvoker(config);
+        this.jdkFetcher = new JdkFetcher(config.getCachePath());
+        this.mavenInvoker = new MavenInvoker(config, jdkFetcher);
         this.ghService = new GHService(config);
         this.cacheManager = new CacheManager(config.getCachePath());
-        this.jdkFetcher = new JdkFetcher(config.getCachePath());
     }
 
     /**
@@ -97,29 +96,32 @@ public class PluginModernizer {
                 plugin.removeLocalData();
             }
 
-            Path jdkSourcePath = getEffectiveJDKPath(config, jdkFetcher, config.getSourceJavaMajorVersion());
-            Path jdkTargetPath = getEffectiveJDKPath(config, jdkFetcher, config.getTargetJavaMajorVersion());
+            JDK jdkSource = JDK.get(config.getSourceJavaMajorVersion());
+            JDK jdkTarget = JDK.get(config.getTargetJavaMajorVersion());
 
-            LOG.debug("Using JDK build path: {}", jdkSourcePath);
-            LOG.debug("Using JDK target path: {}", jdkTargetPath);
+            LOG.debug("Using JDK build path: {}", jdkSource.getHome(jdkFetcher));
+            LOG.debug("Using JDK target path: {}", jdkTarget.getHome(jdkFetcher));
 
             plugin.fetch(ghService);
 
-            // Use source JDK path
-            plugin.withJdkPath(jdkSourcePath);
-
-            // Compile
-            plugin.compile(mavenInvoker);
             if (plugin.hasErrors()) {
-                LOG.warn(
-                        "Skipping plugin {} due to compilation errors. Check logs for more details.", plugin.getName());
+                LOG.info("Plugin {} has errors. Will not process this plugin.", plugin.getName());
+            }
+
+            // Compile the plugin with the first JDK that compile it
+            plugin.withJDK(jdkSource);
+            JDK jdk = compilePlugin(plugin);
+            if (jdk == null) {
+                plugin.addError("Plugin failed to compile with all JDK.");
+                LOG.info("Plugin {} fail to compile all JDK. Aborting this plugin.", plugin.getName());
                 return;
             }
+            LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk.getMajor());
 
             plugin.checkoutBranch(ghService);
 
             // Switch to the target JDK path
-            plugin.withJdkPath(jdkTargetPath);
+            plugin.withJDK(jdkTarget);
 
             // Run OpenRewrite
             plugin.runOpenRewrite(mavenInvoker);
@@ -159,6 +161,33 @@ public class PluginModernizer {
                 plugin.addError("Unexpected processing error. Check the logs at " + plugin.getLogFile(), e);
             }
         }
+    }
+
+    /**
+     * Compile a plugin an return the first JDK that compile it
+     * @param plugin The plugin to compile
+     * @return The JDK that compile the plugin
+     */
+    private JDK compilePlugin(Plugin plugin) {
+        return Stream.iterate(plugin.getJDK(), JDK::hasNext, JDK::next)
+                .sorted(JDK::compareMajor)
+                .filter(j -> {
+                    plugin.withJDK(j);
+                    plugin.clean(mavenInvoker);
+                    plugin.compile(mavenInvoker);
+                    if (plugin.hasErrors()) {
+                        LOG.info(
+                                "Plugin {} failed to compile with JDK {}. Trying next one",
+                                plugin.getName(),
+                                j.getMajor());
+                        plugin.withoutErrors();
+                        return false;
+                    }
+                    plugin.withoutErrors();
+                    return true;
+                })
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -203,21 +232,5 @@ public class PluginModernizer {
             }
             LOG.info("*************");
         }
-    }
-
-    /**
-     * Get the JDK source path for compiling/building the plugin before modernization process
-     * @param config The configuration
-     * @param jdkFetcher The JDK fetcher
-     * @return The JDK source path
-     * @return majorVersion The major version of the JDK
-     * @throws IOException IOException
-     * @throws InterruptedException InterruptedException
-     */
-    private Path getEffectiveJDKPath(Config config, JdkFetcher jdkFetcher, int majorVersion)
-            throws IOException, InterruptedException {
-        return Files.isDirectory(Settings.getJavaVersionPath(majorVersion))
-                ? Settings.getJavaVersionPath(majorVersion)
-                : jdkFetcher.getJdkPath(majorVersion);
     }
 }

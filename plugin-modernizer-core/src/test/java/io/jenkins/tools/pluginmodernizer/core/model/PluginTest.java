@@ -89,6 +89,7 @@ public class PluginTest {
     @Test
     public void testCompile() {
         Plugin plugin = Plugin.build("example");
+        plugin.withJDK(JDK.JAVA_21);
         plugin.compile(mavenInvoker);
         verify(mavenInvoker).invokeGoal(plugin, "compile");
         verifyNoMoreInteractions(mavenInvoker);
@@ -97,6 +98,7 @@ public class PluginTest {
     @Test
     public void testVerify() {
         Plugin plugin = Plugin.build("example");
+        plugin.withJDK(JDK.JAVA_21);
         plugin.verify(mavenInvoker);
         verify(mavenInvoker).invokeGoal(plugin, "verify");
         verifyNoMoreInteractions(mavenInvoker);

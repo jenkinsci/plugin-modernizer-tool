@@ -2,6 +2,7 @@ package io.jenkins.tools.pluginmodernizer.core.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,14 +51,9 @@ public class Settings {
 
     public static final List<Recipe> AVAILABLE_RECIPES;
 
-    // Default JDK home from sdk man
-    public static final int SOURCE_JAVA_MAJOR_VERSION = 8;
-    public static final int TARGET_JAVA_MAJOR_VERSION = 17;
-
-    public static final Path DEFAULT_JAVA_8_HOME = getDefaultSdkManJava("JAVA_8_HOME");
-    public static final Path DEFAULT_JAVA_11_HOME = getDefaultSdkManJava("JAVA_11_HOME");
-    public static final Path DEFAULT_JAVA_17_HOME = getDefaultSdkManJava("JAVA_17_HOME");
-    public static final Path DEFAULT_JAVA_21_HOME = getDefaultSdkManJava("JAVA_21_HOME");
+    // Default JDK to use when compiling plugin
+    public static final int SOURCE_JAVA_MAJOR_VERSION = JDK.getDefaultSource().getMajor();
+    public static final int TARGET_JAVA_MAJOR_VERSION = JDK.getDefaultTarget().getMajor();
 
     private Settings() {}
 
@@ -92,26 +88,6 @@ public class Settings {
         } catch (IOException e) {
             LOG.error("Error reading recipes", e);
             throw new ModernizerException("Error reading recipes", e);
-        }
-    }
-
-    /**
-     * Get the path to the Java version to use
-     * @param majorVersion The major version of Java to get
-     * @return The path to the Java version
-     */
-    public static Path getJavaVersionPath(int majorVersion) {
-        switch (majorVersion) {
-            case 8:
-                return DEFAULT_JAVA_8_HOME;
-            case 11:
-                return DEFAULT_JAVA_11_HOME;
-            case 17:
-                return DEFAULT_JAVA_17_HOME;
-            case 21:
-                return DEFAULT_JAVA_21_HOME;
-            default:
-                return DEFAULT_JAVA_8_HOME;
         }
     }
 
@@ -154,7 +130,7 @@ public class Settings {
         return username;
     }
 
-    private static Path getDefaultSdkManJava(final String key) {
+    public static Path getDefaultSdkManJava(final String key) {
         String homeDir = System.getProperty("user.home") != null ? System.getProperty("user.home") : "";
         String propertyValue = readProperty(key, "sdkman.properties").replace("$HOME", homeDir);
         return Path.of(propertyValue);
