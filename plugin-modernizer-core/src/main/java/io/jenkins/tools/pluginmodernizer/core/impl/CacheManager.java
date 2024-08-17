@@ -2,7 +2,6 @@ package io.jenkins.tools.pluginmodernizer.core.impl;
 
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,7 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.Scanner;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,11 +80,7 @@ public class CacheManager {
                 }
             }
 
-            // Read the file contents as a String
-            try (InputStream is = Files.newInputStream(cachedPath);
-                    Scanner scanner = new Scanner(is, StandardCharsets.UTF_8)) {
-                return scanner.useDelimiter("\\A").next();
-            }
+            return FileUtils.readFileToString(cachedPath.toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             return null;
         }
