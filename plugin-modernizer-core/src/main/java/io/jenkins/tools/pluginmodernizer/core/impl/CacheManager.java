@@ -72,7 +72,7 @@ public class CacheManager {
             long betweenHours = between.toHours();
 
             if (betweenHours > 0L) {
-                LOG.info(
+                LOG.debug(
                         "Cache entry expired: {}{}",
                         cacheKey,
                         expires ? ". Will skip it" : ". Will accept it, because expiration is disabled");
@@ -96,7 +96,7 @@ public class CacheManager {
         try {
             if (Files.exists(fileToRemove)) {
                 Files.delete(fileToRemove);
-                LOG.info("Cache entry removed for key: {}", cacheKey);
+                LOG.debug("Cache entry removed for key: {}", cacheKey);
             }
         } catch (IOException e) {
             throw new ModernizerException("Failed to remove cache entry for key: " + cacheKey, e);
