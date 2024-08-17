@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 public class CacheManager {
     private static final Logger LOG = LoggerFactory.getLogger(CacheManager.class);
-    private final Path cache;
+    private final Path location;
     private final Clock clock;
     private final boolean expires;
 
