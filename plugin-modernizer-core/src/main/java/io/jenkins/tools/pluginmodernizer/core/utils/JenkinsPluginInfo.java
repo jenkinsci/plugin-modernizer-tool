@@ -71,7 +71,7 @@ public class JenkinsPluginInfo {
     }
 
     private static boolean isValidJson(String jsonStr) {
-        return jsonStr != null && jsonStr.startsWith("{") && jsonStr.startsWith("[");
+        return jsonStr != null && jsonStr.startsWith("{");
     }
 
     private static UpdateCenterData parseJson(String jsonStr) throws IOException {
