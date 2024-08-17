@@ -3,8 +3,8 @@ package io.jenkins.tools.pluginmodernizer.core.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.IOException;
@@ -113,7 +113,7 @@ class JenkinsPluginInfoTest {
         URL updateCenterUrl = new URL("https://www.example.com");
 
         // Should fetch from default UC url as a fallback
-        String resultLoginTheme = JenkinsPluginInfo.extractRepoName( 
+        String resultLoginTheme = JenkinsPluginInfo.extractRepoName(
                 Plugin.build("login-theme").withConfig(Mockito.mock(Config.class)), cacheManager2, updateCenterUrl);
         assertEquals("login-theme-plugin", resultLoginTheme);
     }
