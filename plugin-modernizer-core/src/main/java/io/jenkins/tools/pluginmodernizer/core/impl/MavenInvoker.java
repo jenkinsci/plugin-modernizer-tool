@@ -4,9 +4,12 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
+import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -38,11 +41,18 @@ public class MavenInvoker {
     private final Config config;
 
     /**
+     * The JDK fetcher to use
+     */
+    private final JdkFetcher jdkFetcher;
+
+    /**
      * Create a new MavenInvoker
      * @param config The configuration to use
+     * @param jdkFetcher The JDK fetcher to use
      */
-    public MavenInvoker(Config config) {
+    public MavenInvoker(Config config, JdkFetcher jdkFetcher) {
         this.config = config;
+        this.jdkFetcher = jdkFetcher;
         validateMavenHome();
         validateMavenVersion();
         validateSelectedRecipes();
@@ -137,8 +147,9 @@ public class MavenInvoker {
         invoker.setMavenHome(config.getMavenHome().toFile());
         try {
             InvocationRequest request = createInvocationRequest(plugin, goals);
-            Path jdkPath = plugin.getJdkPath();
-            if (jdkPath != null) {
+            JDK jdk = plugin.getJDK();
+            if (jdk != null) {
+                Path jdkPath = jdk.getHome(jdkFetcher);
                 request.setJavaHome(jdkPath.toFile());
                 LOG.debug("JDK home: {}", jdkPath);
             }
@@ -152,7 +163,7 @@ public class MavenInvoker {
             });
             InvocationResult result = invoker.execute(request);
             handleInvocationResult(plugin, result);
-        } catch (MavenInvocationException e) {
+        } catch (MavenInvocationException | InterruptedException | IOException e) {
             plugin.addError("Maven invocation failed", e);
         }
     }
@@ -242,7 +253,12 @@ public class MavenInvoker {
             if (result.getExecutionException() != null) {
                 plugin.addError("Maven generic exception occurred", result.getExecutionException());
             } else {
-                String errorMessage = "Build failed with code: " + result.getExitCode();
+                String errorMessage;
+                if (config.isDebug()) {
+                    errorMessage = "Build failed with code: " + result.getExitCode();
+                } else {
+                    errorMessage = "Build failed";
+                }
                 plugin.addError(errorMessage, new MavenInvocationException(errorMessage));
             }
         }
