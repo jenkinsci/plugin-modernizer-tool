@@ -408,6 +408,18 @@ public class Plugin {
     }
 
     /**
+     * Ensure a minimal build can be performed on the plugin.
+     * Some plugin are very outdated they cannot compile anymore due to non-https URL
+     * and missing relative path on the parent pom. This methods ensure that the plugin
+     * is setup correctly before attempting to compile it.
+     * @param maven The maven invoker instance
+     */
+    public void ensureMinimalBuild(MavenInvoker maven) {
+        LOG.info("Ensuring minimal plugin {} build ... Please be patient", name);
+        maven.ensureMinimalBuild(this);
+    }
+
+    /**
      * Run the openrewrite plugin on this plugin
      * @param maven The maven invoker instance
      */

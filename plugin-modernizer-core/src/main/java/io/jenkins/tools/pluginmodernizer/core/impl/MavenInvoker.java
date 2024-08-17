@@ -104,6 +104,19 @@ public class MavenInvoker {
     }
 
     /**
+     * Ensure a minimal build can be performed on the plugin.
+     * Some plugin are very outdated they cannot compile anymore due to non-https URL
+     * and missing relative path on the parent pom. This methods ensure that the plugin
+     * is setup correctly before attempting to compile it.
+     * @param plugin The plugin to ensure minimal build
+     */
+    public void ensureMinimalBuild(Plugin plugin) {
+        LOG.info("Ensuring minimal build for plugin {}... Please be patient", plugin);
+        invokeGoals(plugin, getSingleRecipeArgs(Settings.MINIMAL_BUILD_JAVA_8_RECIPE));
+        LOG.info("Done");
+    }
+
+    /**
      * Invoke the rewrite modernization for a given plugin
      * @param plugin The plugin to run the rewrite on
      */

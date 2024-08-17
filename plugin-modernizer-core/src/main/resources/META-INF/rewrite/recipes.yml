@@ -5,6 +5,14 @@ description: Extracts metadata from a Jenkins plugin
 recipeList:
   - io.jenkins.tools.pluginmodernizer.core.extractor.MetadataCollector
 ---
+# Similar to https://docs.openrewrite.org/recipes/jenkins/modernizepluginforjava8 but for a minimal build on JDK 8
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.MinimalBuildJava8
+description: Ensuring a minimal build for a Jenkins plugin with JDK 8
+recipeList:
+  - org.openrewrite.maven.security.UseHttpsForRepositories
+  - org.openrewrite.jenkins.DisableLocalResolutionForParentPom
+---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddPluginsBom
 description: Adds a BOM to a Jenkins plugin
