@@ -24,20 +24,20 @@ public class CacheManager {
     }
 
     CacheManager(Path cache, Clock clock, boolean expires) {
-        this.cache = cache;
+        this.location = cache;
         this.clock = clock;
         this.expires = expires;
     }
 
     void createCache() {
-        if (!Files.exists(cache)) {
+        if (!Files.exists(location)) {
             try {
-                Path parent = cache.getParent();
+                Path parent = location.getParent();
                 if (parent != null && !Files.exists(parent)) {
                     Files.createDirectory(parent);
                 }
-                Files.createDirectory(cache);
-                LOG.debug("Creating cache at {}", cache);
+                Files.createDirectory(location);
+                LOG.debug("Creating cache at {}", location);
             } catch (IOException e) {
                 throw new ModernizerException("Unable to create cache", e);
             }
@@ -45,7 +45,7 @@ public class CacheManager {
     }
 
     public void addToCache(String cacheKey, String value) {
-        Path fileToCache = cache.resolve(cacheKey + ".json");
+        Path fileToCache = location.resolve(cacheKey + ".json");
         try (Writer writer = Files.newBufferedWriter(fileToCache, StandardCharsets.UTF_8)) {
             writer.write(value);
         } catch (IOException e) {
@@ -64,7 +64,7 @@ public class CacheManager {
      */
     public String retrieveFromCache(String cacheKey) {
         String filename = cacheKey + ".json";
-        Path cachedPath = cache.resolve(filename);
+        Path cachedPath = location.resolve(filename);
         try {
             FileTime lastModifiedTime = Files.getLastModifiedTime(cachedPath);
             Duration between = Duration.between(lastModifiedTime.toInstant(), clock.instant());
@@ -87,7 +87,7 @@ public class CacheManager {
     }
 
     public void removeFromCache(String cacheKey) {
-        Path fileToRemove = cache.resolve(cacheKey + ".json");
+        Path fileToRemove = location.resolve(cacheKey + ".json");
         try {
             if (Files.exists(fileToRemove)) {
                 Files.delete(fileToRemove);
