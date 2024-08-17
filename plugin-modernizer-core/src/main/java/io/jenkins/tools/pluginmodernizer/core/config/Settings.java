@@ -51,6 +51,8 @@ public class Settings {
 
     public static final List<Recipe> AVAILABLE_RECIPES;
 
+    public static final Recipe FETCH_METADATA_RECIPE;
+
     // Default JDK to use when compiling plugin
     public static final int SOURCE_JAVA_MAJOR_VERSION = JDK.getDefaultSource().getMajor();
     public static final int TARGET_JAVA_MAJOR_VERSION = JDK.getDefaultTarget().getMajor();
@@ -89,6 +91,12 @@ public class Settings {
             LOG.error("Error reading recipes", e);
             throw new ModernizerException("Error reading recipes", e);
         }
+
+        FETCH_METADATA_RECIPE = AVAILABLE_RECIPES.stream()
+                .filter(recipe -> recipe.getName().equals("io.jenkins.tools.pluginmodernizer.FetchMetadata"))
+                .findFirst()
+                .orElseThrow(() ->
+                        new ModernizerException("io.jenkins.tools.pluginmodernizer.FetchMetadata recipe not found"));
     }
 
     private static Path getDefaultMavenHome() {

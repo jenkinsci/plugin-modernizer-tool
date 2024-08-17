@@ -97,6 +97,16 @@ public class MavenInvoker {
      * Invoke the rewrite modernization for a given plugin
      * @param plugin The plugin to run the rewrite on
      */
+    public void collectMetadata(Plugin plugin) {
+        LOG.info("Collecting metadata for plugin {}... Please be patient", plugin);
+        invokeGoals(plugin, getSingleRecipeArgs(Settings.FETCH_METADATA_RECIPE));
+        LOG.info("Done");
+    }
+
+    /**
+     * Invoke the rewrite modernization for a given plugin
+     * @param plugin The plugin to run the rewrite on
+     */
     public void invokeRewrite(Plugin plugin) {
         plugin.addTags(getActiveRecipes().stream()
                 .flatMap(recipe -> recipe.getTags().stream())
@@ -108,8 +118,22 @@ public class MavenInvoker {
     }
 
     /**
+     * Get the rewrite arguments to be executed for metadata collection
+     * @return The list of arguments to be passed to the rewrite plugin
+     */
+    private String[] getSingleRecipeArgs(Recipe recipe) {
+        List<String> goals = new ArrayList<>();
+        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
+        goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
+        goals.add("-Drewrite.activeRecipes=" + recipe.getName());
+        goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
+                + config.getVersion());
+        return goals.toArray(String[]::new);
+    }
+
+    /**
      * Get the rewrite arguments to be executed for each plugin
-     * @return The list of arguments to be passed tomv the rewrite plugin
+     * @return The list of arguments to be passed to the rewrite plugin
      */
     private String[] getRewriteArgs() {
         List<String> goals = new ArrayList<>();
