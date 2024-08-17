@@ -3,6 +3,7 @@ package io.jenkins.tools.pluginmodernizer.core.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,37 +17,43 @@ import org.junit.jupiter.api.io.TempDir;
 class JenkinsPluginInfoTest {
 
     @TempDir
-    private Path tempDir;
+    private Path tempDir1;
 
     @TempDir
     private Path tempDir2;
 
     private Path cacheFile;
 
+    private CacheManager cacheManager1;
+
+    private CacheManager cacheManager2;
+
     @BeforeEach
     public void setup() throws IOException {
+        cacheManager1 = new CacheManager(tempDir1);
+        cacheManager2 = new CacheManager(tempDir2);
         String jsonContent =
                 "{\"plugins\": {\"login-theme\": {\"scm\": \"https://github.com/jenkinsci/login-theme-plugin\"}, \"invalid-plugin\": {\"scm\": \"invalid-scm-url\"}, \"invalid-plugin-2\": {\"scm\": \"/\"}}}";
-        cacheFile = tempDir.resolve("update-center.json");
+        cacheFile = tempDir1.resolve("update-center.json");
         Files.write(cacheFile, jsonContent.getBytes());
     }
 
     @AfterEach
     void teardown() throws IOException {
         Files.deleteIfExists(cacheFile);
-        Files.deleteIfExists(tempDir);
+        Files.deleteIfExists(tempDir1);
     }
 
     @Test
     public void testExtractRepoNamePluginPresentWithoutUrl() {
-        String result = JenkinsPluginInfo.extractRepoName("login-theme", tempDir, null);
+        String result = JenkinsPluginInfo.extractRepoName("login-theme", cacheManager1, null);
         assertEquals("login-theme-plugin", result);
     }
 
     @Test
     public void testExtractRepoNamePluginAbsentWithoutUrl() {
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("not-present", tempDir, null);
+            JenkinsPluginInfo.extractRepoName("not-present", cacheManager1, null);
         });
 
         assertEquals("Plugin not found in update center: not-present", exception.getMessage());
@@ -56,10 +63,10 @@ class JenkinsPluginInfoTest {
     public void testExtractRepoNamePluginPresentWithUrl() throws MalformedURLException {
         URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
 
-        String resultLoginTheme = JenkinsPluginInfo.extractRepoName("login-theme", tempDir2, updateCenterUrl);
+        String resultLoginTheme = JenkinsPluginInfo.extractRepoName("login-theme", cacheManager2, updateCenterUrl);
         assertEquals("login-theme-plugin", resultLoginTheme);
 
-        String resultJobCacher = JenkinsPluginInfo.extractRepoName("jobcacher", tempDir2, updateCenterUrl);
+        String resultJobCacher = JenkinsPluginInfo.extractRepoName("jobcacher", cacheManager2, updateCenterUrl);
         assertEquals("jobcacher-plugin", resultJobCacher);
     }
 
@@ -68,16 +75,18 @@ class JenkinsPluginInfoTest {
         URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("not-present", tempDir2, updateCenterUrl);
+            JenkinsPluginInfo.extractRepoName("not-present", cacheManager2, updateCenterUrl);
         });
 
         assertEquals("Plugin not found in update center: not-present", exception.getMessage());
     }
 
     @Test
-    public void testExtractRepoNameInvalidScmUrlFormat() {
+    public void testExtractRepoNameInvalidScmUrlFormat() throws MalformedURLException {
+        URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
+
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("invalid-plugin", tempDir, null);
+            JenkinsPluginInfo.extractRepoName("invalid-plugin", cacheManager1, updateCenterUrl);
         });
         assertEquals("Invalid SCM URL format: invalid-scm-url", exception.getMessage());
     }
@@ -85,8 +94,17 @@ class JenkinsPluginInfoTest {
     @Test
     public void testExtractRepoNameInvalidScmUrlFormat2() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            JenkinsPluginInfo.extractRepoName("invalid-plugin-2", tempDir, null);
+            JenkinsPluginInfo.extractRepoName("invalid-plugin-2", cacheManager1, null);
         });
         assertEquals("Invalid SCM URL format: /", exception.getMessage());
+    }
+
+    @Test
+    public void testInvalidJsonFormatWithProvidedUrl() throws MalformedURLException {
+        URL updateCenterUrl = new URL("https://www.example.com");
+
+        // Should fetch from default UC url as a fallback
+        String resultLoginTheme = JenkinsPluginInfo.extractRepoName("login-theme", cacheManager2, updateCenterUrl);
+        assertEquals("login-theme-plugin", resultLoginTheme);
     }
 }

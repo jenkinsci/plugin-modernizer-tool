@@ -1,8 +1,11 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,8 +13,6 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +20,9 @@ public class JenkinsPluginInfo {
     private static final Logger LOG = LoggerFactory.getLogger(JenkinsPluginInfo.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String extractRepoName(String pluginName, Path cacheDir, URL updateCenterUrl) {
+    public static String extractRepoName(String pluginName, CacheManager cacheManager, URL updateCenterUrl) {
         try {
-            UpdateCenterData updateCenterData = getCachedUpdateCenterData(cacheDir, updateCenterUrl);
+            UpdateCenterData updateCenterData = getCachedUpdateCenterData(cacheManager, updateCenterUrl);
             String scmUrl = updateCenterData.getScmUrl(pluginName);
 
             int lastSlashIndex = scmUrl.lastIndexOf('/');
@@ -36,17 +37,38 @@ public class JenkinsPluginInfo {
         }
     }
 
-    private static UpdateCenterData getCachedUpdateCenterData(Path cacheDir, URL updateCenterUrl) throws IOException {
-        Path cacheFile = cacheDir.resolve("update-center.json");
+    @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS", justification = "false positive")
+    private static UpdateCenterData getCachedUpdateCenterData(CacheManager cacheManager, URL updateCenterUrl)
+            throws IOException {
+        String cacheKey = Settings.UPDATE_CENTER_CACHE_KEY;
+        String cachedData = cacheManager.retrieveFromCache(cacheKey);
 
-        if (Files.exists(cacheFile)) {
-            String jsonStr = Files.readString(cacheFile);
-            return parseJson(jsonStr);
-        } else {
-            String jsonStr = fetchUpdateCenterData(updateCenterUrl);
-            Files.writeString(cacheFile, jsonStr);
-            return parseJson(jsonStr);
+        if (cachedData != null) {
+            try {
+                return parseJson(cachedData);
+            } catch (JsonParseException e) {
+                LOG.error("Failed to parse JSON, deleting cache entry for key: {}", cacheKey, e);
+                cacheManager.removeFromCache(cacheKey);
+            }
         }
+
+        String jsonStr = fetchUpdateCenterData(updateCenterUrl);
+        if (!isValidJson(jsonStr)) {
+            LOG.warn(
+                    "Invalid JSON format from URL: {}. Falling back to default URL {}.",
+                    updateCenterUrl,
+                    Settings.DEFAULT_UPDATE_CENTER_URL);
+            jsonStr = fetchUpdateCenterData(Settings.DEFAULT_UPDATE_CENTER_URL);
+        }
+
+        UpdateCenterData updateCenterData = parseJson(jsonStr);
+        cacheManager.addToCache(cacheKey, jsonStr);
+
+        return updateCenterData;
+    }
+
+    private static boolean isValidJson(String jsonStr) {
+        return jsonStr != null && jsonStr.startsWith("{") && jsonStr.startsWith("[");
     }
 
     private static UpdateCenterData parseJson(String jsonStr) throws IOException {

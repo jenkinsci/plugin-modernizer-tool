@@ -75,8 +75,8 @@ public class PluginModernizer {
     private void process(Plugin plugin) {
         try {
             // Determine repo name
-            plugin.withRepositoryName(JenkinsPluginInfo.extractRepoName(
-                    plugin.getName(), config.getCachePath(), config.getJenkinsUpdateCenter()));
+            plugin.withRepositoryName(
+                    JenkinsPluginInfo.extractRepoName(plugin.getName(), cacheManager, config.getJenkinsUpdateCenter()));
 
             if (config.isRemoveForks()) {
                 plugin.deleteFork(ghService);
