@@ -1,36 +1,54 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
-import java.util.List;
+import java.io.Serializable;
 import java.util.Map;
-import org.openrewrite.maven.tree.Dependency;
-import org.openrewrite.maven.tree.Parent;
 
-public class PluginMetadata {
+/**
+ * Metadata of a plugin extracted from its POM file or code
+ */
+public class PluginMetadata implements Serializable {
+
+    /**
+     * Name of the plugin
+     */
     private String pluginName;
-    private boolean isLicensed;
-    private boolean hasDevelopersTag;
+
+    /**
+     * Whether the plugin has a Java level defined in its POM file
+     */
     private boolean hasJavaLevel;
-    private boolean usesHttps;
+
+    /**
+     * Whether the plugin uses HTTPS for its SCM URL
+     */
+    private boolean usesScmHttps;
+
+    /**
+     * Whether the plugin uses HTTPS for all its repositories
+     */
+    private boolean usesRepositoriesHttps;
+
+    /**
+     * If the plugin has a Jenkinsfile
+     */
     private boolean hasJenkinsfile;
-    private List<Dependency> dependencies;
+
+    /**
+     * Jenkins version required by the plugin
+     */
     private String jenkinsVersion;
-    private Parent pluginParent;
+
+    /**
+     * Parent version
+     */
+    private String parentVersion;
+
+    /**
+     * Properties defined in the POM file of the plugin
+     */
     private Map<String, String> properties;
 
-    private static volatile PluginMetadata instance;
-
-    private PluginMetadata() {}
-
-    public static PluginMetadata getInstance() {
-        if (instance == null) {
-            synchronized (PluginMetadata.class) {
-                if (instance == null) {
-                    instance = new PluginMetadata();
-                }
-            }
-        }
-        return instance;
-    }
+    public PluginMetadata() {}
 
     public String getPluginName() {
         return pluginName;
@@ -38,14 +56,6 @@ public class PluginMetadata {
 
     public void setPluginName(String pluginName) {
         this.pluginName = pluginName;
-    }
-
-    public boolean isLicensed() {
-        return isLicensed;
-    }
-
-    public void setLicensed(boolean isLicensed) {
-        this.isLicensed = isLicensed;
     }
 
     public boolean hasJavaLevel() {
@@ -56,20 +66,20 @@ public class PluginMetadata {
         this.hasJavaLevel = hasJavaLevel;
     }
 
-    public boolean hasDevelopersTag() {
-        return hasDevelopersTag;
+    public boolean isUsesScmHttps() {
+        return usesScmHttps;
     }
 
-    public void setHasDevelopersTag(boolean hasDevelopersTag) {
-        this.hasDevelopersTag = hasDevelopersTag;
+    public void setUsesScmHttps(boolean usesScmHttps) {
+        this.usesScmHttps = usesScmHttps;
     }
 
-    public boolean isUsesHttps() {
-        return usesHttps;
+    public boolean isUsesRepositoriesHttps() {
+        return usesRepositoriesHttps;
     }
 
-    public void setUsesHttps(boolean usesHttps) {
-        this.usesHttps = usesHttps;
+    public void setUsesRepositoriesHttps(boolean usesRepositoriesHttps) {
+        this.usesRepositoriesHttps = usesRepositoriesHttps;
     }
 
     public boolean hasJenkinsfile() {
@@ -80,14 +90,6 @@ public class PluginMetadata {
         this.hasJenkinsfile = hasJenkinsfile;
     }
 
-    public List<Dependency> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies(List<Dependency> dependencies) {
-        this.dependencies = dependencies;
-    }
-
     public String getJenkinsVersion() {
         return jenkinsVersion;
     }
@@ -96,12 +98,12 @@ public class PluginMetadata {
         this.jenkinsVersion = jenkinsVersion;
     }
 
-    public Parent getPluginParent() {
-        return pluginParent;
+    public String getParentVersion() {
+        return parentVersion;
     }
 
-    public void setPluginParent(Parent pluginParent) {
-        this.pluginParent = pluginParent;
+    public void setParentVersion(String parentVersion) {
+        this.parentVersion = parentVersion;
     }
 
     public Map<String, String> getProperties() {
