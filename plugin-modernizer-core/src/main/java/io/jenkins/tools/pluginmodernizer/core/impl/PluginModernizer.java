@@ -1,5 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
+import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
@@ -122,6 +123,14 @@ public class PluginModernizer {
 
             // Switch to the target JDK path
             plugin.withJDK(jdkTarget);
+
+            // Collect metadata
+            plugin.collectMetadata(mavenInvoker);
+            plugin.readMetadata();
+
+            // TODO: Just a test, we need a better CacheManager that manage CacheEntry rather than String that require
+            // serialization from caller. Probably also some GSON serialization are missing
+            cacheManager.addToCache(plugin.getName() + "-metadata", new Gson().toJson(plugin.getMetadata()));
 
             // Run OpenRewrite
             plugin.runOpenRewrite(mavenInvoker);

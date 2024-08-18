@@ -1,12 +1,16 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
+import com.google.gson.Gson;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -45,6 +49,11 @@ public class Plugin {
      * The JDK to use
      */
     private JDK jdk;
+
+    /**
+     * The metadata of the plugin
+     */
+    private PluginMetadata metadata;
 
     /**
      * Flag to indicate if the plugin has any commits to be pushed
@@ -391,6 +400,14 @@ public class Plugin {
     }
 
     /**
+     * Collect plugin metadata
+     * @param maven The maven invoker instance
+     */
+    public void collectMetadata(MavenInvoker maven) {
+        maven.collectMetadata(this);
+    }
+
+    /**
      * Run the openrewrite plugin on this plugin
      * @param maven The maven invoker instance
      */
@@ -502,6 +519,32 @@ public class Plugin {
      */
     public GHRepository getRemoteForkRepository(GHService service) {
         return service.getRepositoryFork(this);
+    }
+
+    /**
+     * Read plugin metadata and save in memory
+     */
+    public void readMetadata() {
+        Gson gson = new Gson();
+        try (FileReader reader = new FileReader(
+                getLocalRepository()
+                        .resolve("target")
+                        .resolve("pluginMetadata.json")
+                        .toFile(),
+                StandardCharsets.UTF_8)) {
+            metadata = gson.fromJson(reader, PluginMetadata.class);
+        } catch (IOException e) {
+            addError("Failed to read plugin metadata", e);
+            raiseLastError();
+        }
+    }
+
+    /**
+     * Get the metadata of the plugin
+     * @return Plugin metadata
+     */
+    public PluginMetadata getMetadata() {
+        return metadata;
     }
 
     @Override
