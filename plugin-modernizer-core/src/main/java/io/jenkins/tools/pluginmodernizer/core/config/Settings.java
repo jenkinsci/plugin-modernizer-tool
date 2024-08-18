@@ -2,7 +2,6 @@ package io.jenkins.tools.pluginmodernizer.core.config;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,10 +53,6 @@ public class Settings {
     public static final Recipe FETCH_METADATA_RECIPE;
 
     public static final Recipe MINIMAL_BUILD_JAVA_8_RECIPE;
-
-    // Default JDK to use when compiling plugin
-    public static final int SOURCE_JAVA_MAJOR_VERSION = JDK.getDefaultSource().getMajor();
-    public static final int TARGET_JAVA_MAJOR_VERSION = JDK.getDefaultTarget().getMajor();
 
     private Settings() {}
 
