@@ -186,6 +186,8 @@ public class PluginModernizer {
                 .filter(j -> {
                     plugin.withJDK(j);
                     plugin.clean(mavenInvoker);
+                    // TODO: Next PR, update metadata to include list of repositories using still HTTP
+                    // plugin.ensureMinimalBuild(mavenInvoker);
                     plugin.compile(mavenInvoker);
                     if (plugin.hasErrors()) {
                         LOG.info(
