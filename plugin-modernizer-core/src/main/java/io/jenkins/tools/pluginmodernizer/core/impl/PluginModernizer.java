@@ -111,13 +111,13 @@ public class PluginModernizer {
 
             // Compile the plugin with the first JDK that compile it
             plugin.withJDK(jdkSource);
-            JDK jdk = compilePlugin(plugin);
-            if (jdk == null) {
+            JDK jdkCompile = compilePlugin(plugin);
+            if (jdkCompile == null) {
                 plugin.addError("Plugin failed to compile with all JDK.");
                 LOG.info("Plugin {} fail to compile all JDK. Aborting this plugin.", plugin.getName());
                 return;
             }
-            LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk.getMajor());
+            LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdkCompile.getMajor());
 
             plugin.checkoutBranch(ghService);
 
@@ -141,11 +141,15 @@ public class PluginModernizer {
                 return;
             }
 
-            // Switch back to the apt JDK path unless a jdk upgrading recipe is applied
-            plugin.withJDK(JDK.get(jdk.getMajor()));
+            // Verify the plugin with the first JDK that verifies it
+            JDK jdkVerify = verifyPlugin(plugin);
+            if (jdkVerify == null) {
+                plugin.addError("Plugin failed to verify with all JDKs.");
+                LOG.info("Plugin {} failed to verify with all JDKs. Aborting this plugin.", plugin.getName());
+                return;
+            }
+            LOG.info("Plugin {} verified successfully with JDK {}", plugin.getName(), jdkVerify.getMajor());
 
-            // Verify
-            plugin.verify(mavenInvoker);
             if (plugin.hasErrors()) {
                 LOG.warn(
                         "Skipping plugin {} due to verification errors after modernization. Check logs for more details.",
@@ -176,7 +180,7 @@ public class PluginModernizer {
     }
 
     /**
-     * Compile a plugin an return the first JDK that compile it
+     * Compile a plugin and return the first JDK that compile it
      * @param plugin The plugin to compile
      * @return The JDK that compile the plugin
      */
@@ -205,7 +209,33 @@ public class PluginModernizer {
     }
 
     /**
-     * Collect results from the plugins and diplay a summarry
+     * Verify a plugin and return the first JDK that successfully verifies it, starting from the target JDK and moving backward
+     * @param plugin The plugin to verify
+     * @return The JDK that verifies the plugin
+     */
+    private JDK verifyPlugin(Plugin plugin) {
+        return Stream.iterate(JDK.max(), JDK::previous)
+                .filter(j -> {
+                    plugin.withJDK(j);
+                    plugin.clean(mavenInvoker);
+                    plugin.verify(mavenInvoker);
+                    if (plugin.hasErrors()) {
+                        LOG.info(
+                                "Plugin {} failed to verify with JDK {}. Trying previous one",
+                                plugin.getName(),
+                                j.getMajor());
+                        plugin.withoutErrors();
+                        return false;
+                    }
+                    plugin.withoutErrors();
+                    return true;
+                })
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Collect results from the plugins and display a summary
      * @param plugins The plugins
      */
     private void printResults(List<Plugin> plugins) {

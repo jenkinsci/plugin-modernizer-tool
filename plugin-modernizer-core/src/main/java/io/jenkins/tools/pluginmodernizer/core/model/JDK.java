@@ -85,12 +85,34 @@ public enum JDK {
     }
 
     /**
+     * Return the previous JDK available
+     * @return The previous JDK
+     */
+    public JDK previous() {
+        int major = getMajor();
+        return Arrays.stream(JDK.values())
+                .sorted(Comparator.comparingInt(JDK::getMajor).reversed())
+                .filter(jdk -> jdk.getMajor() < major)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Has next predicate
      * @param jdk The JDK
      * @return True if there is a next JDK
      */
     public static boolean hasNext(JDK jdk) {
         return jdk.next() != null;
+    }
+
+    /**
+     * Has before predicate
+     * @param jdk The JDK
+     * @return True if there is a previous JDK
+     */
+    public static boolean hasPrevious(JDK jdk) {
+        return jdk.previous() != null;
     }
 
     public final int compareMajor(JDK jdk) {
