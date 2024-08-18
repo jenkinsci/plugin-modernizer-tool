@@ -6,11 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-import java.util.List;
+import com.google.gson.Gson;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
-import org.openrewrite.maven.tree.Dependency;
-import org.openrewrite.maven.tree.Parent;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -21,7 +22,7 @@ public class MetadataCollectorTest implements RewriteTest {
     }
 
     @Test
-    void testPlugin() {
+    void testPlugin() throws Exception {
         // language=xml
         rewriteRun(
                 pomXml(
@@ -48,22 +49,12 @@ public class MetadataCollectorTest implements RewriteTest {
                               <url>http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html</url>
                             </license>
                           </licenses>
-
-                          <developers>
-                            <developer>
-                              <id>markyjackson-taulia</id>
-                              <name>Marky Jackson</name>
-                              <email>marky.r.jackson@gmail.com</email>
-                            </developer>
-                          </developers>
-
                           <scm>
                             <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
                             <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
                             <tag>${scmTag}</tag>
                             <url>https://github.com/${gitHubRepo}</url>
                           </scm>
-
                           <distributionManagement>
                             <repository>
                               <id>maven.jenkins-ci.org</id>
@@ -141,27 +132,19 @@ public class MetadataCollectorTest implements RewriteTest {
                           </pluginRepositories>
                         </project>
                         """));
-        PluginMetadata pluginMetadata = PluginMetadata.getInstance();
+        PluginMetadata pluginMetadata = new Gson()
+                .fromJson(
+                        FileUtils.readFileToString(new File("target/pluginMetadata.json"), StandardCharsets.UTF_8),
+                        PluginMetadata.class);
         String pluginName = pluginMetadata.getPluginName();
         assertEquals("GitLab Plugin", pluginName);
-        Parent parent = pluginMetadata.getPluginParent();
-        assertEquals("org.jenkins-ci.plugins:plugin:4.80", parent.getGav().toString());
+        assertEquals("4.80", pluginMetadata.getParentVersion());
         String jenkinsVersion = pluginMetadata.getJenkinsVersion();
         assertEquals("2.426.3", jenkinsVersion);
-        boolean isLicensed = pluginMetadata.isLicensed();
-        assertTrue(isLicensed);
         boolean hasJavaLevel = pluginMetadata.hasJavaLevel();
         assertTrue(hasJavaLevel);
-        boolean hasDevelopersTag = pluginMetadata.hasDevelopersTag();
-        assertTrue(hasDevelopersTag);
-        boolean usesHttps = pluginMetadata.isUsesHttps();
+        boolean usesHttps = pluginMetadata.isUsesScmHttps();
         assertTrue(usesHttps);
-        List<Dependency> dependencies = pluginMetadata.getDependencies();
-        assertNotNull(dependencies);
-        assertEquals(3, dependencies.size());
-        Dependency dependency = dependencies.get(0);
-        assertNotNull(dependency);
-        assertEquals("io.jenkins.plugins:caffeine-api", dependency.getGav().toString());
         Map<String, String> properties = pluginMetadata.getProperties();
         assertNotNull(properties);
         assertEquals(10, properties.size());
