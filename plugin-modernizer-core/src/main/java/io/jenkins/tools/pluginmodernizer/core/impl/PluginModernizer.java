@@ -141,6 +141,9 @@ public class PluginModernizer {
                 return;
             }
 
+            // Switch back to the apt JDK path unless a jdk upgrading recipe is applied
+            plugin.withJDK(JDK.get(jdk.getMajor()));
+
             // Verify
             plugin.verify(mavenInvoker);
             if (plugin.hasErrors()) {
