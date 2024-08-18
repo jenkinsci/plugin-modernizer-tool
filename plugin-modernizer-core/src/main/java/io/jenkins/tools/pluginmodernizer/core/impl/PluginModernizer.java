@@ -111,13 +111,13 @@ public class PluginModernizer {
 
             // Compile the plugin with the first JDK that compile it
             plugin.withJDK(jdkSource);
-            JDK jdk_compile = compilePlugin(plugin);
-            if (jdk_compile == null) {
+            JDK jdkCompile = compilePlugin(plugin);
+            if (jdkCompile == null) {
                 plugin.addError("Plugin failed to compile with all JDK.");
                 LOG.info("Plugin {} fail to compile all JDK. Aborting this plugin.", plugin.getName());
                 return;
             }
-            LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk_compile.getMajor());
+            LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdkCompile.getMajor());
 
             plugin.checkoutBranch(ghService);
 
@@ -142,13 +142,13 @@ public class PluginModernizer {
             }
 
             // Verify the plugin with the first JDK that verifies it
-            JDK jdk_verify = verifyPlugin(plugin);
-            if (jdk_verify == null) {
+            JDK jdkVerify = verifyPlugin(plugin);
+            if (jdkVerify == null) {
                 plugin.addError("Plugin failed to verify with all JDKs.");
                 LOG.info("Plugin {} failed to verify with all JDKs. Aborting this plugin.", plugin.getName());
                 return;
             }
-            LOG.info("Plugin {} verified successfully with JDK {}", plugin.getName(), jdk_verify.getMajor());
+            LOG.info("Plugin {} verified successfully with JDK {}", plugin.getName(), jdkVerify.getMajor());
 
             if (plugin.hasErrors()) {
                 LOG.warn(
