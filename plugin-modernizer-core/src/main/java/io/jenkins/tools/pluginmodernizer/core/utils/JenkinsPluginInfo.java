@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,16 +44,16 @@ public class JenkinsPluginInfo {
     @SuppressFBWarnings(value = "CRLF_INJECTION_LOGS", justification = "false positive")
     private static UpdateCenterData getCachedUpdateCenterData(CacheManager cacheManager, URL updateCenterUrl)
             throws IOException {
-        String cacheKey = Settings.UPDATE_CENTER_CACHE_KEY;
-        String cachedData = cacheManager.retrieveFromCache(cacheKey);
+        String cacheKey = CacheManager.UPDATE_CENTER_CACHE_KEY;
 
-        if (cachedData != null) {
-            try {
-                return parseJson(cachedData);
-            } catch (JsonParseException e) {
-                LOG.error("Failed to parse JSON, deleting cache entry for key: {}", cacheKey, e);
-                cacheManager.removeFromCache(cacheKey);
-            }
+        try {
+            String cachedData = cacheManager.get(cacheManager.root(), cacheKey);
+            return parseJson(cacheManager, cachedData);
+        } catch (JsonParseException e) {
+            LOG.error("Failed to parse JSON, deleting cache entry for key: {}", cacheKey, e);
+            cacheManager.remove(Path.of("."), cacheKey);
+        } catch (ModernizerException e) {
+            LOG.debug("Update center data not found in cache", e);
         }
 
         String jsonStr = fetchUpdateCenterData(updateCenterUrl);
@@ -64,8 +65,8 @@ public class JenkinsPluginInfo {
             jsonStr = fetchUpdateCenterData(Settings.DEFAULT_UPDATE_CENTER_URL);
         }
 
-        UpdateCenterData updateCenterData = parseJson(jsonStr);
-        cacheManager.addToCache(cacheKey, jsonStr);
+        UpdateCenterData updateCenterData = parseJson(cacheManager, jsonStr);
+        cacheManager.put(cacheManager.root(), cacheKey, jsonStr);
 
         return updateCenterData;
     }
@@ -74,9 +75,9 @@ public class JenkinsPluginInfo {
         return jsonStr != null && jsonStr.startsWith("{");
     }
 
-    private static UpdateCenterData parseJson(String jsonStr) throws IOException {
+    private static UpdateCenterData parseJson(CacheManager cacheManager, String jsonStr) throws IOException {
         JsonNode jsonNode = objectMapper.readTree(jsonStr);
-        return new UpdateCenterData(jsonNode);
+        return new UpdateCenterData(cacheManager, jsonNode);
     }
 
     @SuppressFBWarnings(value = "URLCONNECTION_SSRF_FD", justification = "safe url")

@@ -1,12 +1,5 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
-import com.google.gson.Gson;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -111,15 +104,8 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 pluginMetadata.setHasJenkinsfile(acc.hasJenkinsfile);
 
                 // Write the metadata to a file for later use by the plugin modernizer.
-                Path path = Paths.get("target/pluginMetadata.json");
-                try (OutputStreamWriter writer =
-                        new OutputStreamWriter(new FileOutputStream(path.toFile()), StandardCharsets.UTF_8)) {
-                    Gson gson = new Gson();
-                    gson.toJson(pluginMetadata, writer);
-                    LOG.debug("Plugin metadata written to {}", path);
-                } catch (IOException e) {
-                    LOG.error(e.getMessage(), e);
-                }
+                pluginMetadata.save();
+                LOG.debug("Plugin metadata written to {}", pluginMetadata.getRelativePath());
 
                 return document;
             }

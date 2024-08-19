@@ -1,13 +1,18 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
+import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 
-public class UpdateCenterData {
+public class UpdateCenterData extends CacheEntry<UpdateCenterData> implements Serializable {
+
     private final JsonNode jsonNode;
 
-    public UpdateCenterData(JsonNode jsonNode) {
+    public UpdateCenterData(CacheManager cacheManager, JsonNode jsonNode) {
+        super(cacheManager, UpdateCenterData.class, CacheManager.UPDATE_CENTER_CACHE_KEY, Path.of("."));
         this.jsonNode = Objects.requireNonNull(jsonNode, "jsonNode must not be null");
     }
 

@@ -2,7 +2,6 @@ package io.jenkins.tools.pluginmodernizer.core.impl;
 
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,22 +13,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CacheManager {
+
+    // Cache keys
+    public static final String UPDATE_CENTER_CACHE_KEY = "update-center";
+    public static final String PLUGIN_METADATA_CACHE_KEY = "plugin-metadata";
+
     private static final Logger LOG = LoggerFactory.getLogger(CacheManager.class);
+
     private final Path location;
     private final Clock clock;
     private final boolean expires;
 
+    /**
+     * Creates a new cache manager
+     * @param cache The location of the cache
+     */
     public CacheManager(Path cache) {
         this(cache, Clock.systemDefaultZone(), true);
     }
 
+    // TODO: Need to be removed. This is only for testing purposes
+    // Same can be achieved by using ReflectionUtils.setField
+    @Deprecated
     CacheManager(Path cache, Clock clock, boolean expires) {
         this.location = cache;
         this.clock = clock;
         this.expires = expires;
     }
 
-    void createCache() {
+    /**
+     * Initializes the cache directory
+     */
+    public void init() {
         if (!Files.exists(location)) {
             try {
                 Path parent = location.getParent();
@@ -44,10 +59,16 @@ public class CacheManager {
         }
     }
 
-    public void addToCache(String cacheKey, String value) {
-        Path fileToCache = location.resolve(cacheKey + ".json");
-        try (Writer writer = Files.newBufferedWriter(fileToCache, StandardCharsets.UTF_8)) {
-            writer.write(value);
+    /**
+     * Put an object to the cache
+     * @param path The relative path to the object
+     * @param cacheKey The key to store the object
+     * @param value The object to store
+     */
+    public void put(Path path, String cacheKey, String value) {
+        Path fileToCache = location.resolve(path).resolve(cacheKey + ".json");
+        try {
+            Files.writeString(fileToCache, value, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new ModernizerException("Unable to add cache", e);
         }
@@ -59,12 +80,13 @@ public class CacheManager {
      * Will return null if the key can't be found or if it hasn't been
      * modified for 1 hour
      *
+     * @param path     subdirectory of the object
      * @param cacheKey key to lookup, i.e. update-center
      * @return the cached json object as a string or null
      */
-    public String retrieveFromCache(String cacheKey) {
+    public String get(Path path, String cacheKey) {
         String filename = cacheKey + ".json";
-        Path cachedPath = location.resolve(filename);
+        Path cachedPath = location.resolve(path).resolve(filename);
         try {
             FileTime lastModifiedTime = Files.getLastModifiedTime(cachedPath);
             Duration between = Duration.between(lastModifiedTime.toInstant(), clock.instant());
@@ -82,12 +104,16 @@ public class CacheManager {
 
             return FileUtils.readFileToString(cachedPath.toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            return null;
+            throw new ModernizerException("Unable to retrieve cache for key " + cacheKey, e);
         }
     }
 
-    public void removeFromCache(String cacheKey) {
-        Path fileToRemove = location.resolve(cacheKey + ".json");
+    /**
+     * Removes a cache entry
+     * @param cacheKey The key to remove
+     */
+    public void remove(Path path, String cacheKey) {
+        Path fileToRemove = location.resolve(path).resolve(cacheKey + ".json");
         try {
             if (Files.exists(fileToRemove)) {
                 Files.delete(fileToRemove);
@@ -96,5 +122,21 @@ public class CacheManager {
         } catch (IOException e) {
             throw new ModernizerException("Failed to remove cache entry for key: " + cacheKey, e);
         }
+    }
+
+    /**
+     * Get the location of the cache
+     * @return The location
+     */
+    public Path getLocation() {
+        return location;
+    }
+
+    /**
+     * Get the root of the cache
+     * @return The root
+     */
+    public Path root() {
+        return Path.of(".");
     }
 }
