@@ -37,4 +37,46 @@ public class JDKTest {
         // Adapt when new JDK are added
         assertEquals(JDK.JAVA_21, JDK.max());
     }
+
+    @Test
+    public void getBuildableJdk() {
+
+        assertEquals(1, JDK.get("2.163").size());
+        assertEquals(JDK.JAVA_8, JDK.get("2.163").get(0));
+
+        assertEquals(2, JDK.get("2.164.1").size());
+        assertEquals(JDK.JAVA_8, JDK.get("2.164.1").get(0));
+        assertEquals(JDK.JAVA_11, JDK.get("2.164.1").get(1));
+
+        assertEquals(2, JDK.get("2.339").size());
+        assertEquals(JDK.JAVA_8, JDK.get("2.339").get(0));
+        assertEquals(JDK.JAVA_11, JDK.get("2.339").get(1));
+
+        assertEquals(3, JDK.get("2.346.1").size());
+        assertEquals(JDK.JAVA_8, JDK.get("2.346.1").get(0));
+        assertEquals(JDK.JAVA_11, JDK.get("2.346.1").get(1));
+        assertEquals(JDK.JAVA_17, JDK.get("2.346.1").get(2));
+
+        assertEquals(2, JDK.get("2.357").size());
+        assertEquals(JDK.JAVA_11, JDK.get("2.357").get(0));
+        assertEquals(JDK.JAVA_17, JDK.get("2.357").get(1));
+
+        assertEquals(2, JDK.get("2.361.1").size());
+        assertEquals(JDK.JAVA_11, JDK.get("2.361.1").get(0));
+        assertEquals(JDK.JAVA_17, JDK.get("2.361.1").get(1));
+
+        assertEquals(3, JDK.get("2.426.1").size());
+        assertEquals(JDK.JAVA_11, JDK.get("2.426.1").get(0));
+        assertEquals(JDK.JAVA_17, JDK.get("2.426.1").get(1));
+        assertEquals(JDK.JAVA_21, JDK.get("2.426.1").get(2));
+
+        assertEquals(3, JDK.get("2.463").size());
+        assertEquals(JDK.JAVA_11, JDK.get("2.463").get(0));
+        assertEquals(JDK.JAVA_17, JDK.get("2.463").get(1));
+        assertEquals(JDK.JAVA_21, JDK.get("2.463").get(2));
+
+        assertEquals(2, JDK.get("2.464").size());
+        assertEquals(JDK.JAVA_17, JDK.get("2.464").get(0));
+        assertEquals(JDK.JAVA_21, JDK.get("2.464").get(1));
+    }
 }

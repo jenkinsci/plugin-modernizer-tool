@@ -228,14 +228,6 @@ public class MainTest {
     }
 
     @Test
-    public void testJdkMajorOptions() throws MalformedURLException {
-        String[] args = {"--source-java-major-version", "11", "--target-java-major-version", "21"};
-        commandLine.execute(args);
-        assertEquals(11, main.setup().getSourceJavaMajorVersion());
-        assertEquals(21, main.setup().getTargetJavaMajorVersion());
-    }
-
-    @Test
     public void testListRecipesOption() {
         String[] args = {"-l"};
         commandLine.execute(args);

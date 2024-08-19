@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 
 /**
  * JDK enum to compile and build a Jenkins plugin
@@ -19,11 +21,12 @@ public enum JDK {
 
     /**
      * Available JDKs
+     * See <a href="https://www.jenkins.io/doc/book/platform-information/support-policy-java/">Java Support Policy</a> for details
      */
-    JAVA_8(8, true),
-    JAVA_11(11, true),
-    JAVA_17(17, true),
-    JAVA_21(21, true);
+    JAVA_8(8, true, null, "2.346.1"),
+    JAVA_11(11, true, "2.164.1", "2.463"), // No LTS drop Java 11 yet
+    JAVA_17(17, true, "2.346.1", null),
+    JAVA_21(21, true, "2.426.1", null);
 
     /**
      * The major version
@@ -36,12 +39,25 @@ public enum JDK {
     private final boolean lts;
 
     /**
-     * Constructor
-     * @param major The major version
+     * The compatibility since for this JDK
      */
-    JDK(int major, boolean lts) {
+    private final String compatibleSince;
+
+    /**
+     * The maximum required core version
+     */
+    private final String maximumCoreVersion;
+
+    /**
+     * Constructor
+     * @param major The Java major version
+     * @param lts If the version is LTS
+     */
+    JDK(int major, boolean lts, String compatibleSince, String maximumCoreVersion) {
         this.major = major;
         this.lts = lts;
+        this.compatibleSince = compatibleSince;
+        this.maximumCoreVersion = maximumCoreVersion;
     }
 
     /**
@@ -50,6 +66,22 @@ public enum JDK {
      */
     public int getMajor() {
         return major;
+    }
+
+    /**
+     * Get the minimum required core version
+     * @return The minimum required core version
+     */
+    public String getCompatibleSince() {
+        return compatibleSince;
+    }
+
+    /**
+     * Get the maximum required core version
+     * @return The maximum required core version
+     */
+    public String getMaxCoreVersion() {
+        return maximumCoreVersion;
     }
 
     /**
@@ -95,6 +127,15 @@ public enum JDK {
                 .filter(jdk -> jdk.getMajor() < major)
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Check if the JDK is supported for a given Jenkins version
+     * @param jenkinsVersion The Jenkins version
+     * @return True if supported
+     */
+    public boolean supported(String jenkinsVersion) {
+        return get(jenkinsVersion).contains(this);
     }
 
     /**
@@ -154,18 +195,43 @@ public enum JDK {
     }
 
     /**
-     * Get the default source JDK to compile before modernization
-     * @return The default source JDK
+     * Get the oldest JDK available
+     * @return The oldest JDK
      */
-    public static JDK getDefaultSource() {
-        return JDK.JAVA_8;
+    public static JDK min() {
+        JDK jdk = null;
+        for (JDK j : JDK.values()) {
+            if (jdk == null || j.getMajor() < jdk.getMajor()) {
+                jdk = j;
+            }
+        }
+        return jdk;
     }
 
     /**
-     * Get the default target JDK to compile after modernization
-     * @return The default target JDK
+     * Get list of buildable JDKs for a given Jenkins version
+     * @param jenkinsVersion The Jenkins version
+     * @return The list of buildable JDKs
      */
-    public static JDK getDefaultTarget() {
-        return JDK.JAVA_17;
+    public static List<JDK> get(String jenkinsVersion) {
+        ComparableVersion jenkinsVersionComparable = new ComparableVersion(jenkinsVersion);
+        return Arrays.stream(JDK.values())
+
+                // Filter since
+                .filter(jdk -> {
+                    if (jdk.getCompatibleSince() == null) {
+                        return true;
+                    }
+                    ComparableVersion compatibleSince = new ComparableVersion(jdk.getCompatibleSince());
+                    return jenkinsVersionComparable.compareTo(compatibleSince) >= 0;
+                })
+                .filter(jdk -> {
+                    if (jdk.getMaxCoreVersion() == null) {
+                        return true;
+                    }
+                    ComparableVersion maxCoreVersion = new ComparableVersion(jdk.getMaxCoreVersion());
+                    return jenkinsVersionComparable.compareTo(maxCoreVersion) <= 0;
+                })
+                .toList();
     }
 }

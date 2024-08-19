@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
@@ -60,8 +61,6 @@ public class PluginModernizer {
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Skip Push: {}", config.isSkipPush());
         LOG.debug("Skip Pull Request: {}", config.isSkipPullRequest());
-        LOG.debug("Source Java Major Version: {}", config.getSourceJavaMajorVersion());
-        LOG.debug("Target Java Major Version: {}", config.getTargetJavaMajorVersion());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
 
         List<Plugin> plugins =
@@ -97,12 +96,6 @@ public class PluginModernizer {
                 plugin.removeLocalData();
             }
 
-            JDK jdkSource = JDK.get(config.getSourceJavaMajorVersion());
-            JDK jdkTarget = JDK.get(config.getTargetJavaMajorVersion());
-
-            LOG.debug("Using JDK build path: {}", jdkSource.getHome(jdkFetcher));
-            LOG.debug("Using JDK target path: {}", jdkTarget.getHome(jdkFetcher));
-
             plugin.fetch(ghService);
 
             if (plugin.hasErrors()) {
@@ -110,7 +103,6 @@ public class PluginModernizer {
             }
 
             // Compile the plugin with the first JDK that compile it
-            plugin.withJDK(jdkSource);
             JDK jdkCompile = compilePlugin(plugin);
             if (jdkCompile == null) {
                 plugin.addError("Plugin failed to compile with all JDK.");
@@ -121,8 +113,8 @@ public class PluginModernizer {
 
             plugin.checkoutBranch(ghService);
 
-            // Switch to the target JDK path
-            plugin.withJDK(jdkTarget);
+            // Minimum JDK to run openrewrite
+            plugin.withJDK(JDK.JAVA_17);
 
             // Collect metadata
             plugin.collectMetadata(mavenInvoker);
@@ -185,7 +177,18 @@ public class PluginModernizer {
      * @return The JDK that compile the plugin
      */
     private JDK compilePlugin(Plugin plugin) {
-        return Stream.iterate(plugin.getJDK(), JDK::hasNext, JDK::next)
+
+        PluginMetadata metadata = plugin.getMetadata();
+        JDK jdk;
+
+        // TODO: For now it's always null because we don't persist nor cache metadata
+        if (metadata == null) {
+            LOG.info("Metadata is not yet computed for plugin {}. Using minimum JDK available", plugin.getName());
+            jdk = JDK.min();
+        } else {
+            jdk = plugin.getJDK();
+        }
+        return Stream.iterate(jdk, JDK::hasNext, JDK::next)
                 .sorted(JDK::compareMajor)
                 .filter(j -> {
                     plugin.withJDK(j);
@@ -214,7 +217,9 @@ public class PluginModernizer {
      * @return The JDK that verifies the plugin
      */
     private JDK verifyPlugin(Plugin plugin) {
+        String coreVersion = plugin.getMetadata().getJenkinsVersion();
         return Stream.iterate(JDK.max(), JDK::previous)
+                .filter(j -> j.supported(coreVersion))
                 .filter(j -> {
                     plugin.withJDK(j);
                     plugin.clean(mavenInvoker);
