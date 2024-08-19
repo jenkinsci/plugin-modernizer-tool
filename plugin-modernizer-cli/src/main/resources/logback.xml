@@ -37,6 +37,7 @@
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="SIFT" />
     </root>
+    <logger name="jdk.httpclient" level="INFO" />
     <logger name="io.jenkins.tools.pluginmodernizer" level="TRACE" />
     <logger name="jdk.event.security" level="INFO" />
     <logger name="java.lang.ProcessBuilder" level="WARN" />

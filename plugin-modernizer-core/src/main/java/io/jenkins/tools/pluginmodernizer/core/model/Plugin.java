@@ -1,16 +1,13 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
-import com.google.gson.Gson;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -299,6 +296,14 @@ public class Plugin {
     }
 
     /**
+     * Get the configuration of the plugin
+     * @return Configuration
+     */
+    public Config getConfig() {
+        return config;
+    }
+
+    /**
      * Get the name of the plugin
      * @return Name of the plugin
      */
@@ -542,29 +547,19 @@ public class Plugin {
     }
 
     /**
-     * Read plugin metadata and save in memory
-     */
-    public void readMetadata() {
-        Gson gson = new Gson();
-        try (FileReader reader = new FileReader(
-                getLocalRepository()
-                        .resolve("target")
-                        .resolve("pluginMetadata.json")
-                        .toFile(),
-                StandardCharsets.UTF_8)) {
-            metadata = gson.fromJson(reader, PluginMetadata.class);
-        } catch (IOException e) {
-            addError("Failed to read plugin metadata", e);
-            raiseLastError();
-        }
-    }
-
-    /**
      * Get the metadata of the plugin
      * @return Plugin metadata
      */
     public PluginMetadata getMetadata() {
         return metadata;
+    }
+
+    /**
+     * Set the metadata of the plugin
+     * @param metadata Plugin metadata
+     */
+    public void setMetadata(PluginMetadata metadata) {
+        this.metadata = metadata;
     }
 
     @Override

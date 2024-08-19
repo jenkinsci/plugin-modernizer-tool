@@ -296,7 +296,7 @@ public class MavenInvoker {
                 } else {
                     errorMessage = "Build failed";
                 }
-                plugin.addError(errorMessage, new MavenInvocationException(errorMessage));
+                plugin.addError(errorMessage);
             }
         }
     }

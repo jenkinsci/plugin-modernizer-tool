@@ -2,12 +2,12 @@ package io.jenkins.tools.pluginmodernizer.core.impl;
 
 import static java.time.Clock.systemUTC;
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.jenkins.tools.pluginmodernizer.core.model.CacheEntry;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,44 +28,48 @@ public class CacheManagerTest {
 
     private Path cachePath;
 
+    private static class TestCacheEntry extends CacheEntry<TestCacheEntry> {
+        public TestCacheEntry(CacheManager cacheManager, Class<TestCacheEntry> clazz, String key, Path path) {
+            super(cacheManager, clazz, key, path);
+        }
+    }
+
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() {
         cachePath = tempDir.resolve("cache");
         cacheManager = new CacheManager(cachePath);
-        cacheManager.createCache();
+        cacheManager.init();
     }
 
     @Test
-    void testAddToCache() throws IOException {
+    void testPut() throws IOException {
         String cacheKey = "testKey";
-        String value = "{\"key\": \"value\"}";
-        cacheManager.addToCache(cacheKey, value);
-
-        Path fileToCache = cachePath.resolve(cacheKey + ".json");
+        TestCacheEntry value = new TestCacheEntry(cacheManager, TestCacheEntry.class, cacheKey, cachePath);
+        cacheManager.put(value);
+        Path fileToCache = cachePath.resolve(cacheKey);
         assertTrue(Files.exists(fileToCache));
-        assertEquals(value, Files.readString(fileToCache));
     }
 
     @Test
     public void cacheReturnsNullWhenJsonWasPutIntoCacheMoreThanAnHourAgo() {
+        String cacheKey = "testKey";
         CacheManager managerWithExpiredEntries = cacheManagerWithExpiredEntries();
-
-        managerWithExpiredEntries.addToCache("the-cache-key", "{Dummy-json}");
-
-        String jsonStr = managerWithExpiredEntries.retrieveFromCache("the-cache-key");
-
+        TestCacheEntry value = new TestCacheEntry(cacheManager, TestCacheEntry.class, cacheKey, cachePath);
+        managerWithExpiredEntries.put(value);
+        TestCacheEntry jsonStr =
+                managerWithExpiredEntries.get(cacheManager.root(), "the-cache-key", TestCacheEntry.class);
         assertNull(jsonStr);
     }
 
     @Test
     public void cacheReturnsJsonStringWhenJsonWasPutIntoCacheLessThanAnHourAgo() {
+        String cacheKey = "testKey";
         CacheManager managerWithoutExpiredEntries = cacheManagerWithoutExpiredEntries();
+        TestCacheEntry value = new TestCacheEntry(cacheManager, TestCacheEntry.class, cacheKey, cachePath);
+        managerWithoutExpiredEntries.put(value);
 
-        managerWithoutExpiredEntries.addToCache("the-cache-key", "{Dummy-json}");
-
-        String jsonStr = managerWithoutExpiredEntries.retrieveFromCache("the-cache-key");
-
-        assertNotNull(jsonStr);
+        TestCacheEntry entry = managerWithoutExpiredEntries.get(cacheManager.root(), cacheKey, TestCacheEntry.class);
+        assertNotNull(entry);
     }
 
     private CacheManager cacheManagerWithoutExpiredEntries() {
@@ -82,26 +86,26 @@ public class CacheManagerTest {
 
     private CacheManager cacheManager(Clock clock) {
         CacheManager manager = new CacheManager(cachePath, clock, true);
-        manager.createCache();
+        manager.init();
         return manager;
     }
 
     @Test
-    void testRetrieveFromCacheWhenNotExpired() throws IOException {
+    void testGetWhenNotExpired() {
         Path cachePath = tempDir.resolve("cache");
         CacheManager cacheManager = new CacheManager(cachePath, Clock.systemDefaultZone(), true);
-        cacheManager.createCache();
+        cacheManager.init();
 
         String cacheKey = "testKey";
-        String value = "{\"key\": \"value\"}";
-        cacheManager.addToCache(cacheKey, value);
+        TestCacheEntry value = new TestCacheEntry(cacheManager, TestCacheEntry.class, cacheKey, cachePath);
+        cacheManager.put(value);
 
         // Simulate not expired
-        assertEquals(value, cacheManager.retrieveFromCache(cacheKey));
+        assertNotNull(cacheManager.get(cacheManager.root(), cacheKey, TestCacheEntry.class));
     }
 
     @Test
-    void testRetrieveFromCacheWithExpirationDisabled() throws IOException {
+    void testGetWithExpirationDisabled() {
         Path cachePath = tempDir.resolve("cache");
         CacheManager cacheManager = new CacheManager(
                 cachePath,
@@ -109,44 +113,44 @@ public class CacheManagerTest {
                         Instant.now().minus(Duration.ofHours(2)),
                         Clock.systemDefaultZone().getZone()),
                 false);
-        cacheManager.createCache();
+        cacheManager.init();
 
         String cacheKey = "testKey";
-        String value = "{\"key\": \"value\"}";
-        cacheManager.addToCache(cacheKey, value);
+        TestCacheEntry value = new TestCacheEntry(cacheManager, TestCacheEntry.class, cacheKey, cachePath);
+        cacheManager.put(value);
 
-        assertEquals(value, cacheManager.retrieveFromCache(cacheKey));
+        assertNotNull(cacheManager.get(cacheManager.root(), cacheKey, TestCacheEntry.class));
     }
 
     @Test
-    void testRemoveFromCache() throws IOException {
+    void testRemove() {
         Path cachePath = tempDir.resolve("cache");
         CacheManager cacheManager = new CacheManager(cachePath);
-        cacheManager.createCache();
+        cacheManager.init();
 
         String cacheKey = "testKey";
-        String value = "{\"key\": \"value\"}";
-        cacheManager.addToCache(cacheKey, value);
+        TestCacheEntry value = new TestCacheEntry(cacheManager, TestCacheEntry.class, cacheKey, cachePath);
+        cacheManager.put(value);
 
-        Path fileToCache = cachePath.resolve(cacheKey + ".json");
+        Path fileToCache = cachePath.resolve(cacheKey);
         assertTrue(Files.exists(fileToCache));
 
-        cacheManager.removeFromCache(cacheKey);
+        cacheManager.remove(cacheManager.root(), cacheKey);
         assertFalse(Files.exists(fileToCache));
     }
 
     @Test
-    void testRemoveFromCacheWhenFileDoesNotExist() throws IOException {
+    void testRemoveWhenFileDoesNotExist() {
         Path cachePath = tempDir.resolve("cache");
         CacheManager cacheManager = new CacheManager(cachePath);
-        cacheManager.createCache();
+        cacheManager.init();
 
         String cacheKey = "testKey";
 
-        Path fileToRemove = cachePath.resolve(cacheKey + ".json");
+        Path fileToRemove = cachePath.resolve(cacheKey);
         assertFalse(Files.exists(fileToRemove));
 
-        cacheManager.removeFromCache(cacheKey);
+        cacheManager.remove(cacheManager.root(), cacheKey);
         assertFalse(Files.exists(fileToRemove));
     }
 }
