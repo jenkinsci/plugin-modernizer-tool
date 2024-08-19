@@ -1,12 +1,16 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
+import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
+import io.jenkins.tools.pluginmodernizer.core.model.CacheEntry;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
  * Metadata of a plugin extracted from its POM file or code
  */
-public class PluginMetadata implements Serializable {
+public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serializable {
 
     /**
      * Name of the plugin
@@ -48,7 +52,34 @@ public class PluginMetadata implements Serializable {
      */
     private Map<String, String> properties;
 
-    public PluginMetadata() {}
+    /**
+     * Create a new plugin metadata
+     * Store the metadata in in the relative target directory of current folder
+     */
+    public PluginMetadata() {
+        super(
+                new CacheManager(Path.of("target")),
+                PluginMetadata.class,
+                CacheManager.PLUGIN_METADATA_CACHE_KEY,
+                Path.of("."));
+    }
+
+    /**
+     * Create a new plugin metadata. Store the metadata at the root of the given cache manager
+     * @param cacheManager The cache manager
+     */
+    public PluginMetadata(CacheManager cacheManager) {
+        super(cacheManager, PluginMetadata.class, CacheManager.PLUGIN_METADATA_CACHE_KEY, cacheManager.root());
+    }
+
+    /**
+     * Create a new plugin metadata. Store the metadata to the plugin subdirectory of the given cache manager
+     * @param cacheManager The cache manager
+     * @param plugin The plugin
+     */
+    public PluginMetadata(CacheManager cacheManager, Plugin plugin) {
+        super(cacheManager, PluginMetadata.class, CacheManager.PLUGIN_METADATA_CACHE_KEY, Path.of(plugin.getName()));
+    }
 
     public String getPluginName() {
         return pluginName;

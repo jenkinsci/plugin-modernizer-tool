@@ -1,6 +1,5 @@
 package io.jenkins.tools.pluginmodernizer.core.impl;
 
-import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
@@ -10,7 +9,8 @@ import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
-import io.jenkins.tools.pluginmodernizer.core.utils.JenkinsPluginInfo;
+import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class PluginModernizer {
 
         // Setup
         this.ghService.connect();
-        cacheManager.createCache();
+        cacheManager.init();
 
         // Debug config
         LOG.debug("Plugins: {}", config.getPluginNames());
@@ -80,8 +80,7 @@ public class PluginModernizer {
             plugin.withConfig(config);
 
             // Determine repo name
-            plugin.withRepositoryName(
-                    JenkinsPluginInfo.extractRepoName(plugin, cacheManager, config.getJenkinsUpdateCenter()));
+            plugin.withRepositoryName(UpdateCenterUtils.extractRepoName(plugin, cacheManager));
 
             if (config.isRemoveForks()) {
                 plugin.deleteFork(ghService);
@@ -119,11 +118,12 @@ public class PluginModernizer {
 
             // Collect metadata
             plugin.collectMetadata(mavenInvoker);
-            plugin.readMetadata();
 
-            // TODO: Just a test, we need a better CacheManager that manage CacheEntry rather than String that require
-            // serialization from caller. Probably also some GSON serialization are missing
-            cacheManager.addToCache(plugin.getName() + "-metadata", new Gson().toJson(plugin.getMetadata()));
+            // Move metadata from the target directory of the plugin to the common cache
+            CacheManager pluginCacheManager = new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
+                    .resolve(plugin.getLocalRepository().resolve("target")));
+            plugin.setMetadata(new PluginMetadata(pluginCacheManager)
+                    .move(cacheManager, Path.of(plugin.getName()), CacheManager.PLUGIN_METADATA_CACHE_KEY));
 
             // Run OpenRewrite
             plugin.runOpenRewrite(mavenInvoker);
@@ -218,7 +218,14 @@ public class PluginModernizer {
      * @return The JDK that verifies the plugin
      */
     private JDK verifyPlugin(Plugin plugin) {
-        String coreVersion = plugin.getMetadata().getJenkinsVersion();
+        PluginMetadata metadata = plugin.getMetadata();
+        // Should not happen but let's not fail any null pointer in case
+        if (metadata == null) {
+            plugin.addError("Metadata is not yet computed for plugin " + plugin.getName());
+            plugin.raiseLastError();
+            return null;
+        }
+        String coreVersion = metadata.getJenkinsVersion();
         return Stream.iterate(JDK.max(), JDK::previous)
                 .filter(j -> j.supported(coreVersion))
                 .filter(j -> {

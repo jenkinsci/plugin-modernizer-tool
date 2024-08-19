@@ -6,11 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.maven.Assertions.pomXml;
 
-import com.google.gson.Gson;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
@@ -132,10 +128,7 @@ public class MetadataCollectorTest implements RewriteTest {
                           </pluginRepositories>
                         </project>
                         """));
-        PluginMetadata pluginMetadata = new Gson()
-                .fromJson(
-                        FileUtils.readFileToString(new File("target/pluginMetadata.json"), StandardCharsets.UTF_8),
-                        PluginMetadata.class);
+        PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         String pluginName = pluginMetadata.getPluginName();
         assertEquals("GitLab Plugin", pluginName);
         assertEquals("4.80", pluginMetadata.getParentVersion());

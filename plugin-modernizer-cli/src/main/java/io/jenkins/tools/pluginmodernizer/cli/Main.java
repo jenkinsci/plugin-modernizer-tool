@@ -28,6 +28,7 @@ public class Main implements Runnable {
 
     static {
         System.setProperty("slf4j.internal.verbosity", "WARN");
+        System.setProperty("jdk.httpclient.HttpClient.log", "errors,requests");
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
     }
