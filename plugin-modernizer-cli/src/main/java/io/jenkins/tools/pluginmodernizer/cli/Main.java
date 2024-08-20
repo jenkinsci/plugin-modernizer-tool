@@ -28,7 +28,6 @@ public class Main implements Runnable {
 
     static {
         System.setProperty("slf4j.internal.verbosity", "WARN");
-        System.setProperty("jdk.httpclient.HttpClient.log", "errors,requests");
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
     }
@@ -36,6 +35,12 @@ public class Main implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main(final String[] args) {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                LOG.info("Plugin Modernizer aborted.");
+            }
+        });
         new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);
     }
 
