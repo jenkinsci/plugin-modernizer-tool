@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 import java.util.Map;
@@ -19,8 +20,15 @@ public class MetadataCollectorTest implements RewriteTest {
 
     @Test
     void testPlugin() throws Exception {
-        // language=xml
+
         rewriteRun(
+                // language=groovy
+                groovy(
+                        """
+                          buildPlugin()
+                          """,
+                        spec -> spec.path("Jenkinsfile")),
+                // language=xml
                 pomXml(
                         """
                         <?xml version="1.0" encoding="UTF-8"?>
@@ -134,14 +142,18 @@ public class MetadataCollectorTest implements RewriteTest {
         assertEquals("4.80", pluginMetadata.getParentVersion());
         String jenkinsVersion = pluginMetadata.getJenkinsVersion();
         assertEquals("2.426.3", jenkinsVersion);
-        boolean hasJavaLevel = pluginMetadata.hasJavaLevel();
-        assertTrue(hasJavaLevel);
-        boolean usesHttps = pluginMetadata.isUsesScmHttps();
-        assertTrue(usesHttps);
+        assertNotNull(pluginMetadata.getProperties().get("java.level"));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.SCM_HTTPS));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.MAVEN_REPOSITORIES_HTTPS));
         Map<String, String> properties = pluginMetadata.getProperties();
         assertNotNull(properties);
         assertEquals(10, properties.size());
-        boolean hasJenkinsfile = pluginMetadata.hasJenkinsfile();
-        assertFalse(hasJenkinsfile);
+
+        // Files are present
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
+
+        // Absent
+        assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
     }
 }

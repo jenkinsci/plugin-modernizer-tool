@@ -1,14 +1,19 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
+import java.util.stream.Collectors;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
@@ -19,7 +24,8 @@ import org.openrewrite.xml.tree.Xml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata> {
+@SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", justification = "Extrac checks harmless")
+public class MetadataCollector extends ScanningRecipe<MetadataCollector.MetadataAccumulator> {
 
     /**
      * LOGGER.
@@ -27,35 +33,70 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
     private static final Logger LOG = LoggerFactory.getLogger(MetadataCollector.class);
 
     @Override
-    public @NotNull String getDisplayName() {
+    public String getDisplayName() {
         return "Plugin metadata extractor";
     }
 
     @Override
-    public @NotNull String getDescription() {
+    public String getDescription() {
         return "Extracts metadata from plugin.";
     }
 
-    public static class Metadata {
-        boolean hasJenkinsfile = false;
+    /**
+     * Accumulator to store metadata.
+     */
+    public static class MetadataAccumulator {
+        private final List<ArchetypeCommonFile> commonFiles = new ArrayList<>();
+        private final List<String> otherFiles = new ArrayList<>();
+        private final List<MetadataFlag> flags = new LinkedList<>();
+
+        public List<ArchetypeCommonFile> getCommonFiles() {
+            return commonFiles;
+        }
+
+        public List<String> getOtherFiles() {
+            return otherFiles;
+        }
+
+        public void addCommonFile(ArchetypeCommonFile file) {
+            commonFiles.add(file);
+        }
+
+        public void addOtherFile(String file) {
+            otherFiles.add(file);
+        }
+
+        public List<MetadataFlag> getFlags() {
+            return flags;
+        }
+
+        public void addFlags(List<MetadataFlag> flags) {
+            this.flags.addAll(flags);
+        }
     }
 
     @Override
-    public @NotNull Metadata getInitialValue(@NotNull ExecutionContext ctx) {
-        return new Metadata();
+    public MetadataAccumulator getInitialValue(ExecutionContext ctx) {
+        return new MetadataAccumulator();
     }
 
     @Override
-    public @NotNull TreeVisitor<?, ExecutionContext> getScanner(@NotNull Metadata acc) {
+    public TreeVisitor<?, ExecutionContext> getScanner(MetadataAccumulator acc) {
         return new TreeVisitor<>() {
             @Override
-            public Tree visit(@Nullable Tree tree, @NotNull ExecutionContext ctx) {
+            public Tree visit(Tree tree, ExecutionContext ctx) {
                 if (tree == null) {
                     return null;
                 }
                 SourceFile sourceFile = (SourceFile) tree;
-                if (sourceFile.getSourcePath().endsWith("Jenkinsfile")) {
-                    acc.hasJenkinsfile = true;
+                ArchetypeCommonFile commonFile =
+                        ArchetypeCommonFile.fromFile(sourceFile.getSourcePath().toString());
+                if (commonFile != null) {
+                    acc.addCommonFile(commonFile);
+                    LOG.debug("File {} is a common file", sourceFile.getSourcePath());
+                } else {
+                    acc.addOtherFile(sourceFile.getSourcePath().toString());
+                    LOG.debug("File {} is not a common file", sourceFile.getSourcePath());
                 }
                 return tree;
             }
@@ -63,10 +104,10 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
     }
 
     @Override
-    public @NotNull TreeVisitor<?, ExecutionContext> getVisitor(@NotNull Metadata acc) {
+    public TreeVisitor<?, ExecutionContext> getVisitor(MetadataAccumulator acc) {
         return new MavenIsoVisitor<>() {
             @Override
-            public Xml.@NotNull Document visitDocument(Xml.@NotNull Document document, @NotNull ExecutionContext ctx) {
+            public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
 
                 // Ensure maven resolution result is present
                 Markers markers = document.getMarkers();
@@ -83,6 +124,10 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 TagExtractor tagExtractor = new TagExtractor();
                 tagExtractor.visit(document, ctx);
 
+                // Store flags on the accumulator
+                acc.addFlags(tagExtractor.getFlags());
+                LOG.info("Flags detected: {}", acc.getFlags());
+
                 // Remove the properties that are not needed and specific to the build environment
                 Map<String, String> properties = pom.getProperties();
                 properties.remove("project.basedir");
@@ -98,14 +143,14 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 pluginMetadata.setProperties(properties);
                 pluginMetadata.setJenkinsVersion(
                         resolvedPom.getManagedVersion("org.jenkins-ci.main", "jenkins-core", null, null));
-                pluginMetadata.setHasJavaLevel(pom.getProperties().get("java.level") != null);
-                pluginMetadata.setUsesScmHttps(tagExtractor.usesScmHttps());
-                pluginMetadata.setUsesRepositoriesHttps(tagExtractor.usesRepositoriesHttps());
-                pluginMetadata.setHasJenkinsfile(acc.hasJenkinsfile);
+                pluginMetadata.setFlags(acc.getFlags());
+                pluginMetadata.setCommonFiles(acc.getCommonFiles());
+                pluginMetadata.setOtherFiles(acc.getOtherFiles());
 
                 // Write the metadata to a file for later use by the plugin modernizer.
                 pluginMetadata.save();
                 LOG.debug("Plugin metadata written to {}", pluginMetadata.getRelativePath());
+                LOG.debug(JsonUtils.toJson(pluginMetadata));
 
                 return document;
             }
@@ -118,38 +163,32 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
     private static class TagExtractor extends MavenIsoVisitor<ExecutionContext> {
 
         /**
-         * If the plugin used SCM HTTPS protocol.
+         * Detected flag
          */
-        private boolean usesScmHttps = false;
-
-        /**
-         * If the plugin used repositories with HTTPS protocol.
-         */
-        private boolean usesRepositoriesHttps = false;
+        private final List<MetadataFlag> flags = new ArrayList<>();
 
         @Override
-        public Xml.@NotNull Tag visitTag(Xml.@NotNull Tag tag, @NotNull ExecutionContext ctx) {
+        public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
             Xml.Tag t = super.visitTag(tag, ctx);
-            if ("scm".equals(tag.getName())) {
-                Optional<String> connection = tag.getChildValue("connection");
-                connection.ifPresent(s -> usesScmHttps = s.startsWith("scm:git:https"));
-            }
-            if ("repositories".equals(tag.getName())) {
-                usesRepositoriesHttps = tag.getChildren().stream()
-                        .filter(c -> "repository".equals(c.getName()))
-                        .map(Xml.Tag.class::cast)
-                        .map(r -> r.getChildValue("url").orElseThrow())
-                        .allMatch(url -> url.startsWith("https"));
+            List<MetadataFlag> newFlags = Arrays.stream(MetadataFlag.values())
+                    .filter(flag -> flag.isApplicable(tag))
+                    .toList();
+            flags.addAll(newFlags);
+            if (!newFlags.isEmpty()) {
+                LOG.debug(
+                        "Flags detected for tag {} {}",
+                        tag,
+                        newFlags.stream().map(Enum::name).collect(Collectors.joining(", ")));
             }
             return t;
         }
 
-        public boolean usesScmHttps() {
-            return usesScmHttps;
-        }
-
-        public boolean usesRepositoriesHttps() {
-            return usesRepositoriesHttps;
+        /**
+         * Get the flags for this visitor.
+         * @return flags for this visitor
+         */
+        public List<MetadataFlag> getFlags() {
+            return flags;
         }
     }
 }
