@@ -5,6 +5,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.CacheEntry;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,24 +19,19 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     private String pluginName;
 
     /**
-     * Whether the plugin has a Java level defined in its POM file
+     * List of flags present in the plugin
      */
-    private boolean hasJavaLevel;
+    private List<MetadataFlag> flags;
 
     /**
-     * Whether the plugin uses HTTPS for its SCM URL
+     * List of well known files present in the plugin
      */
-    private boolean usesScmHttps;
+    private List<ArchetypeCommonFile> commonFiles;
 
     /**
-     * Whether the plugin uses HTTPS for all its repositories
+     * List of other files present in the plugin
      */
-    private boolean usesRepositoriesHttps;
-
-    /**
-     * If the plugin has a Jenkinsfile
-     */
-    private boolean hasJenkinsfile;
+    private List<String> otherFiles;
 
     /**
      * Jenkins version required by the plugin
@@ -89,36 +85,62 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
         this.pluginName = pluginName;
     }
 
-    public boolean hasJavaLevel() {
-        return hasJavaLevel;
+    public List<MetadataFlag> getFlags() {
+        return flags;
     }
 
-    public void setHasJavaLevel(boolean hasJavaLevel) {
-        this.hasJavaLevel = hasJavaLevel;
+    public void setFlags(List<MetadataFlag> flags) {
+        this.flags = flags;
     }
 
-    public boolean isUsesScmHttps() {
-        return usesScmHttps;
+    public boolean hasFlag(MetadataFlag flag) {
+        return flags.contains(flag);
     }
 
-    public void setUsesScmHttps(boolean usesScmHttps) {
-        this.usesScmHttps = usesScmHttps;
+    public List<ArchetypeCommonFile> getCommonFiles() {
+        return commonFiles;
     }
 
-    public boolean isUsesRepositoriesHttps() {
-        return usesRepositoriesHttps;
+    public void setCommonFiles(List<ArchetypeCommonFile> commonFiles) {
+        this.commonFiles = commonFiles;
     }
 
-    public void setUsesRepositoriesHttps(boolean usesRepositoriesHttps) {
-        this.usesRepositoriesHttps = usesRepositoriesHttps;
+    public List<String> getOtherFiles() {
+        return otherFiles;
     }
 
-    public boolean hasJenkinsfile() {
-        return hasJenkinsfile;
+    public void setOtherFiles(List<String> otherFiles) {
+        this.otherFiles = otherFiles;
     }
 
-    public void setHasJenkinsfile(boolean hasJenkinsfile) {
-        this.hasJenkinsfile = hasJenkinsfile;
+    /**
+     * The file with the given path or null if not found
+     * @param path The path
+     * @return The file or null
+     */
+    public ArchetypeCommonFile getFile(String path) {
+        return commonFiles.stream()
+                .filter(f -> f.getPath().equals(path))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Check if the plugin has a file with the given path
+     * @param path The path
+     * @return True if the file is present
+     */
+    public boolean hasFile(String path) {
+        return commonFiles.stream().anyMatch(f -> f.getPath().equals(path));
+    }
+
+    /**
+     * Check if the plugin has the given file
+     * @param file The file
+     * @return True if the file is present
+     */
+    public boolean hasFile(ArchetypeCommonFile file) {
+        return commonFiles.contains(file);
     }
 
     public String getJenkinsVersion() {
