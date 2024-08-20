@@ -46,7 +46,13 @@ public class MetadataCollectorTest implements RewriteTest {
                           <packaging>hpi</packaging>
                           <name>GitLab Plugin</name>
                           <url>https://github.com/jenkinsci/${project.artifactId}</url>
-
+                          <developers>
+                            <developer>
+                              <id>john.doe</id>
+                              <name>John Doe</name>
+                              <email>john.doe@example.com</email>
+                            </developer>
+                          </developers>
                           <licenses>
                             <license>
                               <name>GPL v2.0 License</name>
@@ -145,6 +151,8 @@ public class MetadataCollectorTest implements RewriteTest {
         assertNotNull(pluginMetadata.getProperties().get("java.level"));
         assertTrue(pluginMetadata.hasFlag(MetadataFlag.SCM_HTTPS));
         assertTrue(pluginMetadata.hasFlag(MetadataFlag.MAVEN_REPOSITORIES_HTTPS));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.LICENSE_SET));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.DEVELOPER_SET));
         Map<String, String> properties = pluginMetadata.getProperties();
         assertNotNull(properties);
         assertEquals(10, properties.size());

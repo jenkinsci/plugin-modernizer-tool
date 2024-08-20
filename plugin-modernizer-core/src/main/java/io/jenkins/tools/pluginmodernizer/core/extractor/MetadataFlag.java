@@ -32,13 +32,47 @@ public enum MetadataFlag {
                     .allMatch(url -> url.startsWith("https"));
         }
         return false;
+    }),
+
+    /**
+     * If the license block is set
+     */
+    LICENSE_SET(tag -> {
+        if ("licenses".equals(tag.getName())) {
+            return tag.getChildren().stream()
+                    .filter(c -> "license".equals(c.getName()))
+                    .map(Xml.Tag.class::cast)
+                    .map(r -> r.getChildValue("name").orElseThrow())
+                    .findAny()
+                    .isPresent();
+        }
+        return false;
+    }),
+
+    /**
+     * If the develop block is set
+     */
+    DEVELOPER_SET(tag -> {
+        if ("developers".equals(tag.getName())) {
+            return tag.getChildren().stream()
+                    .filter(c -> "developer".equals(c.getName()))
+                    .map(Xml.Tag.class::cast)
+                    .map(r -> r.getChildValue("id").orElseThrow())
+                    .findAny()
+                    .isPresent();
+        }
+        return false;
     });
 
     /**
      * Function to check if the flag is applicable for the given XML tag
      */
-    private Predicate<Xml.Tag> isApplicable;
+    private final Predicate<Xml.Tag> isApplicable;
 
+    /**
+     * Constructor
+     * @param isApplicable Predicate to check if the flag is applicable for the given XML tag
+     */
     MetadataFlag(Predicate<Xml.Tag> isApplicable) {
         this.isApplicable = isApplicable;
     }
