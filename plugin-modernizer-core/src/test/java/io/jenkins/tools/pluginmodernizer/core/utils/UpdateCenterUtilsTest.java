@@ -4,112 +4,119 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
-import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
-import java.io.IOException;
+import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.platform.commons.util.ReflectionUtils;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith({MockitoExtension.class})
+@WireMockTest
 class UpdateCenterUtilsTest {
 
-    @TempDir
-    private Path tempDir1;
-
-    @TempDir
-    private Path tempDir2;
-
-    private Path cacheFile;
-
     @Mock
-    private CacheManager cacheManager1;
-
-    @Mock
-    private CacheManager cacheManager2;
+    private CacheManager cacheManager;
 
     @Mock
     private Config config;
 
+    @Mock
+    private Path cacheRoot;
+
+    // Update center test data
+    private UpdateCenterData updateCenterData;
+
     @BeforeEach
-    public void setup() throws IOException {
-        cacheManager1 = new CacheManager(tempDir1);
-        cacheManager2 = new CacheManager(tempDir2);
-        String jsonContent =
-                "{\"plugins\": {\"login-theme\": {\"scm\": \"https://github.com/jenkinsci/login-theme-plugin\"}, \"invalid-plugin\": {\"scm\": \"invalid-scm-url\"}, \"invalid-plugin-2\": {\"scm\": \"/\"}}}";
-        cacheFile = tempDir1.resolve("update-center.json");
-        Files.write(cacheFile, jsonContent.getBytes());
-    }
+    public void setup() throws Exception {
 
-    @AfterEach
-    void tearDown() throws IOException {
-        Files.deleteIfExists(cacheFile);
-        FileUtils.deleteDirectory(tempDir1.toFile());
+        updateCenterData = new UpdateCenterData(cacheManager);
+
+        // Add plugins
+        Map<String, UpdateCenterData.UpdateCenterPlugin> plugins = new HashMap<>();
+        plugins.put(
+                "valid-plugin",
+                new UpdateCenterData.UpdateCenterPlugin(
+                        "valid-plugin", "https://github.com/jenkinsci/valid-url", "main", "gav", null));
+        plugins.put(
+                "invalid-plugin",
+                new UpdateCenterData.UpdateCenterPlugin("invalid-plugin", "invalid-scm-url", "main", "gav", null));
+        plugins.put(
+                "invalid-plugin-2",
+                new UpdateCenterData.UpdateCenterPlugin("invalid-plugin-2", "/", "main", "gav", null));
+
+        // Set plugins
+        Field field = ReflectionUtils.findFields(
+                        UpdateCenterData.class,
+                        f -> f.getName().equals("plugins"),
+                        ReflectionUtils.HierarchyTraversalMode.TOP_DOWN)
+                .get(0);
+        field.setAccessible(true);
+        field.set(updateCenterData, plugins);
+
+        // Return this update center from the cache
+        doReturn(updateCenterData)
+                .when(cacheManager)
+                .get(cacheRoot, CacheManager.UPDATE_CENTER_CACHE_KEY, UpdateCenterData.class);
+        doReturn(cacheRoot).when(cacheManager).root();
     }
 
     @Test
-    public void testExtractRepoNamePluginPresentWithoutUrl() {
-        doReturn(Settings.DEFAULT_UPDATE_CENTER_URL).when(config).getJenkinsUpdateCenter();
+    public void shouldExtractRepoName() {
         String result =
-                UpdateCenterUtils.extractRepoName(Plugin.build("login-theme").withConfig(config), cacheManager1);
-        assertEquals("login-theme-plugin", result);
+                UpdateCenterUtils.extractRepoName(Plugin.build("valid-plugin").withConfig(config), cacheManager);
+        assertEquals("valid-url", result);
     }
 
     @Test
-    public void testExtractRepoNamePluginAbsentWithoutUrl() {
-        doReturn(Settings.DEFAULT_UPDATE_CENTER_URL).when(config).getJenkinsUpdateCenter();
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            UpdateCenterUtils.extractRepoName(Plugin.build("not-present").withConfig(config), cacheManager1);
-        });
+    public void shouldDownload(WireMockRuntimeInfo wmRuntimeInfo) throws MalformedURLException {
 
-        assertEquals("Plugin not found in update center: not-present", exception.getMessage());
+        // Download through wiremock to avoid hitting the real Jenkins update center
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/update-center.json"))
+                .willReturn(WireMock.okJson(JsonUtils.toJson(updateCenterData))));
+
+        // No found from cache
+        doReturn(new URL(wmRuntimeInfo.getHttpBaseUrl() + "/update-center.json"))
+                .when(config)
+                .getJenkinsUpdateCenter();
+
+        Mockito.reset(cacheManager);
+
+        // Get result
+        UpdateCenterData result = UpdateCenterUtils.download(config);
+        assertEquals(result.getPlugins().size(), updateCenterData.getPlugins().size());
     }
 
     @Test
-    public void testExtractRepoNamePluginPresentWithUrl() throws MalformedURLException {
-        URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
-        doReturn(updateCenterUrl).when(config).getJenkinsUpdateCenter();
-
-        String resultLoginTheme =
-                UpdateCenterUtils.extractRepoName(Plugin.build("login-theme").withConfig(config), cacheManager2);
-        assertEquals("login-theme-plugin", resultLoginTheme);
-
-        String resultJobCacher =
-                UpdateCenterUtils.extractRepoName(Plugin.build("jobcacher").withConfig(config), cacheManager2);
-        assertEquals("jobcacher-plugin", resultJobCacher);
-    }
-
-    @Test
-    public void testExtractRepoNamePluginAbsentWithUrl() throws MalformedURLException {
-        URL updateCenterUrl = new URL("https://updates.jenkins.io/current/update-center.actual.json");
-        doReturn(updateCenterUrl).when(config).getJenkinsUpdateCenter();
-
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            UpdateCenterUtils.extractRepoName(Plugin.build("not-present").withConfig(config), cacheManager2);
-        });
-
-        assertEquals("Plugin not found in update center: not-present", exception.getMessage());
-    }
-
-    @Test
-    public void testInvalidJsonFormatWithProvidedUrl() throws MalformedURLException {
-        URL updateCenterUrl = new URL("https://www.example.com");
-        doReturn(updateCenterUrl).when(config).getJenkinsUpdateCenter();
+    public void shouldThrowExceptionIfNotFound() {
         Exception exception = assertThrows(ModernizerException.class, () -> {
-            UpdateCenterUtils.extractRepoName(Plugin.build("login-theme").withConfig(config), cacheManager2);
+            UpdateCenterUtils.extractRepoName(Plugin.build("not-present").withConfig(config), cacheManager);
         });
-        assertEquals("Unable to fetch update center data", exception.getMessage());
+        assertEquals("Plugin not found in update center: not-present", exception.getMessage());
+    }
+
+    @Test
+    public void shouldFailIfSCMFormatIsInvalid() {
+        Exception exception = assertThrows(ModernizerException.class, () -> {
+            UpdateCenterUtils.extractRepoName(Plugin.build("invalid-plugin").withConfig(config), cacheManager);
+        });
+        assertEquals("Invalid SCM URL format", exception.getMessage());
     }
 }
