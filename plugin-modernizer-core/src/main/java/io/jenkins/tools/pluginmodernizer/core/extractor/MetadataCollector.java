@@ -95,19 +95,9 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                                                                 J.Literal value = (J.Literal) mapEntry.getValue();
 
                                                                 if ("jdk".equals(key.getValue())) {
-                                                                    int currentJdkVersion = Integer.MAX_VALUE;
-                                                                    if (value.getValue() != null) {
-                                                                        try {
-                                                                            currentJdkVersion =
-                                                                                    Integer.parseInt(value.getValue()
-                                                                                            .toString());
-                                                                        } catch (NumberFormatException e) {
-                                                                            LOG.debug(
-                                                                                    "Invalid JDK version format: {}",
-                                                                                    value.getValue());
-                                                                        }
-                                                                    }
-
+                                                                    int currentJdkVersion =
+                                                                            Integer.parseInt(value.getValue()
+                                                                                    .toString());
                                                                     if (currentJdkVersion < jdkVersion) {
                                                                         jdkVersion = currentJdkVersion;
                                                                     }
