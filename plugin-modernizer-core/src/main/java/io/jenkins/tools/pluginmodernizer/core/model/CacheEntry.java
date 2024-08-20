@@ -64,6 +64,9 @@ public abstract class CacheEntry<T extends CacheEntry<T>> implements Serializabl
      * @return The path
      */
     public final Path getPath() {
+        if (path == null) {
+            return null;
+        }
         return Path.of(path);
     }
 

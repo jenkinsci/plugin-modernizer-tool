@@ -4,13 +4,11 @@ import io.jenkins.tools.pluginmodernizer.core.model.CacheEntry;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Clock;
 import java.time.Duration;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +103,8 @@ public class CacheManager {
                     return null;
                 }
             }
-            return JsonUtils.fromJson(FileUtils.readFileToString(cachedPath.toFile(), StandardCharsets.UTF_8), clazz);
+            LOG.debug("Cache entry found for cache {} at path {} and key {}", location, path, cacheKey);
+            return JsonUtils.fromJson(cachedPath, clazz);
         } catch (IOException e) {
             LOG.debug("Cache entry not found for cache {} at path {} and key {}", location, path, cacheKey);
             return null;
