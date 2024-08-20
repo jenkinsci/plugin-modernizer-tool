@@ -38,6 +38,11 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     private boolean hasJenkinsfile;
 
     /**
+     * Minimum JDK version required by the plugin
+     */
+    private int jdkVersion;
+
+    /**
      * Jenkins version required by the plugin
      */
     private String jenkinsVersion;
@@ -54,7 +59,7 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
 
     /**
      * Create a new plugin metadata
-     * Store the metadata in in the relative target directory of current folder
+     * Store the metadata in the relative target directory of current folder
      */
     public PluginMetadata() {
         super(
@@ -119,6 +124,14 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
 
     public void setHasJenkinsfile(boolean hasJenkinsfile) {
         this.hasJenkinsfile = hasJenkinsfile;
+    }
+
+    public int getJdkVersion() {
+        return jdkVersion;
+    }
+
+    public void setJdkVersion(int jdkVersion) {
+        this.jdkVersion = jdkVersion;
     }
 
     public String getJenkinsVersion() {

@@ -143,5 +143,7 @@ public class MetadataCollectorTest implements RewriteTest {
         assertEquals(10, properties.size());
         boolean hasJenkinsfile = pluginMetadata.hasJenkinsfile();
         assertFalse(hasJenkinsfile);
+        int jdkVersion = pluginMetadata.getJdkVersion();
+        assertEquals(0, jdkVersion);
     }
 }
