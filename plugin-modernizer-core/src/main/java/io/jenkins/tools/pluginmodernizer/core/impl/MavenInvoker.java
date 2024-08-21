@@ -55,7 +55,6 @@ public class MavenInvoker {
         this.jdkFetcher = jdkFetcher;
         validateMavenHome();
         validateMavenVersion();
-        validateSelectedRecipes();
     }
 
     /**
@@ -121,11 +120,14 @@ public class MavenInvoker {
      * @param plugin The plugin to run the rewrite on
      */
     public void invokeRewrite(Plugin plugin) {
-        plugin.addTags(getActiveRecipes().stream()
+        plugin.addTags(config.getRecipes().stream()
                 .flatMap(recipe -> recipe.getTags().stream())
                 .collect(Collectors.toSet()));
         LOG.info(
-                "Running recipes {} for plugin {}... Please be patient", String.join(",", config.getRecipes()), plugin);
+                "Running recipes {} for plugin {}... Please be patient",
+                String.join(
+                        ",", config.getRecipes().stream().map(Recipe::getName).toList()),
+                plugin);
         invokeGoals(plugin, getRewriteArgs());
         LOG.info("Done");
     }
@@ -153,24 +155,13 @@ public class MavenInvoker {
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
 
-        List<Recipe> activeRecipes = getActiveRecipes();
-        String activeRecipesStr = activeRecipes.stream().map(Recipe::getName).collect(Collectors.joining(", "));
+        String activeRecipesStr =
+                config.getRecipes().stream().map(Recipe::getName).collect(Collectors.joining(", "));
         LOG.debug("Active recipes: {}", activeRecipesStr);
         goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipesStr));
         goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
                 + config.getVersion());
         return goals.toArray(String[]::new);
-    }
-
-    /**
-     * Get the list of active recipes to be passed to the rewrite plugin based on the one selected on config
-     * @return The list of active recipes
-     */
-    private List<Recipe> getActiveRecipes() {
-        return config.getRecipes().stream()
-                .flatMap(recipe -> Settings.AVAILABLE_RECIPES.stream()
-                        .filter(r -> r.getName().endsWith(recipe)))
-                .collect(Collectors.toList());
     }
 
     /**
@@ -251,15 +242,6 @@ public class MavenInvoker {
                     mavenVersion,
                     Settings.MAVEN_MINIMAL_VERSION);
             throw new ModernizerException("Maven version is too old.");
-        }
-    }
-
-    /**
-     * Validate if there is at least one recipe to run
-     */
-    private void validateSelectedRecipes() {
-        if (getActiveRecipes().isEmpty()) {
-            throw new ModernizerException("No valid recipes selected. Please select at least one recipe.");
         }
     }
 

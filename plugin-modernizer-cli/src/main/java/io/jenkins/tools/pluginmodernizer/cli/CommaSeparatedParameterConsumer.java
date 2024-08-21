@@ -15,6 +15,8 @@ public class CommaSeparatedParameterConsumer implements IParameterConsumer {
         for (String item : value.split(",", -1)) {
             result.add(item.trim());
         }
-        argSpec.setValue(result);
+        if (!result.isEmpty()) {
+            argSpec.setValue(result);
+        }
     }
 }

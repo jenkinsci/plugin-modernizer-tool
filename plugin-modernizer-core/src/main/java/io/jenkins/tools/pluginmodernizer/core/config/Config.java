@@ -1,9 +1,11 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
+import org.openrewrite.Recipe;
 
 public class Config {
 
@@ -11,8 +13,8 @@ public class Config {
     public static boolean DEBUG = false;
 
     private final String version;
-    private final List<String> pluginNames;
-    private final List<String> recipes;
+    private final List<Plugin> plugins;
+    private final List<Recipe> recipes;
     private final URL jenkinsUpdateCenter;
     private final Path cachePath;
     private final Path mavenHome;
@@ -27,8 +29,8 @@ public class Config {
     private Config(
             String version,
             String githubOwner,
-            List<String> pluginNames,
-            List<String> recipes,
+            List<Plugin> plugins,
+            List<Recipe> recipes,
             URL jenkinsUpdateCenter,
             Path cachePath,
             Path mavenHome,
@@ -40,7 +42,7 @@ public class Config {
             boolean exportDatatables) {
         this.version = version;
         this.githubOwner = githubOwner;
-        this.pluginNames = pluginNames;
+        this.plugins = plugins;
         this.recipes = recipes;
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
         this.cachePath = cachePath;
@@ -61,11 +63,11 @@ public class Config {
         return githubOwner;
     }
 
-    public List<String> getPluginNames() {
-        return pluginNames;
+    public List<Plugin> getPlugins() {
+        return plugins;
     }
 
-    public List<String> getRecipes() {
+    public List<Recipe> getRecipes() {
         return recipes;
     }
 
@@ -74,7 +76,7 @@ public class Config {
      * @return True if only fetching metadata
      */
     public boolean isFetchMetadataOnly() {
-        return recipes.size() == 1 && recipes.get(0).equals(Settings.FETCH_METADATA_RECIPE.getName());
+        return recipes.size() == 1 && recipes.get(0).getName().equals(Settings.FETCH_METADATA_RECIPE.getName());
     }
 
     public URL getJenkinsUpdateCenter() {
@@ -124,8 +126,8 @@ public class Config {
     public static class Builder {
         private String version;
         private String githubOwner = Settings.GITHUB_OWNER;
-        private List<String> plugins;
-        private List<String> recipes;
+        private List<Plugin> plugins;
+        private List<Recipe> recipes;
         private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
@@ -146,12 +148,12 @@ public class Config {
             return this;
         }
 
-        public Builder withPlugins(List<String> plugins) {
+        public Builder withPlugins(List<Plugin> plugins) {
             this.plugins = plugins;
             return this;
         }
 
-        public Builder withRecipes(List<String> recipes) {
+        public Builder withRecipes(List<Recipe> recipes) {
             this.recipes = recipes;
             return this;
         }
