@@ -226,7 +226,7 @@ public class PluginModernizer {
             return null;
         }
         String coreVersion = metadata.getJenkinsVersion();
-        return Stream.iterate(JDK.max(), JDK::previous)
+        return Stream.iterate(JDK.max(), JDK::hasPrevious, JDK::previous)
                 .filter(j -> j.supported(coreVersion))
                 .filter(j -> {
                     plugin.withJDK(j);
