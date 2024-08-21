@@ -104,7 +104,9 @@ public class CacheManager {
                 }
             }
             LOG.debug("Cache entry found for cache {} at path {} and key {}", location, path, cacheKey);
-            return JsonUtils.fromJson(cachedPath, clazz);
+            T entry = JsonUtils.fromJson(cachedPath, clazz);
+            entry.setCacheManager(this);
+            return entry;
         } catch (IOException e) {
             LOG.debug("Cache entry not found for cache {} at path {} and key {}", location, path, cacheKey);
             return null;
@@ -120,11 +122,23 @@ public class CacheManager {
         try {
             if (Files.exists(fileToRemove)) {
                 Files.delete(fileToRemove);
-                LOG.debug("Cache entry removed for key: {}", cacheKey);
+                LOG.debug("Cache entry removed for key: {} at location {}", cacheKey, location);
             }
         } catch (IOException e) {
             throw new ModernizerException("Failed to remove cache entry for key: " + cacheKey, e);
         }
+    }
+
+    /**
+     * Move a cache entry to the new cache manager
+     * @param cacheManager The cache manager
+     * @param newPath The new path
+     * @param newKey The new key
+     * @param entry The cache entry to move
+     */
+    public <T extends CacheEntry<T>> T move(
+            CacheManager cacheManager, Path newPath, String newKey, CacheEntry<T> entry) {
+        return entry.move(cacheManager, newPath, newKey);
     }
 
     /**
