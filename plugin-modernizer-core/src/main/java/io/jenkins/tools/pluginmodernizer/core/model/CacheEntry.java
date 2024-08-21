@@ -105,6 +105,7 @@ public abstract class CacheEntry<T extends CacheEntry<T>> implements Serializabl
         refreshedObject.setKey(newKey);
         refreshedObject.setCacheManager(newCacheManager);
         newCacheManager.put(refreshedObject);
+        LOG.debug(refreshedObject.getCacheManager().getLocation().toString());
         this.delete();
         return newCacheManager.get(newPath, newKey, clazz);
     }
@@ -154,8 +155,8 @@ public abstract class CacheEntry<T extends CacheEntry<T>> implements Serializabl
      * Return the absolute path of the object
      * @return The absolute path
      */
-    public final Path getAbsolutePath() {
-        return cacheManager.getLocation().resolve(path);
+    public final Path getLocation() {
+        return cacheManager.getLocation().resolve(path).resolve(key);
     }
 
     /**

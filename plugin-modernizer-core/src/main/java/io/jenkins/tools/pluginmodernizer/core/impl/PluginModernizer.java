@@ -104,12 +104,14 @@ public class PluginModernizer {
 
             // Compile the plugin with the first JDK that compile it
             JDK jdkCompile = compilePlugin(plugin);
-            if (jdkCompile == null) {
-                plugin.addError("Plugin failed to compile with all JDK.");
-                LOG.info("Plugin {} fail to compile all JDK. Aborting this plugin.", plugin.getName());
-                return;
+            if (!config.isFetchMetadataOnly()) {
+                if (jdkCompile == null) {
+                    plugin.addError("Plugin failed to compile with all JDK.");
+                    LOG.info("Plugin {} fail to compile all JDK. Aborting this plugin.", plugin.getName());
+                    return;
+                }
+                LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdkCompile.getMajor());
             }
-            LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdkCompile.getMajor());
 
             plugin.checkoutBranch(ghService);
 
@@ -122,8 +124,15 @@ public class PluginModernizer {
             // Move metadata from the target directory of the plugin to the common cache
             CacheManager pluginCacheManager = new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
                     .resolve(plugin.getLocalRepository().resolve("target")));
-            plugin.setMetadata(new PluginMetadata(pluginCacheManager)
-                    .move(cacheManager, Path.of(plugin.getName()), CacheManager.PLUGIN_METADATA_CACHE_KEY));
+            plugin.setMetadata(pluginCacheManager.move(
+                    cacheManager,
+                    Path.of(plugin.getName()),
+                    CacheManager.PLUGIN_METADATA_CACHE_KEY,
+                    new PluginMetadata(pluginCacheManager)));
+            LOG.debug(
+                    "Moved plugin {} metadata to cache: {}",
+                    plugin.getName(),
+                    plugin.getMetadata().getLocation().toAbsolutePath());
 
             // Run OpenRewrite
             plugin.runOpenRewrite(mavenInvoker);
@@ -136,12 +145,14 @@ public class PluginModernizer {
 
             // Verify the plugin with the first JDK that verifies it
             JDK jdkVerify = verifyPlugin(plugin);
-            if (jdkVerify == null) {
-                plugin.addError("Plugin failed to verify with all JDKs.");
-                LOG.info("Plugin {} failed to verify with all JDKs. Aborting this plugin.", plugin.getName());
-                return;
+            if (!config.isFetchMetadataOnly()) {
+                if (jdkVerify == null) {
+                    plugin.addError("Plugin failed to verify with all JDKs.");
+                    LOG.info("Plugin {} failed to verify with all JDKs. Aborting this plugin.", plugin.getName());
+                    return;
+                }
+                LOG.info("Plugin {} verified successfully with JDK {}", plugin.getName(), jdkVerify.getMajor());
             }
-            LOG.info("Plugin {} verified successfully with JDK {}", plugin.getName(), jdkVerify.getMajor());
 
             if (plugin.hasErrors()) {
                 LOG.warn(
@@ -189,6 +200,10 @@ public class PluginModernizer {
         } else {
             jdk = plugin.getJDK();
         }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping compilation for plugin {} as it's a metadata only fetch", plugin.getName());
+            return jdk;
+        }
         return Stream.iterate(jdk, JDK::hasNext, JDK::next)
                 .sorted(JDK::compareMajor)
                 .filter(j -> {
@@ -223,6 +238,10 @@ public class PluginModernizer {
         if (metadata == null) {
             plugin.addError("Metadata is not yet computed for plugin " + plugin.getName());
             plugin.raiseLastError();
+            return null;
+        }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping verification for plugin {} as it's a metadata only fetch", plugin.getName());
             return null;
         }
         String coreVersion = metadata.getJenkinsVersion();
@@ -267,7 +286,12 @@ public class PluginModernizer {
             }
             // Display what's done
             else {
-                if (config.isDryRun()) {
+                if (config.isFetchMetadataOnly()) {
+                    LOG.info(
+                            "Metadata was fetched for plugin {} and is available at {}",
+                            plugin.getName(),
+                            plugin.getMetadata().getLocation().toAbsolutePath());
+                } else if (config.isDryRun()) {
                     LOG.info("Dry run mode. Changes were commited on on " + plugin.getLocalRepository()
                             + " but not pushed");
                 } else {

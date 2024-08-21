@@ -141,6 +141,10 @@ public class GHService {
             LOG.info("Skipping forking plugin {} in dry-run mode", plugin);
             return;
         }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping forking plugin {} in fetch-metadata-only mode", plugin);
+            return;
+        }
         if (plugin.isArchived(this)) {
             LOG.info("Plugin {} is archived. Not forking", plugin);
             return;
@@ -286,6 +290,10 @@ public class GHService {
             LOG.info("Skipping sync plugin {} in dry-run mode", plugin);
             return;
         }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping sync plugin {} in fetch-metadata-only mode", plugin);
+            return;
+        }
         if (!isForked(plugin)) {
             LOG.info("Plugin {} is not forked. Not attempting sync", plugin);
             return;
@@ -314,6 +322,10 @@ public class GHService {
     public void deleteFork(Plugin plugin) {
         if (config.isDryRun()) {
             LOG.info("Skipping delete fork for plugin {} in dry-run mode", plugin);
+            return;
+        }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping delete for for plugin {} in fetch-metadata-only mode", plugin);
             return;
         }
         if (!isForked(plugin)) {
@@ -480,6 +492,10 @@ public class GHService {
             LOG.info("Skipping push changes for plugin {} in dry-run mode", plugin);
             return;
         }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping push changes for plugin {} in fetch-metadata-only mode", plugin);
+            return;
+        }
         if (config.isSkipPush()) {
             LOG.info("Skipping push changes for plugin {}", plugin);
             return;
@@ -513,6 +529,10 @@ public class GHService {
     public void openPullRequest(Plugin plugin) {
         if (config.isDryRun()) {
             LOG.info("Skipping pull request changes for plugin {} in dry-run mode", plugin);
+            return;
+        }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping pull request for plugin {} in fetch-metadata-only mode", plugin);
             return;
         }
         if (config.isSkipPullRequest() || config.isSkipPush()) {

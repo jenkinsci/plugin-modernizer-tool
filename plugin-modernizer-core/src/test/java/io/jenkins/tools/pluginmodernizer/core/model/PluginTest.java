@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -34,6 +36,9 @@ public class PluginTest {
 
     @Mock
     private GHService ghService;
+
+    @Mock
+    private Config config;
 
     @Test
     public void testPluginName() {
@@ -89,6 +94,8 @@ public class PluginTest {
     @Test
     public void testCompile() {
         Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(false).when(config).isFetchMetadataOnly();
         plugin.withJDK(JDK.JAVA_21);
         plugin.compile(mavenInvoker);
         verify(mavenInvoker).invokeGoal(plugin, "compile");
@@ -96,8 +103,21 @@ public class PluginTest {
     }
 
     @Test
+    public void shouldSkipCompileInFetchMetadata() {
+        Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(true).when(config).isFetchMetadataOnly();
+        plugin.withJDK(JDK.JAVA_21);
+        plugin.compile(mavenInvoker);
+        verify(mavenInvoker, times(0)).invokeGoal(plugin, "compile");
+        verifyNoMoreInteractions(mavenInvoker);
+    }
+
+    @Test
     public void testVerify() {
         Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(false).when(config).isFetchMetadataOnly();
         plugin.withJDK(JDK.JAVA_21);
         plugin.verify(mavenInvoker);
         verify(mavenInvoker).invokeGoal(plugin, "verify");
@@ -105,27 +125,72 @@ public class PluginTest {
     }
 
     @Test
+    public void shouldNotVerifyInFetchMetadataMode() {
+        Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(true).when(config).isFetchMetadataOnly();
+        plugin.withJDK(JDK.JAVA_21);
+        plugin.verify(mavenInvoker);
+        verify(mavenInvoker, times(0)).invokeGoal(plugin, "verify");
+        verifyNoMoreInteractions(mavenInvoker);
+    }
+
+    @Test
     public void testRewrite() {
         Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(false).when(config).isFetchMetadataOnly();
         plugin.runOpenRewrite(mavenInvoker);
         verify(mavenInvoker).invokeRewrite(plugin);
         verifyNoMoreInteractions(mavenInvoker);
     }
 
     @Test
+    public void shouldSkipRewriteInFetchMetadataMode() {
+        Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(true).when(config).isFetchMetadataOnly();
+        plugin.runOpenRewrite(mavenInvoker);
+        verify(mavenInvoker, times(0)).invokeRewrite(plugin);
+        verifyNoMoreInteractions(mavenInvoker);
+    }
+
+    @Test
     public void testFork() {
         Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(false).when(config).isFetchMetadataOnly();
         plugin.fork(ghService);
         verify(ghService).fork(plugin);
         verifyNoMoreInteractions(ghService);
     }
 
     @Test
+    public void shouldNotForkInFetchMetadataMode() {
+        Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(true).when(config).isFetchMetadataOnly();
+        plugin.fork(ghService);
+        verify(ghService, times(0)).fork(plugin);
+    }
+
+    @Test
     public void testSync() {
         Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(false).when(config).isFetchMetadataOnly();
         plugin.sync(ghService);
         verify(ghService).sync(plugin);
         verifyNoMoreInteractions(ghService);
+    }
+
+    @Test
+    public void shouldNotSyncInFetchMetadataMode() {
+        Plugin plugin = Plugin.build("example");
+        plugin.withConfig(config);
+        doReturn(true).when(config).isFetchMetadataOnly();
+        plugin.sync(ghService);
+        verify(ghService, times(0)).sync(plugin);
     }
 
     @Test

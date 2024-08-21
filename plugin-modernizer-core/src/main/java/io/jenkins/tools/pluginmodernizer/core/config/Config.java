@@ -69,6 +69,14 @@ public class Config {
         return recipes;
     }
 
+    /**
+     * Return if the current configuration is only fetching metadata which will skip compile and verify steps
+     * @return True if only fetching metadata
+     */
+    public boolean isFetchMetadataOnly() {
+        return recipes.size() == 1 && recipes.get(0).equals(Settings.FETCH_METADATA_RECIPE.getName());
+    }
+
     public URL getJenkinsUpdateCenter() {
         return jenkinsUpdateCenter;
     }
