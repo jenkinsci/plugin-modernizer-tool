@@ -58,7 +58,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
         private final List<ArchetypeCommonFile> commonFiles = new ArrayList<>();
         private final List<String> otherFiles = new ArrayList<>();
         private final List<MetadataFlag> flags = new LinkedList<>();
-        private JDK jdkVersion;
+        private final List<JDK> jdkVersions = new ArrayList<>();
 
         public List<ArchetypeCommonFile> getCommonFiles() {
             return commonFiles;
@@ -68,12 +68,20 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
             return otherFiles;
         }
 
+        public List<JDK> getJdkVersions() {
+            return jdkVersions;
+        }
+
         public void addCommonFile(ArchetypeCommonFile file) {
             commonFiles.add(file);
         }
 
         public void addOtherFile(String file) {
             otherFiles.add(file);
+        }
+
+        public void addJdk(JDK jdk) {
+            jdkVersions.add(jdk);
         }
 
         public List<MetadataFlag> getFlags() {
@@ -121,7 +129,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                             if ("buildPlugin".equals(m.getSimpleName())) {
                                 List<Expression> args = m.getArguments();
 
-                                int jdkVersion = args.stream()
+                                List<Integer> jdkVersions = args.stream()
                                         .filter(arg -> arg instanceof G.MapEntry)
                                         .map(G.MapEntry.class::cast)
                                         .filter(entry ->
@@ -132,13 +140,13 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                                         .filter(mapExpr -> mapExpr instanceof G.MapEntry)
                                         .map(G.MapEntry.class::cast)
                                         .filter(mapEntry -> "jdk".equals(((J.Literal) mapEntry.getKey()).getValue()))
-                                        .mapToInt(mapEntry -> Integer.parseInt(((J.Literal) mapEntry.getValue())
+                                        .map(mapEntry -> Integer.parseInt(((J.Literal) mapEntry.getValue())
                                                 .getValue()
                                                 .toString()))
-                                        .min()
-                                        .orElse(Integer.MAX_VALUE);
+                                        .distinct()
+                                        .toList();
 
-                                acc.jdkVersion = JDK.get(jdkVersion);
+                                jdkVersions.forEach(jdkVersion -> acc.addJdk(JDK.get(jdkVersion)));
                             }
                             return m;
                         }
@@ -189,7 +197,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 pluginMetadata.setFlags(acc.getFlags());
                 pluginMetadata.setCommonFiles(acc.getCommonFiles());
                 pluginMetadata.setOtherFiles(acc.getOtherFiles());
-                pluginMetadata.setJdkVersion(acc.jdkVersion);
+                pluginMetadata.setJdks(acc.getJdkVersions());
 
                 // Write the metadata to a file for later use by the plugin modernizer.
                 pluginMetadata.save();

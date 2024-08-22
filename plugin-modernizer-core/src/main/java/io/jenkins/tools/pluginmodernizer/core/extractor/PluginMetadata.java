@@ -35,9 +35,9 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     private List<String> otherFiles;
 
     /**
-     * Minimum JDK version required by the plugin
+     * JDK versions supported by the plugin
      */
-    private JDK jdkVersion;
+    private List<JDK> jdkVersions;
 
     /**
      * Jenkins version required by the plugin
@@ -119,6 +119,14 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
         this.otherFiles = otherFiles;
     }
 
+    public List<JDK> getJdks() {
+        return jdkVersions;
+    }
+
+    public void setJdks(List<JDK> jdkVersions) {
+        this.jdkVersions = jdkVersions;
+    }
+
     /**
      * The file with the given path or null if not found
      * @param path The path
@@ -147,14 +155,6 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
      */
     public boolean hasFile(ArchetypeCommonFile file) {
         return commonFiles.contains(file);
-    }
-
-    public JDK getJdkVersion() {
-        return jdkVersion;
-    }
-
-    public void setJdkVersion(JDK jdkVersion) {
-        this.jdkVersion = jdkVersion;
     }
 
     public String getJenkinsVersion() {

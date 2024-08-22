@@ -3,13 +3,13 @@ package io.jenkins.tools.pluginmodernizer.core.extractor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
 import static org.openrewrite.yaml.Assertions.yaml;
 
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
@@ -166,8 +166,8 @@ public class MetadataCollectorTest implements RewriteTest {
         // Absent
         assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
 
-        JDK jdkVersion = pluginMetadata.getJdkVersion();
-        assertNull(jdkVersion);
+        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        assertEquals(0, jdkVersion.size());
     }
 
     @Test
@@ -280,8 +280,9 @@ public class MetadataCollectorTest implements RewriteTest {
         // Files are present
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
-        JDK jdkVersion = pluginMetadata.getJdkVersion();
-        assertEquals(JDK.JAVA_21, jdkVersion);
+        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        assertEquals(1, jdkVersion.size());
+        assertTrue(jdkVersion.contains(JDK.JAVA_21));
     }
 
     @Test
@@ -400,11 +401,12 @@ public class MetadataCollectorTest implements RewriteTest {
         // Files are present
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
-        assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
 
-        JDK jdkVersion = pluginMetadata.getJdkVersion();
+        List<JDK> jdkVersion = pluginMetadata.getJdks();
 
-        // should return the minimum jdk
-        assertEquals(JDK.JAVA_17, jdkVersion);
+        assertEquals(2, jdkVersion.size());
+        assertTrue(jdkVersion.contains(JDK.JAVA_21));
+        assertTrue(jdkVersion.contains(JDK.JAVA_17));
     }
 }
