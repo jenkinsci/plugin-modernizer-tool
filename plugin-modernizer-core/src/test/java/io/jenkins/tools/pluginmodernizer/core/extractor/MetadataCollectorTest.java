@@ -3,9 +3,11 @@ package io.jenkins.tools.pluginmodernizer.core.extractor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
+import static org.openrewrite.yaml.Assertions.yaml;
 
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import java.util.Map;
@@ -20,7 +22,7 @@ public class MetadataCollectorTest implements RewriteTest {
     }
 
     @Test
-    void testPlugin() throws Exception {
+    void testPluginWithJenkinsfileWithoutJdkInfo() throws Exception {
         rewriteRun(
                 // language=groovy
                 groovy(
@@ -163,10 +165,13 @@ public class MetadataCollectorTest implements RewriteTest {
 
         // Absent
         assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
+
+        JDK jdkVersion = pluginMetadata.getJdkVersion();
+        assertNull(jdkVersion);
     }
 
     @Test
-    void testPluginWithJenkinsfile() {
+    void testPluginWithJenkinsfileWithJdkInfo() {
         rewriteRun(
                 // language=groovy
                 groovy(
@@ -272,13 +277,22 @@ public class MetadataCollectorTest implements RewriteTest {
                         </project>
                         """));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
+        // Files are present
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
         JDK jdkVersion = pluginMetadata.getJdkVersion();
         assertEquals(JDK.JAVA_21, jdkVersion);
     }
 
     @Test
-    void testMinimumJdkVersion() {
+    void testPluginWithJenkinsfileWithDifferentJdk() {
         rewriteRun(
+                // language=yaml
+                yaml(
+                        """
+                         name: cd
+                         """,
+                        spec -> spec.path(".github/workflows/cd.yaml")),
                 // language=groovy
                 groovy(
                         """
@@ -383,7 +397,14 @@ public class MetadataCollectorTest implements RewriteTest {
                         </project>
                         """));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
+        // Files are present
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
+        assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
+
         JDK jdkVersion = pluginMetadata.getJdkVersion();
+
+        // should return the minimum jdk
         assertEquals(JDK.JAVA_17, jdkVersion);
     }
 }

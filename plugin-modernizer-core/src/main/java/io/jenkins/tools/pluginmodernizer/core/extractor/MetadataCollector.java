@@ -117,42 +117,29 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                         @Override
                         public J.MethodInvocation visitMethodInvocation(
                                 J.MethodInvocation method, ExecutionContext ctx) {
-                            int jdkVersion = Integer.MAX_VALUE;
                             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                             if ("buildPlugin".equals(m.getSimpleName())) {
                                 List<Expression> args = m.getArguments();
 
-                                for (Expression arg : args) {
-                                    if (arg instanceof G.MapEntry entry) {
-                                        if ("configurations".equals(((J.Literal) entry.getKey()).getValue())) {
-                                            if (entry.getValue() instanceof G.ListLiteral listLiteral) {
-                                                for (Expression expression : listLiteral.getElements()) {
-                                                    if (expression instanceof G.MapLiteral mapLiteral) {
+                                int jdkVersion = args.stream()
+                                        .filter(arg -> arg instanceof G.MapEntry)
+                                        .map(G.MapEntry.class::cast)
+                                        .filter(entry ->
+                                                "configurations".equals(((J.Literal) entry.getKey()).getValue()))
+                                        .flatMap(entry -> ((G.ListLiteral) entry.getValue()).getElements().stream())
+                                        .filter(expression -> expression instanceof G.MapLiteral)
+                                        .flatMap(expression -> ((G.MapLiteral) expression).getElements().stream())
+                                        .filter(mapExpr -> mapExpr instanceof G.MapEntry)
+                                        .map(G.MapEntry.class::cast)
+                                        .filter(mapEntry -> "jdk".equals(((J.Literal) mapEntry.getKey()).getValue()))
+                                        .mapToInt(mapEntry -> Integer.parseInt(((J.Literal) mapEntry.getValue())
+                                                .getValue()
+                                                .toString()))
+                                        .min()
+                                        .orElse(Integer.MAX_VALUE);
 
-                                                        for (Expression mapExpr : mapLiteral.getElements()) {
-                                                            if (mapExpr instanceof G.MapEntry mapEntry) {
-
-                                                                J.Literal key = (J.Literal) mapEntry.getKey();
-                                                                J.Literal value = (J.Literal) mapEntry.getValue();
-
-                                                                if ("jdk".equals(key.getValue())) {
-                                                                    int currentJdkVersion =
-                                                                            Integer.parseInt(value.getValue()
-                                                                                    .toString());
-                                                                    if (currentJdkVersion < jdkVersion) {
-                                                                        jdkVersion = currentJdkVersion;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                acc.jdkVersion = JDK.get(jdkVersion);
                             }
-                            acc.jdkVersion = JDK.get(jdkVersion);
                             return m;
                         }
                     });
