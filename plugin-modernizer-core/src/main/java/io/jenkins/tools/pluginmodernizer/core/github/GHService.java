@@ -365,8 +365,9 @@ public class GHService {
      * @param plugin The plugin to fork
      */
     public void fetch(Plugin plugin) {
-        GHRepository repository =
-                config.isDryRun() || plugin.isArchived(this) ? getRepository(plugin) : getRepositoryFork(plugin);
+        GHRepository repository = config.isDryRun() || config.isFetchMetadataOnly() || plugin.isArchived(this)
+                ? getRepository(plugin)
+                : getRepositoryFork(plugin);
 
         if (config.isDebug()) {
             LOG.debug(
@@ -393,8 +394,9 @@ public class GHService {
      */
     private void fetchRepository(Plugin plugin) throws GitAPIException {
         LOG.debug("Fetching {}", plugin.getName());
-        GHRepository repository =
-                config.isDryRun() || plugin.isArchived(this) ? getRepository(plugin) : getRepositoryFork(plugin);
+        GHRepository repository = config.isDryRun() || config.isFetchMetadataOnly() || plugin.isArchived(this)
+                ? getRepository(plugin)
+                : getRepositoryFork(plugin);
         String remoteUrl = repository.getHttpTransportUrl();
         // Fetch latest changes
         if (Files.isDirectory(plugin.getLocalRepository())) {

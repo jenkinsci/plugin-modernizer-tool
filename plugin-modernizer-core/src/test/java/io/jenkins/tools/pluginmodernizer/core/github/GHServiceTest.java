@@ -509,4 +509,33 @@ public class GHServiceTest {
             verifyNoMoreInteractions(cloneCommand);
         }
     }
+
+    @Test
+    public void shouldFetchOriginalRepoInMetaDataOnlyModeToNewFolder() throws Exception {
+
+        // Mock
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        Git git = Mockito.mock(Git.class);
+        CloneCommand cloneCommand = Mockito.mock(CloneCommand.class);
+
+        doReturn(false).when(config).isDryRun();
+        doReturn(true).when(config).isFetchMetadataOnly();
+        doReturn("fake-repo").when(plugin).getRepositoryName();
+        doReturn(repository).when(github).getRepository(eq("jenkinsci/fake-repo"));
+        doReturn(git).when(cloneCommand).call();
+        doReturn("fake-url").when(repository).getHttpTransportUrl();
+        doReturn(cloneCommand).when(cloneCommand).setURI(eq("fake-url"));
+        doReturn(cloneCommand).when(cloneCommand).setDirectory(any(File.class));
+
+        // Directory doesn't exists
+        doReturn(Path.of("not-existing-dir")).when(plugin).getLocalRepository();
+
+        // Test
+        try (MockedStatic<Git> mockStaticGit = mockStatic(Git.class)) {
+            mockStaticGit.when(Git::cloneRepository).thenReturn(cloneCommand);
+            service.fetch(plugin);
+            verify(cloneCommand, times(1)).call();
+            verifyNoMoreInteractions(cloneCommand);
+        }
+    }
 }
