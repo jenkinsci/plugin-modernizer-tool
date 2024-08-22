@@ -209,6 +209,26 @@ public enum JDK {
     }
 
     /**
+     * Return the minimum JDK from a list of JDKs
+     * @param jdks List of JDKS. Can be null or empty
+     * @return The minimum JDK. If the list is empty, return the minimum JDK available
+     */
+    public static JDK min(List<JDK> jdks) {
+        if (jdks == null || jdks.isEmpty()) {
+            return JDK.min();
+        }
+        return jdks.stream().min(JDK::compareMajor).orElseThrow();
+    }
+
+    /**
+     * Return a list of all JDK sorted by major version
+     * @return The list of JDKs
+     */
+    public static List<JDK> all() {
+        return Arrays.stream(values()).sorted(JDK::compareMajor).toList();
+    }
+
+    /**
      * Get list of buildable JDKs for a given Jenkins version
      * @param jenkinsVersion The Jenkins version
      * @return The list of buildable JDKs

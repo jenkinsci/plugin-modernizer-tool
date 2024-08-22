@@ -12,7 +12,6 @@ import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,15 +104,15 @@ public class PluginModernizer {
             plugin.setMetadata(cacheManager.get(
                     Path.of(plugin.getName()), CacheManager.PLUGIN_METADATA_CACHE_KEY, PluginMetadata.class));
 
-            // Compile the plugin with the first JDK that compile it
+            // Compile only if we are able to find metadata
+            // For the moment it's local cache only but later will fetch on remote storage
             if (!config.isFetchMetadataOnly()) {
-                JDK jdkCompile = compilePlugin(plugin);
-                if (jdkCompile == null) {
-                    plugin.addError("Plugin failed to compile with all JDK.");
-                    LOG.info("Plugin {} fail to compile all JDK. Aborting this plugin.", plugin.getName());
-                    return;
+                if (plugin.getMetadata() != null) {
+                    JDK jdk = compilePlugin(plugin);
+                    LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk.getMajor());
+                } else {
+                    LOG.info("No metadata found for plugin {}. Skipping initial compilation.", plugin.getName());
                 }
-                LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdkCompile.getMajor());
             }
 
             plugin.checkoutBranch(ghService);
@@ -138,7 +137,7 @@ public class PluginModernizer {
                         plugin.getName(),
                         plugin.getMetadata().getLocation().toAbsolutePath());
             } else {
-                LOG.info("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
+                LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
             }
 
             // Run OpenRewrite
@@ -150,15 +149,10 @@ public class PluginModernizer {
                 return;
             }
 
-            // Verify the plugin with the first JDK that verifies it
-            JDK jdkVerify = verifyPlugin(plugin);
+            // Verify plugin
             if (!config.isFetchMetadataOnly()) {
-                if (jdkVerify == null) {
-                    plugin.addError("Plugin failed to verify with all JDKs.");
-                    LOG.info("Plugin {} failed to verify with all JDKs. Aborting this plugin.", plugin.getName());
-                    return;
-                }
-                LOG.info("Plugin {} verified successfully with JDK {}", plugin.getName(), jdkVerify.getMajor());
+                JDK jdk = verifyPlugin(plugin);
+                LOG.info("Plugin {} verified successfully with JDK {}", plugin.getName(), jdk.getMajor());
             }
 
             if (plugin.hasErrors()) {
@@ -191,52 +185,16 @@ public class PluginModernizer {
     }
 
     /**
-     * Compile a plugin and return the first JDK that compile it
+     * Compile a plugin
      * @param plugin The plugin to compile
-     * @return The JDK that compile the plugin
      */
     private JDK compilePlugin(Plugin plugin) {
-
         PluginMetadata metadata = plugin.getMetadata();
-        JDK jdk;
-
-        if (metadata == null) {
-            jdk = JDK.min();
-            LOG.info(
-                    "Metadata is not yet computed for plugin {}. Using minimum JDK {} available",
-                    plugin.getName(),
-                    jdk);
-        } else {
-            // TODO: Pending  https://github.com/jenkinsci/plugin-modernizer-tool/pull/201
-            jdk = JDK.min();
-            // jdk = metadata.getJdk();
-            LOG.info("Metadata is available for plugin {}. Using JDK of {}", plugin.getName(), jdk);
-        }
-        if (config.isFetchMetadataOnly()) {
-            LOG.info("Skipping compilation for plugin {} as it's a metadata only fetch", plugin.getName());
-            return jdk;
-        }
-        return Stream.iterate(jdk, JDK::hasNext, JDK::next)
-                .sorted(JDK::compareMajor)
-                .filter(j -> {
-                    plugin.withJDK(j);
-                    plugin.clean(mavenInvoker);
-                    // TODO: Next PR, update metadata to include list of repositories using still HTTP
-                    // plugin.ensureMinimalBuild(mavenInvoker);
-                    plugin.compile(mavenInvoker);
-                    if (plugin.hasErrors()) {
-                        LOG.info(
-                                "Plugin {} failed to compile with JDK {}. Trying next one",
-                                plugin.getName(),
-                                j.getMajor());
-                        plugin.withoutErrors();
-                        return false;
-                    }
-                    plugin.withoutErrors();
-                    return true;
-                })
-                .findFirst()
-                .orElse(null);
+        JDK jdk = JDK.min(metadata.getJdks());
+        plugin.withJDK(jdk);
+        plugin.clean(mavenInvoker);
+        plugin.compile(mavenInvoker);
+        return jdk;
     }
 
     /**
@@ -246,36 +204,35 @@ public class PluginModernizer {
      */
     private JDK verifyPlugin(Plugin plugin) {
         PluginMetadata metadata = plugin.getMetadata();
-        // Should not happen but let's not fail any null pointer in case
-        if (metadata == null) {
-            plugin.addError("Metadata is not yet computed for plugin " + plugin.getName());
-            plugin.raiseLastError();
-            return null;
+
+        // Determine the JDK
+        JDK jdk;
+        if (metadata.getJdks() == null || metadata.getJdks().isEmpty()) {
+            jdk = JDK.JAVA_17;
+            LOG.info(
+                    "No JDKs found in metadata for plugin {}. Using same JDK as rewrite for verification",
+                    plugin.getName());
+        } else {
+            jdk = JDK.min(metadata.getJdks());
+            LOG.info("Using minimum JDK {} from metadata for plugin {}", jdk.getMajor(), plugin.getName());
         }
-        if (config.isFetchMetadataOnly()) {
-            LOG.info("Skipping verification for plugin {} as it's a metadata only fetch", plugin.getName());
-            return null;
+        // If the plugin was modernized we should find next JDK compatible
+        // For example a Java 8 plugin was modernized to Java 11
+        while (JDK.hasNext(jdk) && !jdk.supported(metadata.getJenkinsVersion())) {
+            jdk = jdk.next();
         }
-        String coreVersion = metadata.getJenkinsVersion();
-        return Stream.iterate(JDK.max(), JDK::hasPrevious, JDK::previous)
-                .filter(j -> j.supported(coreVersion))
-                .filter(j -> {
-                    plugin.withJDK(j);
-                    plugin.clean(mavenInvoker);
-                    plugin.verify(mavenInvoker);
-                    if (plugin.hasErrors()) {
-                        LOG.info(
-                                "Plugin {} failed to verify with JDK {}. Trying previous one",
-                                plugin.getName(),
-                                j.getMajor());
-                        plugin.withoutErrors();
-                        return false;
-                    }
-                    plugin.withoutErrors();
-                    return true;
-                })
-                .findFirst()
-                .orElse(null);
+
+        // Build it
+        plugin.withJDK(jdk);
+        plugin.clean(mavenInvoker);
+        plugin.verify(mavenInvoker);
+        if (plugin.hasErrors()) {
+            LOG.info("Plugin {} failed to verify with JDK {}", plugin.getName(), jdk.getMajor());
+            plugin.withoutErrors();
+        }
+        plugin.withoutErrors();
+
+        return jdk;
     }
 
     /**
