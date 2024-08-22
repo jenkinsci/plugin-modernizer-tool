@@ -101,9 +101,13 @@ public class PluginModernizer {
                 LOG.info("Plugin {} has errors. Will not process this plugin.", plugin.getName());
             }
 
+            // Set the metadata from cache if available
+            plugin.setMetadata(cacheManager.get(
+                    Path.of(plugin.getName()), CacheManager.PLUGIN_METADATA_CACHE_KEY, PluginMetadata.class));
+
             // Compile the plugin with the first JDK that compile it
-            JDK jdkCompile = compilePlugin(plugin);
             if (!config.isFetchMetadataOnly()) {
+                JDK jdkCompile = compilePlugin(plugin);
                 if (jdkCompile == null) {
                     plugin.addError("Plugin failed to compile with all JDK.");
                     LOG.info("Plugin {} fail to compile all JDK. Aborting this plugin.", plugin.getName());
@@ -117,21 +121,25 @@ public class PluginModernizer {
             // Minimum JDK to run openrewrite
             plugin.withJDK(JDK.JAVA_17);
 
-            // Collect metadata
-            plugin.collectMetadata(mavenInvoker);
+            // Collect metadata and move metadata from the target directory of the plugin to the common cache
+            if (plugin.getMetadata() == null) {
 
-            // Move metadata from the target directory of the plugin to the common cache
-            CacheManager pluginCacheManager = new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
-                    .resolve(plugin.getLocalRepository().resolve("target")));
-            plugin.setMetadata(pluginCacheManager.move(
-                    cacheManager,
-                    Path.of(plugin.getName()),
-                    CacheManager.PLUGIN_METADATA_CACHE_KEY,
-                    new PluginMetadata(pluginCacheManager)));
-            LOG.debug(
-                    "Moved plugin {} metadata to cache: {}",
-                    plugin.getName(),
-                    plugin.getMetadata().getLocation().toAbsolutePath());
+                plugin.collectMetadata(mavenInvoker);
+
+                CacheManager pluginCacheManager = new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
+                        .resolve(plugin.getLocalRepository().resolve("target")));
+                plugin.setMetadata(pluginCacheManager.move(
+                        cacheManager,
+                        Path.of(plugin.getName()),
+                        CacheManager.PLUGIN_METADATA_CACHE_KEY,
+                        new PluginMetadata(pluginCacheManager)));
+                LOG.debug(
+                        "Moved plugin {} metadata to cache: {}",
+                        plugin.getName(),
+                        plugin.getMetadata().getLocation().toAbsolutePath());
+            } else {
+                LOG.info("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
+            }
 
             // Run OpenRewrite
             plugin.runOpenRewrite(mavenInvoker);
@@ -192,12 +200,17 @@ public class PluginModernizer {
         PluginMetadata metadata = plugin.getMetadata();
         JDK jdk;
 
-        // TODO: For now it's always null because we don't persist nor cache metadata
         if (metadata == null) {
-            LOG.info("Metadata is not yet computed for plugin {}. Using minimum JDK available", plugin.getName());
             jdk = JDK.min();
+            LOG.info(
+                    "Metadata is not yet computed for plugin {}. Using minimum JDK {} available",
+                    plugin.getName(),
+                    jdk);
         } else {
-            jdk = plugin.getJDK();
+            // TODO: Pending  https://github.com/jenkinsci/plugin-modernizer-tool/pull/201
+            jdk = JDK.min();
+            // jdk = metadata.getJdk();
+            LOG.info("Metadata is available for plugin {}. Using JDK of {}", plugin.getName(), jdk);
         }
         if (config.isFetchMetadataOnly()) {
             LOG.info("Skipping compilation for plugin {} as it's a metadata only fetch", plugin.getName());
