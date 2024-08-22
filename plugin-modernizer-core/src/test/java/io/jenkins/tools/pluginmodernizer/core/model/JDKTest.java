@@ -39,6 +39,15 @@ public class JDKTest {
     }
 
     @Test
+    public void all() {
+        assertEquals(4, JDK.all().size());
+        assertEquals(JDK.JAVA_8, JDK.all().get(0));
+        assertEquals(JDK.JAVA_11, JDK.all().get(1));
+        assertEquals(JDK.JAVA_17, JDK.all().get(2));
+        assertEquals(JDK.JAVA_21, JDK.all().get(3));
+    }
+
+    @Test
     public void getBuildableJdk() {
 
         assertEquals(1, JDK.get("2.163").size());
