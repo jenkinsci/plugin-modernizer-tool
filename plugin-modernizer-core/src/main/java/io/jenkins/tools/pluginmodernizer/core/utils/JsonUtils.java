@@ -6,8 +6,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JsonUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(JsonUtils.class);
 
     private static final Gson gson;
 
@@ -35,6 +39,7 @@ public class JsonUtils {
      */
     public static void toJsonFile(Object object, Path path) {
         try {
+            LOG.trace("Writing JSON file to {}", path);
             FileUtils.writeStringToFile(path.toFile(), gson.toJson(object), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new ModernizerException("Unable to write JSON file due to IO error", e);

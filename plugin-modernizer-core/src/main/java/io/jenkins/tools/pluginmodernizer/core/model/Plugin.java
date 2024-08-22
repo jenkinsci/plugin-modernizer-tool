@@ -381,6 +381,10 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void compile(MavenInvoker maven) {
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping compilation for plugin {} as only metadata is required", name);
+            return;
+        }
         LOG.info(
                 "Compiling plugin {} with JDK {} ... Please be patient",
                 name,
@@ -396,6 +400,10 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void verify(MavenInvoker maven) {
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping verification for plugin {} as only metadata is required", name);
+            return;
+        }
         LOG.info(
                 "Verifying plugin {} with JDK {}... Please be patient",
                 name,
@@ -429,6 +437,10 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void runOpenRewrite(MavenInvoker maven) {
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping OpenRewrite recipe application for plugin {} as only metadata is required", name);
+            return;
+        }
         maven.invokeRewrite(this);
     }
 
@@ -437,6 +449,10 @@ public class Plugin {
      * @param service The GitHub service
      */
     public void fork(GHService service) {
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping fork for plugin {} as only metadata is required", name);
+            return;
+        }
         service.fork(this);
     }
 
@@ -445,6 +461,10 @@ public class Plugin {
      * @param service The GitHub service
      */
     public void sync(GHService service) {
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping sync for plugin {} as only metadata is required", name);
+            return;
+        }
         service.sync(this);
     }
 

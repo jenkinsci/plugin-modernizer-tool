@@ -75,10 +75,12 @@ public class UpdateCenterUtils {
                     .GET()
                     .uri(config.getJenkinsUpdateCenter().toURI())
                     .build();
+            LOG.debug("Fetching update center data from: {}", config.getJenkinsUpdateCenter());
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new ModernizerException("Failed to fetch update center data: " + response.statusCode());
             }
+            LOG.debug("Fetched update center data from: {}", config.getJenkinsUpdateCenter());
             return JsonUtils.fromJson(response.body(), UpdateCenterData.class);
         } catch (IOException | JsonSyntaxException | URISyntaxException | InterruptedException e) {
             throw new ModernizerException("Unable to fetch update center data", e);

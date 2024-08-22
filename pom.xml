@@ -61,6 +61,7 @@
     <github-api.version>1.324</github-api.version>
     <commons-compress.version>1.27.0</commons-compress.version>
     <byte-buddy.version>1.14.19</byte-buddy.version>
+    <wiremock.version>3.9.1</wiremock.version>
   </properties>
 
   <dependencyManagement>
@@ -174,6 +175,11 @@
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock-standalone</artifactId>
+        <version>${wiremock.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -195,6 +201,11 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

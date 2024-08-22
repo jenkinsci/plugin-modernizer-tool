@@ -19,9 +19,15 @@ public class MetadataCollectorTest implements RewriteTest {
     }
 
     @Test
-    void testPluginWithNoJenkinsfile() {
-        // language=xml
+    void testPlugin() throws Exception {
         rewriteRun(
+                // language=groovy
+                groovy(
+                        """
+                          buildPlugin()
+                          """,
+                        spec -> spec.path("Jenkinsfile")),
+                // language=xml
                 pomXml(
                         """
                         <?xml version="1.0" encoding="UTF-8"?>
@@ -39,7 +45,13 @@ public class MetadataCollectorTest implements RewriteTest {
                           <packaging>hpi</packaging>
                           <name>GitLab Plugin</name>
                           <url>https://github.com/jenkinsci/${project.artifactId}</url>
-
+                          <developers>
+                            <developer>
+                              <id>john.doe</id>
+                              <name>John Doe</name>
+                              <email>john.doe@example.com</email>
+                            </developer>
+                          </developers>
                           <licenses>
                             <license>
                               <name>GPL v2.0 License</name>
@@ -135,17 +147,21 @@ public class MetadataCollectorTest implements RewriteTest {
         assertEquals("4.80", pluginMetadata.getParentVersion());
         String jenkinsVersion = pluginMetadata.getJenkinsVersion();
         assertEquals("2.426.3", jenkinsVersion);
-        boolean hasJavaLevel = pluginMetadata.hasJavaLevel();
-        assertTrue(hasJavaLevel);
-        boolean usesHttps = pluginMetadata.isUsesScmHttps();
-        assertTrue(usesHttps);
+        assertNotNull(pluginMetadata.getProperties().get("java.level"));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.SCM_HTTPS));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.MAVEN_REPOSITORIES_HTTPS));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.LICENSE_SET));
+        assertTrue(pluginMetadata.hasFlag(MetadataFlag.DEVELOPER_SET));
         Map<String, String> properties = pluginMetadata.getProperties();
         assertNotNull(properties);
         assertEquals(10, properties.size());
-        boolean hasJenkinsfile = pluginMetadata.hasJenkinsfile();
-        assertFalse(hasJenkinsfile);
-        int jdkVersion = pluginMetadata.getJdkVersion();
-        assertEquals(0, jdkVersion);
+
+        // Files are present
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
+
+        // Absent
+        assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
     }
 
     @Test
