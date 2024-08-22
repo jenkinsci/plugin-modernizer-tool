@@ -18,7 +18,6 @@ import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.groovy.GroovyIsoVisitor;
 import org.openrewrite.groovy.tree.G;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.Markers;
@@ -31,7 +30,9 @@ import org.openrewrite.xml.tree.Xml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressFBWarnings(value = {"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"}, justification = "Extrac checks harmless")
+@SuppressFBWarnings(
+        value = {"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"},
+        justification = "Extrac checks harmless")
 public class MetadataCollector extends ScanningRecipe<MetadataCollector.MetadataAccumulator> {
 
     /**
@@ -113,8 +114,8 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
             final TreeVisitor<?, ExecutionContext> groovyIsoVisitor = Preconditions.check(
                     new FindSourceFiles("**/Jenkinsfile"), new GroovyIsoVisitor<ExecutionContext>() {
                         @Override
-                        public J MethodInvocation visitMethodInvocation(
-                                J MethodInvocation method, ExecutionContext ctx) {
+                        public J.MethodInvocation visitMethodInvocation(
+                                J.MethodInvocation method, ExecutionContext ctx) {
                             int jdkVersion = Integer.MAX_VALUE;
                             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
                             if ("buildPlugin".equals(m.getSimpleName())) {
@@ -165,8 +166,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
 
                 // Ensure maven resolution result is present
                 Markers markers = document.getMarkers();
-                Optional<MavenResolutionResult> mavenResolutionResult =
-                        markers.findFirst(MavenResolutionResult.class);
+                Optional<MavenResolutionResult> mavenResolutionResult = markers.findFirst(MavenResolutionResult.class);
                 if (mavenResolutionResult.isEmpty()) {
                     return document;
                 }
@@ -201,6 +201,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 pluginMetadata.setFlags(acc.getFlags());
                 pluginMetadata.setCommonFiles(acc.getCommonFiles());
                 pluginMetadata.setOtherFiles(acc.getOtherFiles());
+                pluginMetadata.setJdkVersion(acc.jdkVersion);
 
                 // Write the metadata to a file for later use by the plugin modernizer.
                 pluginMetadata.save();
