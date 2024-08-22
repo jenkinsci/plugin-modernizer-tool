@@ -7,30 +7,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
 
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
+import java.util.List;
 import java.util.Map;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 public class MetadataCollectorTest implements RewriteTest {
-    @Override
-    public void defaults(RecipeSpec spec) {
-        spec.recipe(new MetadataCollector());
-    }
 
-    @Test
-    void testPlugin() throws Exception {
-
-        rewriteRun(
-                // language=groovy
-                groovy(
-                        """
-                          buildPlugin()
-                          """,
-                        spec -> spec.path("Jenkinsfile")),
-                // language=xml
-                pomXml(
-                        """
+    @Language("xml")
+    private static final String POM_XML =
+            """
                         <?xml version="1.0" encoding="UTF-8"?>
                         <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
                           <modelVersion>4.0.0</modelVersion>
@@ -141,7 +130,23 @@ public class MetadataCollectorTest implements RewriteTest {
                             </pluginRepository>
                           </pluginRepositories>
                         </project>
-                        """));
+                        """;
+
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec.recipe(new MetadataCollector());
+    }
+
+    @Test
+    void testPluginWithJenkinsfileWithoutJdkInfo() throws Exception {
+        rewriteRun(
+                // language=groovy
+                groovy(
+                        """
+                          buildPlugin()
+                          """,
+                        spec -> spec.path("Jenkinsfile")),
+                pomXml(POM_XML));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         String pluginName = pluginMetadata.getPluginName();
         assertEquals("GitLab Plugin", pluginName);
@@ -163,5 +168,64 @@ public class MetadataCollectorTest implements RewriteTest {
 
         // Absent
         assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
+
+        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        assertEquals(0, jdkVersion.size());
+    }
+
+    @Test
+    void testPluginWithJenkinsfileWithJdkInfo() {
+        rewriteRun(
+                // language=groovy
+                groovy(
+                        """
+                         buildPlugin(
+                         useContainerAgent: true,
+                         configurations: [
+                                [platform: 'linux', jdk: 21],
+                                [platform: 'windows', jdk: 17],
+                         ])
+                         """,
+                        spec -> spec.path("Jenkinsfile")),
+                pomXml(POM_XML));
+        PluginMetadata pluginMetadata = new PluginMetadata().refresh();
+        // Files are present
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
+
+        List<JDK> jdkVersion = pluginMetadata.getJdks();
+
+        assertEquals(2, jdkVersion.size());
+        assertTrue(jdkVersion.contains(JDK.JAVA_21));
+        assertTrue(jdkVersion.contains(JDK.JAVA_17));
+    }
+
+    @Test
+    void testWeirdJenkinsfile() {
+        rewriteRun(
+                // language=groovy
+                groovy(
+                        """
+                            def configurations = [
+                              [ platform: "linux", jdk: "11" ],
+                              [ platform: "windows", jdk: "17" ]
+                            ]
+
+                            def params = [
+                                failFast: false,
+                                configurations: configurations,
+                                checkstyle: [qualityGates: [[threshold: 1, type: 'NEW', unstable: true]]],
+                                pmd: [qualityGates: [[threshold: 1, type: 'NEW', unstable: true]]],
+                                jacoco: [sourceCodeRetention: 'MODIFIED']
+                                ]
+
+                            buildPlugin(params)
+                            """,
+                        spec -> spec.path("Jenkinsfile")),
+                pomXml(POM_XML));
+        PluginMetadata pluginMetadata = new PluginMetadata().refresh();
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
+        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        assertEquals(0, jdkVersion.size());
     }
 }

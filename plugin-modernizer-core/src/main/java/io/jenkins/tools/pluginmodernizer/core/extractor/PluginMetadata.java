@@ -2,6 +2,7 @@ package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.CacheEntry;
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -34,6 +35,11 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     private List<String> otherFiles;
 
     /**
+     * JDK versions supported by the plugin
+     */
+    private List<JDK> jdkVersions;
+
+    /**
      * Jenkins version required by the plugin
      */
     private String jenkinsVersion;
@@ -50,7 +56,7 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
 
     /**
      * Create a new plugin metadata
-     * Store the metadata in in the relative target directory of current folder
+     * Store the metadata in the relative target directory of current folder
      */
     public PluginMetadata() {
         super(
@@ -111,6 +117,14 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
 
     public void setOtherFiles(List<String> otherFiles) {
         this.otherFiles = otherFiles;
+    }
+
+    public List<JDK> getJdks() {
+        return jdkVersions;
+    }
+
+    public void setJdks(List<JDK> jdkVersions) {
+        this.jdkVersions = jdkVersions;
     }
 
     /**

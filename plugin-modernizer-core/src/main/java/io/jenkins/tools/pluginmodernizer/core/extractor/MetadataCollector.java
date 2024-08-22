@@ -1,6 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,10 +11,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.FindSourceFiles;
+import org.openrewrite.Preconditions;
 import org.openrewrite.ScanningRecipe;
 import org.openrewrite.SourceFile;
 import org.openrewrite.Tree;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.groovy.GroovyIsoVisitor;
+import org.openrewrite.groovy.tree.G;
+import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.Markers;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
@@ -24,7 +31,9 @@ import org.openrewrite.xml.tree.Xml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", justification = "Extrac checks harmless")
+@SuppressFBWarnings(
+        value = {"RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"},
+        justification = "Extrac checks harmless")
 public class MetadataCollector extends ScanningRecipe<MetadataCollector.MetadataAccumulator> {
 
     /**
@@ -49,6 +58,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
         private final List<ArchetypeCommonFile> commonFiles = new ArrayList<>();
         private final List<String> otherFiles = new ArrayList<>();
         private final List<MetadataFlag> flags = new LinkedList<>();
+        private final List<JDK> jdkVersions = new ArrayList<>();
 
         public List<ArchetypeCommonFile> getCommonFiles() {
             return commonFiles;
@@ -58,12 +68,20 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
             return otherFiles;
         }
 
+        public List<JDK> getJdkVersions() {
+            return jdkVersions;
+        }
+
         public void addCommonFile(ArchetypeCommonFile file) {
             commonFiles.add(file);
         }
 
         public void addOtherFile(String file) {
             otherFiles.add(file);
+        }
+
+        public void addJdk(JDK jdk) {
+            jdkVersions.add(jdk);
         }
 
         public List<MetadataFlag> getFlags() {
@@ -98,8 +116,41 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                     acc.addOtherFile(sourceFile.getSourcePath().toString());
                     LOG.debug("File {} is not a common file", sourceFile.getSourcePath());
                 }
+                groovyIsoVisitor.visit(tree, ctx);
                 return tree;
             }
+
+            final TreeVisitor<?, ExecutionContext> groovyIsoVisitor = Preconditions.check(
+                    new FindSourceFiles("**/Jenkinsfile"), new GroovyIsoVisitor<ExecutionContext>() {
+                        @Override
+                        public J.MethodInvocation visitMethodInvocation(
+                                J.MethodInvocation method, ExecutionContext ctx) {
+                            J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
+                            if ("buildPlugin".equals(m.getSimpleName())) {
+                                List<Expression> args = m.getArguments();
+
+                                List<Integer> jdkVersions = args.stream()
+                                        .filter(arg -> arg instanceof G.MapEntry)
+                                        .map(G.MapEntry.class::cast)
+                                        .filter(entry ->
+                                                "configurations".equals(((J.Literal) entry.getKey()).getValue()))
+                                        .flatMap(entry -> ((G.ListLiteral) entry.getValue()).getElements().stream())
+                                        .filter(expression -> expression instanceof G.MapLiteral)
+                                        .flatMap(expression -> ((G.MapLiteral) expression).getElements().stream())
+                                        .filter(mapExpr -> mapExpr instanceof G.MapEntry)
+                                        .map(G.MapEntry.class::cast)
+                                        .filter(mapEntry -> "jdk".equals(((J.Literal) mapEntry.getKey()).getValue()))
+                                        .map(mapEntry -> Integer.parseInt(((J.Literal) mapEntry.getValue())
+                                                .getValue()
+                                                .toString()))
+                                        .distinct()
+                                        .toList();
+
+                                jdkVersions.forEach(jdkVersion -> acc.addJdk(JDK.get(jdkVersion)));
+                            }
+                            return m;
+                        }
+                    });
         };
     }
 
@@ -146,6 +197,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 pluginMetadata.setFlags(acc.getFlags());
                 pluginMetadata.setCommonFiles(acc.getCommonFiles());
                 pluginMetadata.setOtherFiles(acc.getOtherFiles());
+                pluginMetadata.setJdks(acc.getJdkVersions());
 
                 // Write the metadata to a file for later use by the plugin modernizer.
                 pluginMetadata.save();
