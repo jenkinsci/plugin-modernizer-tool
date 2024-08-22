@@ -2,6 +2,7 @@ package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.CacheEntry;
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     /**
      * Minimum JDK version required by the plugin
      */
-    private int jdkVersion;
+    private JDK jdkVersion;
 
     /**
      * Jenkins version required by the plugin
@@ -148,11 +149,11 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
         return commonFiles.contains(file);
     }
 
-    public int getJdkVersion() {
+    public JDK getJdkVersion() {
         return jdkVersion;
     }
 
-    public void setJdkVersion(int jdkVersion) {
+    public void setJdkVersion(JDK jdkVersion) {
         this.jdkVersion = jdkVersion;
     }
 

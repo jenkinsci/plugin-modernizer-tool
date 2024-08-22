@@ -1,6 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +58,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
         private final List<ArchetypeCommonFile> commonFiles = new ArrayList<>();
         private final List<String> otherFiles = new ArrayList<>();
         private final List<MetadataFlag> flags = new LinkedList<>();
-        int jdkVersion;
+        private JDK jdkVersion;
 
         public List<ArchetypeCommonFile> getCommonFiles() {
             return commonFiles;
@@ -151,7 +152,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                                     }
                                 }
                             }
-                            acc.jdkVersion = jdkVersion;
+                            acc.jdkVersion = JDK.get(jdkVersion);
                             return m;
                         }
                     });

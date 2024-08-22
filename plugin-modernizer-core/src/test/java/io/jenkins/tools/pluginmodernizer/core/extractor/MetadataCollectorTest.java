@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
 
+import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
@@ -271,8 +272,8 @@ public class MetadataCollectorTest implements RewriteTest {
                         </project>
                         """));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
-        int jdkVersion = pluginMetadata.getJdkVersion();
-        assertEquals(21, jdkVersion);
+        JDK jdkVersion = pluginMetadata.getJdkVersion();
+        assertEquals(JDK.JAVA_21, jdkVersion);
     }
 
     @Test
@@ -382,7 +383,7 @@ public class MetadataCollectorTest implements RewriteTest {
                         </project>
                         """));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
-        int jdkVersion = pluginMetadata.getJdkVersion();
-        assertEquals(17, jdkVersion);
+        JDK jdkVersion = pluginMetadata.getJdkVersion();
+        assertEquals(JDK.JAVA_17, jdkVersion);
     }
 }
