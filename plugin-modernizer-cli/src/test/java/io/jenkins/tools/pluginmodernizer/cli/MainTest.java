@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -18,6 +19,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.openrewrite.Recipe;
 import picocli.CommandLine;
 
 public class MainTest {
@@ -39,26 +41,51 @@ public class MainTest {
 
     @Test
     public void testGetPlugins() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata,MinimalBuildJava8"};
         commandLine.execute(args);
 
-        List<String> plugins = main.setup().getPluginNames();
+        List<Plugin> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
         assertEquals(2, plugins.size());
-        assertEquals("plugin1", plugins.get(0));
-        assertEquals("plugin2", plugins.get(1));
+        assertEquals("plugin1", plugins.get(0).getName());
+        assertEquals("plugin2", plugins.get(1).getName());
     }
 
     @Test
     public void testGetRecipes() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata,MinimalBuildJava8"};
         commandLine.execute(args);
 
-        List<String> recipes = main.setup().getRecipes();
+        List<Recipe> recipes = main.setup().getRecipes();
         assertNotNull(recipes);
         assertEquals(2, recipes.size());
-        assertEquals("recipe1", recipes.get(0));
-        assertEquals("recipe2", recipes.get(1));
+        assertEquals(
+                "io.jenkins.tools.pluginmodernizer.FetchMetadata",
+                recipes.get(0).getName());
+        assertEquals(
+                "io.jenkins.tools.pluginmodernizer.MinimalBuildJava8",
+                recipes.get(1).getName());
+    }
+
+    @Test
+    public void testGetRecipesWithFQDN() {
+        String[] args = {
+            "-p",
+            "plugin1,plugin2",
+            "-r",
+            "io.jenkins.tools.pluginmodernizer.FetchMetadata,io.jenkins.tools.pluginmodernizer.MinimalBuildJava8"
+        };
+        commandLine.execute(args);
+
+        List<Recipe> recipes = main.setup().getRecipes();
+        assertNotNull(recipes);
+        assertEquals(2, recipes.size());
+        assertEquals(
+                "io.jenkins.tools.pluginmodernizer.FetchMetadata",
+                recipes.get(0).getName());
+        assertEquals(
+                "io.jenkins.tools.pluginmodernizer.MinimalBuildJava8",
+                recipes.get(1).getName());
     }
 
     @Test
@@ -72,79 +99,61 @@ public class MainTest {
     public void testPluginFile() throws IOException {
         Path pluginFile = tempDir.resolve("plugins.txt");
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
-        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
+        String[] args = {"-f", pluginFile.toString(), "-r", "FetchMetadata"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPluginNames();
+        List<Plugin> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
-        assertTrue(plugins.contains("plugin1"));
-        assertTrue(plugins.contains("plugin2"));
-        assertTrue(plugins.contains("plugin3"));
-    }
-
-    @Test
-    public void testPluginFileAlongWithPluginOptionWithoutCommonPlugins() throws IOException {
-        Path pluginFile = tempDir.resolve("plugins.txt");
-        Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
-        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
-        commandLine.execute(args);
-        List<String> plugins = main.setup().getPluginNames();
-        assertNotNull(plugins);
-        assertEquals(5, plugins.size());
-        assertTrue(plugins.contains("plugin1"));
-        assertTrue(plugins.contains("plugin2"));
-        assertTrue(plugins.contains("plugin3"));
-        assertTrue(plugins.contains("plugin4"));
-        assertTrue(plugins.contains("plugin5"));
+        assertTrue(plugins.contains(Plugin.build("plugin1")));
+        assertTrue(plugins.contains(Plugin.build("plugin2")));
+        assertTrue(plugins.contains(Plugin.build("plugin3")));
     }
 
     @Test
     public void testPluginFileAlongWithPluginOptionWithCommonPlugins() throws IOException {
         Path pluginFile = tempDir.resolve("plugins.txt");
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
-        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin2,plugin3"};
+        String[] args = {"-f", pluginFile.toString(), "-r", "FetchMetadata"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPluginNames();
+        List<Plugin> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
-        assertTrue(plugins.contains("plugin1"));
-        assertTrue(plugins.contains("plugin2"));
-        assertTrue(plugins.contains("plugin3"));
+        assertTrue(plugins.contains(Plugin.build("plugin1")));
+        assertTrue(plugins.contains(Plugin.build("plugin2")));
+        assertTrue(plugins.contains(Plugin.build("plugin3")));
     }
 
     @Test
     public void testPluginFilePluginOrder() throws IOException {
         Path pluginFile = tempDir.resolve("plugins.txt");
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
-        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2"};
+        String[] args = {"-f", pluginFile.toString(), "-r", "FetchMetadata"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPluginNames();
+        List<Plugin> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
         assertEquals(3, plugins.size());
-        assertEquals("plugin1", plugins.get(0));
-        assertEquals("plugin2", plugins.get(1));
-        assertEquals("plugin3", plugins.get(2));
+        assertTrue(plugins.contains(Plugin.build("plugin1")));
+        assertTrue(plugins.contains(Plugin.build("plugin2")));
+        assertTrue(plugins.contains(Plugin.build("plugin3")));
     }
 
     @Test
     public void testPluginFileAlongWithPluginOptionPluginOrder() throws IOException {
         Path pluginFile = tempDir.resolve("plugins.txt");
         Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
-        String[] args = {"-f", pluginFile.toString(), "-r", "recipe1,recipe2", "-p", "plugin4,plugin5"};
+        String[] args = {"-f", pluginFile.toString(), "-r", "FetchMetadata"};
         commandLine.execute(args);
-        List<String> plugins = main.setup().getPluginNames();
+        List<Plugin> plugins = main.setup().getPlugins();
         assertNotNull(plugins);
-        assertEquals(5, plugins.size());
-        assertEquals("plugin1", plugins.get(0));
-        assertEquals("plugin2", plugins.get(1));
-        assertEquals("plugin3", plugins.get(2));
-        assertEquals("plugin4", plugins.get(3));
-        assertEquals("plugin5", plugins.get(4));
+        assertEquals(3, plugins.size());
+        assertTrue(plugins.contains(Plugin.build("plugin1")));
+        assertTrue(plugins.contains(Plugin.build("plugin2")));
+        assertTrue(plugins.contains(Plugin.build("plugin3")));
     }
 
     @Test
     public void testSkipPushOptions() throws IOException {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--skip-push"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "recipe1,recipe2", "--skip-push"};
         commandLine.execute(args);
         assertTrue(main.setup().isSkipPush());
     }
@@ -152,7 +161,7 @@ public class MainTest {
     @Test
     public void testSkipPullRequestOptions() throws IOException {
         String[] args = {
-            "-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--skip-pull-request"
+            "-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "FetchMetadata", "--skip-pull-request"
         };
         commandLine.execute(args);
         assertTrue(main.setup().isSkipPullRequest());
@@ -160,8 +169,7 @@ public class MainTest {
 
     @Test
     public void voidTestCleanLocalData() throws IOException {
-        String[] args = {
-            "-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--clean-local-data"
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "FetchMetadata", "--clean-local-data"
         };
         commandLine.execute(args);
         assertTrue(main.setup().isRemoveLocalData());
@@ -169,8 +177,7 @@ public class MainTest {
 
     @Test
     public void voidTestCleanForks() throws IOException {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "--skip", "recipe1,recipe2", "--clean-forks"
-        };
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "recipe1,recipe2", "--clean-forks"};
         commandLine.execute(args);
         assertTrue(main.setup().isRemoveForks());
     }
@@ -184,21 +191,21 @@ public class MainTest {
 
     @Test
     public void testDryRunOption() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-n"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "-n"};
         commandLine.execute(args);
         assertTrue(main.setup().isDryRun());
     }
 
     @Test
     public void testExportDatatablesOption() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-n", "-e"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "-n", "-e"};
         commandLine.execute(args);
         assertTrue(main.setup().isExportDatatables());
     }
 
     @Test
     public void testDebugOption() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-d"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "-d"};
         commandLine.execute(args);
         main.setup();
         assertTrue(Config.DEBUG);
@@ -206,7 +213,7 @@ public class MainTest {
 
     @Test
     public void testCachePathOption() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "recipe1,recipe2", "-c", "/tmp/cache"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "-c", "/tmp/cache"};
         commandLine.execute(args);
         assertEquals(Paths.get("/tmp/cache"), main.setup().getCachePath());
     }

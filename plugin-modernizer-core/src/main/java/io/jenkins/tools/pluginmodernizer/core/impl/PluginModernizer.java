@@ -53,7 +53,7 @@ public class PluginModernizer {
         cacheManager.init();
 
         // Debug config
-        LOG.debug("Plugins: {}", config.getPluginNames());
+        LOG.debug("Plugins: {}", config.getPlugins());
         LOG.debug("Recipes: {}", config.getRecipes());
         LOG.debug("GitHub owner: {}", config.getGithubOwner());
         LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
@@ -63,8 +63,7 @@ public class PluginModernizer {
         LOG.debug("Skip Pull Request: {}", config.isSkipPullRequest());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
 
-        List<Plugin> plugins =
-                config.getPluginNames().stream().map(Plugin::build).toList();
+        List<Plugin> plugins = config.getPlugins();
         plugins.forEach(this::process);
         printResults(plugins);
     }

@@ -3,12 +3,13 @@ package io.jenkins.tools.pluginmodernizer.cli;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginListParser;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import org.openrewrite.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -44,25 +45,33 @@ public class Main implements Runnable {
         new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);
     }
 
-    @Option(
-            names = {"-p", "--plugins"},
-            description = "List of Plugins to Modernize.",
-            split = ",",
-            parameterConsumer = CommaSeparatedParameterConsumer.class)
-    private List<String> plugins;
+    /**
+     * Plugin option that are mutually exclusive.
+     */
+    static class PluginOptions {
+        @Option(
+                names = {"-p", "--plugins"},
+                description = "List of Plugins to Modernize.",
+                split = ",",
+                converter = PluginConverter.class)
+        private List<Plugin> plugins;
+
+        @Option(
+                names = {"-f", "--plugin-file"},
+                description = "Path to the file that contains a list of plugins.")
+        private Path pluginFile;
+    }
+
+    @CommandLine.ArgGroup(exclusive = true, multiplicity = "1")
+    private PluginOptions pluginOptions;
 
     @Option(
             names = {"-r", "--recipes"},
             required = true,
             description = "List of Recipes to be applied.",
             split = ",",
-            parameterConsumer = CommaSeparatedParameterConsumer.class)
-    private List<String> recipes;
-
-    @Option(
-            names = {"-f", "--plugin-file"},
-            description = "Path to the file that contains a list of plugins.")
-    private Path pluginFile;
+            converter = RecipeConverter.class)
+    private List<Recipe> recipes;
 
     @Option(
             names = {"-g", "--github-owner"},
@@ -132,7 +141,7 @@ public class Main implements Runnable {
         return Config.builder()
                 .withVersion(getVersion())
                 .withGitHubOwner(githubOwner)
-                .withPlugins(plugins)
+                .withPlugins(pluginOptions != null ? pluginOptions.plugins : new ArrayList<>())
                 .withRecipes(recipes)
                 .withDryRun(dryRun)
                 .withSkipPush(skipPush)
@@ -164,33 +173,65 @@ public class Main implements Runnable {
                 recipe.getDescription()));
     }
 
-    private List<String> loadPlugins() {
-        List<String> loadedPlugins = new ArrayList<>();
-
-        if (pluginFile != null) {
-            List<String> pluginsFromFile = PluginListParser.loadPluginsFromFile(pluginFile);
+    private List<Plugin> loadPlugins() {
+        if (pluginOptions == null) {
+            return new ArrayList<>();
+        }
+        List<Plugin> loadedPlugins = new ArrayList<>();
+        if (pluginOptions.pluginFile != null) {
+            List<String> pluginsFromFile = PluginListParser.loadPluginsFromFile(pluginOptions.pluginFile);
             if (pluginsFromFile != null) {
-                loadedPlugins.addAll(pluginsFromFile);
+                loadedPlugins.addAll(
+                        pluginsFromFile.stream().distinct().map(Plugin::build).toList());
             }
         }
-
-        if (plugins != null) {
-            loadedPlugins.addAll(plugins);
+        if (pluginOptions.plugins != null) {
+            loadedPlugins.addAll(pluginOptions.plugins);
         }
-
-        return loadedPlugins.stream().distinct().collect(Collectors.toCollection(ArrayList::new));
+        return loadedPlugins;
     }
 
     @Override
     public void run() {
-        plugins = loadPlugins();
-
         if (listRecipes) {
             listAvailableRecipes();
             return;
         }
+        if (pluginOptions != null) {
+            pluginOptions.plugins = loadPlugins();
+        }
         LOG.info("Starting Plugin Modernizer");
         PluginModernizer modernizer = new PluginModernizer(setup());
         modernizer.start();
+    }
+
+    /**
+     * Custom converter for Plugin class.
+     */
+    private static final class PluginConverter implements CommandLine.ITypeConverter<Plugin> {
+        @Override
+        public Plugin convert(String value) {
+            if (value.trim().isBlank()) {
+                return null;
+            }
+            return Plugin.build(value);
+        }
+    }
+
+    /**
+     * Custom converter for Recipe interface.
+     */
+    private static final class RecipeConverter implements CommandLine.ITypeConverter<Recipe> {
+        @Override
+        public Recipe convert(String value) {
+            return Settings.AVAILABLE_RECIPES.stream()
+                    // Compare without and without the FQDN prefix
+                    .filter(recipe -> recipe.getName().equals(value)
+                            || recipe.getName()
+                                    .replace(Settings.RECIPE_FQDN_PREFIX + ".", "")
+                                    .equals(value))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid recipe name: " + value));
+        }
     }
 }

@@ -26,6 +26,7 @@ import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
+import org.openrewrite.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -557,7 +558,10 @@ public class GHService {
         }
 
         // TODO: Update PR body to give more details
-        String prBody = String.format("Applied the following recipes: %s", String.join(", ", config.getRecipes()));
+        String prBody = String.format(
+                "Applied the following recipes: %s",
+                String.join(
+                        ", ", config.getRecipes().stream().map(Recipe::getName).toList()));
         try {
             GHPullRequest pr = repository.createPullRequest(
                     PR_TITLE, config.getGithubOwner() + ":" + BRANCH_NAME, repository.getDefaultBranch(), prBody);
