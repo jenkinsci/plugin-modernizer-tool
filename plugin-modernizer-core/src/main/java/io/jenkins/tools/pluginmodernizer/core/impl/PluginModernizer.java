@@ -138,7 +138,7 @@ public class PluginModernizer {
                         plugin.getName(),
                         plugin.getMetadata().getLocation().toAbsolutePath());
             } else {
-                LOG.info("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
+                LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
             }
 
             // Run OpenRewrite
@@ -198,26 +198,27 @@ public class PluginModernizer {
     private JDK compilePlugin(Plugin plugin) {
 
         PluginMetadata metadata = plugin.getMetadata();
-        JDK jdk;
+        JDK minimumJdk;
+        JDK maximumJdk;
 
-        if (metadata == null) {
-            jdk = JDK.min();
+        if (metadata == null || metadata.getJdks() == null || metadata.getJdks().isEmpty()) {
+            minimumJdk = JDK.min();
+            maximumJdk = JDK.max();
             LOG.info(
                     "Metadata is not yet computed for plugin {}. Using minimum JDK {} available",
                     plugin.getName(),
-                    jdk);
+                    minimumJdk);
         } else {
-            // TODO: Pending  https://github.com/jenkinsci/plugin-modernizer-tool/pull/201
-            jdk = JDK.min();
-            // jdk = metadata.getJdk();
-            LOG.info("Metadata is available for plugin {}. Using JDK of {}", plugin.getName(), jdk);
+            // Get the minimal JDK from the one found
+            minimumJdk = metadata.getJdks().stream().min(JDK::compareMajor).orElseThrow();
+            maximumJdk = metadata.getJdks().stream().max(JDK::compareMajor).orElseThrow();
+            LOG.info("Metadata is available for plugin {}. Using JDK {}", plugin.getName(), minimumJdk.getMajor());
         }
         if (config.isFetchMetadataOnly()) {
             LOG.info("Skipping compilation for plugin {} as it's a metadata only fetch", plugin.getName());
-            return jdk;
+            return minimumJdk;
         }
-        return Stream.iterate(jdk, JDK::hasNext, JDK::next)
-                .sorted(JDK::compareMajor)
+        return Stream.of(minimumJdk, maximumJdk)
                 .filter(j -> {
                     plugin.withJDK(j);
                     plugin.clean(mavenInvoker);
