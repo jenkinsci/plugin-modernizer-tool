@@ -14,12 +14,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import org.apache.commons.io.FileUtils;
 import org.kohsuke.github.GHRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.w3c.dom.Document;
 
 /**
  * Mutable class representing a Jenkins plugin to modernize and refactor
@@ -429,8 +435,84 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void ensureMinimalBuild(MavenInvoker maven) {
+
+        // Static parse of the pom file and check for pattern preventing minimal build
+        Path pom = getLocalRepository().resolve("pom.xml");
+        Document document = staticPomParse(pom);
+
+        // Perform checks
+        checkStaticPom(document);
+
         LOG.info("Ensuring minimal plugin {} build ... Please be patient", name);
         maven.ensureMinimalBuild(this);
+    }
+
+    /**
+     * Static parse of the pom file to a XML document
+     * @param pom The path to the pom file
+     * @return The XML document
+     */
+    private Document staticPomParse(Path pom) {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            return builder.parse(pom.toFile());
+        } catch (Exception e) {
+            addError("Failed to parse pom file: " + pom, e);
+            raiseLastError();
+            return null;
+        }
+    }
+
+    /**
+     * Statically check the pom to ensure we can perform a modernization
+     * Some plugins are so old they don't support Java 8 or recent version of maven
+     * @param document The XML document of the pom
+     */
+    private void checkStaticPom(Document document) {
+        try {
+            XPathFactory xPathFactory = XPathFactory.newInstance();
+            XPath xpath = xPathFactory.newXPath();
+
+            // Check for parent relative path
+            Double parentRelativePath = (Double) xpath.evaluate(
+                    "count(//*[local-name()='project']/*[local-name()='parent']/*[local-name()='relativePath'])",
+                    document,
+                    XPathConstants.NUMBER);
+            if (parentRelativePath == null || parentRelativePath.equals(0.0)) {
+                addError("Missing relativePath in parent pom");
+                raiseLastError();
+                return;
+            }
+
+            // Check for old java.level
+            String javaVersion = (String) xpath.evaluate(
+                    "//*[local-name()='project']/*[local-name()='properties']/*[local-name()='java.level']",
+                    document,
+                    XPathConstants.STRING);
+            if (javaVersion != null && (javaVersion.equals("7") || javaVersion.equals("6"))) {
+                addError("Found java.level with value 6 or 7. Cannot modernize this plugin. Too old.");
+                raiseLastError();
+                return;
+            }
+
+            // Check all repositories are using HTTPS
+            Double nonHttpsRepositories = (Double) xpath.evaluate(
+                    "count(//*[local-name()='project']/*[local-name()='repositories']/*[local-name()='repository']/*[local-name()='url' and not(starts-with(., 'https'))])",
+                    document,
+                    XPathConstants.NUMBER);
+            if (nonHttpsRepositories != null && !nonHttpsRepositories.equals(0.0)) {
+                addError("Found non-https repository URL in pom file");
+                raiseLastError();
+                return;
+            }
+
+        } catch (Exception e) {
+            addError("Failed to check pom file", e);
+            raiseLastError();
+        }
     }
 
     /**
