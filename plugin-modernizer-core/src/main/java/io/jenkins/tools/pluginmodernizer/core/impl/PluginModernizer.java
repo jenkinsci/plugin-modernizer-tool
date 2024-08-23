@@ -117,6 +117,12 @@ public class PluginModernizer {
 
             plugin.checkoutBranch(ghService);
 
+            // Ensure minimum baseline of JDK 8.
+            // For the moment some plugin cannot be refreshed due to some condition
+            // (Non HTTPS URL, java 7 build). For those plugin we will fail until we find a solution
+            LOG.info("Checking if plugin {} can be modernized", plugin.getName());
+            plugin.ensureMinimalBuild(mavenInvoker);
+
             // Minimum JDK to run openrewrite
             plugin.withJDK(JDK.JAVA_17);
 
