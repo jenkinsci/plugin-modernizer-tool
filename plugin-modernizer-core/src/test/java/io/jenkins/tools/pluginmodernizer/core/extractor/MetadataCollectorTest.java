@@ -8,8 +8,8 @@ import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.test.RecipeSpec;
@@ -169,7 +169,7 @@ public class MetadataCollectorTest implements RewriteTest {
         // Absent
         assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
 
-        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        Set<JDK> jdkVersion = pluginMetadata.getJdks();
         assertEquals(0, jdkVersion.size());
     }
 
@@ -193,7 +193,7 @@ public class MetadataCollectorTest implements RewriteTest {
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
 
-        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        Set<JDK> jdkVersion = pluginMetadata.getJdks();
 
         assertEquals(2, jdkVersion.size());
         assertTrue(jdkVersion.contains(JDK.JAVA_21));
@@ -225,7 +225,7 @@ public class MetadataCollectorTest implements RewriteTest {
                 pomXml(POM_XML));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
-        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        Set<JDK> jdkVersion = pluginMetadata.getJdks();
         assertEquals(2, jdkVersion.size());
     }
 
@@ -251,7 +251,7 @@ public class MetadataCollectorTest implements RewriteTest {
                 pomXml(POM_XML));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
-        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        Set<JDK> jdkVersion = pluginMetadata.getJdks();
         assertEquals(2, jdkVersion.size());
     }
 }

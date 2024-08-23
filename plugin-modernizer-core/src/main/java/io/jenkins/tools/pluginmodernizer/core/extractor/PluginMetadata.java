@@ -4,10 +4,12 @@ import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.CacheEntry;
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.PreconditionError;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Metadata of a plugin extracted from its POM file or code
@@ -22,7 +24,12 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     /**
      * List of flags present in the plugin
      */
-    private List<MetadataFlag> flags;
+    private Set<MetadataFlag> flags;
+
+    /**
+     * List of errors present in the plugin
+     */
+    private Set<PreconditionError> errors;
 
     /**
      * List of well known files present in the plugin
@@ -37,7 +44,7 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     /**
      * JDK versions supported by the plugin
      */
-    private List<JDK> jdkVersions;
+    private Set<JDK> jdkVersions;
 
     /**
      * Jenkins version required by the plugin
@@ -91,16 +98,24 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
         this.pluginName = pluginName;
     }
 
-    public List<MetadataFlag> getFlags() {
+    public Set<MetadataFlag> getFlags() {
         return flags;
     }
 
-    public void setFlags(List<MetadataFlag> flags) {
+    public void setFlags(Set<MetadataFlag> flags) {
         this.flags = flags;
     }
 
     public boolean hasFlag(MetadataFlag flag) {
         return flags.contains(flag);
+    }
+
+    public Set<PreconditionError> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(Set<PreconditionError> errors) {
+        this.errors = errors;
     }
 
     public List<ArchetypeCommonFile> getCommonFiles() {
@@ -119,11 +134,11 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
         this.otherFiles = otherFiles;
     }
 
-    public List<JDK> getJdks() {
+    public Set<JDK> getJdks() {
         return jdkVersions;
     }
 
-    public void setJdks(List<JDK> jdkVersions) {
+    public void setJdks(Set<JDK> jdkVersions) {
         this.jdkVersions = jdkVersions;
     }
 

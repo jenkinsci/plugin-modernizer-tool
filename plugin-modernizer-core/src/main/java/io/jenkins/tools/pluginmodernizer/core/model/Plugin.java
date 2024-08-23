@@ -4,20 +4,22 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
+import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.io.FileUtils;
 import org.kohsuke.github.GHRepository;
@@ -219,6 +221,26 @@ public class Plugin {
      */
     public boolean hasErrors() {
         return !errors.isEmpty();
+    }
+
+    /**
+     * Return if the plugin has any precondition errors
+     * @return True if the plugin has precondition errors
+     */
+    public boolean hasPreconditionErrors() {
+        return metadata != null
+                && metadata.getErrors() != null
+                && !metadata.getErrors().isEmpty();
+    }
+
+    /**
+     * Add precondition errors to the plugin errors
+     */
+    public void addPreconditionErrors(PluginMetadata metadata) {
+        if (metadata == null) {
+            return;
+        }
+        metadata.getErrors().forEach(error -> addError(error.getError()));
     }
 
     /**
@@ -424,95 +446,32 @@ public class Plugin {
      * @param maven The maven invoker instance
      */
     public void collectMetadata(MavenInvoker maven) {
-        maven.collectMetadata(this);
-    }
 
-    /**
-     * Ensure a minimal build can be performed on the plugin.
-     * Some plugin are very outdated they cannot compile anymore due to non-https URL
-     * and missing relative path on the parent pom. This methods ensure that the plugin
-     * is setup correctly before attempting to compile it.
-     * @param maven The maven invoker instance
-     */
-    public void ensureMinimalBuild(MavenInvoker maven) {
+        XPathFactory xPathFactory = XPathFactory.newInstance();
+        XPath xpath = xPathFactory.newXPath();
 
         // Static parse of the pom file and check for pattern preventing minimal build
         Path pom = getLocalRepository().resolve("pom.xml");
+        if (!getLocalRepository().resolve("target").toFile().mkdir()) {
+            LOG.debug("Failed to create target directory for plugin {}", name);
+        }
         Document document = staticPomParse(pom);
 
-        // Perform checks
-        checkStaticPom(document);
+        // Collect precondition errors
+        PluginMetadata pluginMetadata = new PluginMetadata();
+        pluginMetadata.setCacheManager(buildPluginTargetDirectoryCacheManager());
+        pluginMetadata.setErrors(Arrays.stream(PreconditionError.values())
+                .filter(error -> error.isApplicable(document, xpath))
+                .collect(Collectors.toSet()));
 
-        LOG.info("Ensuring minimal plugin {} build ... Please be patient", name);
-        maven.ensureMinimalBuild(this);
-    }
-
-    /**
-     * Static parse of the pom file to a XML document
-     * @param pom The path to the pom file
-     * @return The XML document
-     */
-    private Document staticPomParse(Path pom) {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            return builder.parse(pom.toFile());
-        } catch (Exception e) {
-            addError("Failed to parse pom file: " + pom, e);
-            raiseLastError();
-            return null;
+        if (!pluginMetadata.getErrors().isEmpty()) {
+            LOG.debug("Precondition errors found for plugin {}", name);
+            pluginMetadata.save();
+            return;
         }
-    }
 
-    /**
-     * Statically check the pom to ensure we can perform a modernization
-     * Some plugins are so old they don't support Java 8 or recent version of maven
-     * @param document The XML document of the pom
-     */
-    private void checkStaticPom(Document document) {
-        try {
-            XPathFactory xPathFactory = XPathFactory.newInstance();
-            XPath xpath = xPathFactory.newXPath();
-
-            // Check for parent relative path
-            Double parentRelativePath = (Double) xpath.evaluate(
-                    "count(//*[local-name()='project']/*[local-name()='parent']/*[local-name()='relativePath'])",
-                    document,
-                    XPathConstants.NUMBER);
-            if (parentRelativePath == null || parentRelativePath.equals(0.0)) {
-                addError("Missing relativePath in parent pom");
-                raiseLastError();
-                return;
-            }
-
-            // Check for old java.level
-            String javaVersion = (String) xpath.evaluate(
-                    "//*[local-name()='project']/*[local-name()='properties']/*[local-name()='java.level']",
-                    document,
-                    XPathConstants.STRING);
-            if (javaVersion != null && (javaVersion.equals("7") || javaVersion.equals("6"))) {
-                addError("Found java.level with value 6 or 7. Cannot modernize this plugin. Too old.");
-                raiseLastError();
-                return;
-            }
-
-            // Check all repositories are using HTTPS
-            Double nonHttpsRepositories = (Double) xpath.evaluate(
-                    "count(//*[local-name()='project']/*[local-name()='repositories']/*[local-name()='repository']/*[local-name()='url' and not(starts-with(., 'https'))])",
-                    document,
-                    XPathConstants.NUMBER);
-            if (nonHttpsRepositories != null && !nonHttpsRepositories.equals(0.0)) {
-                addError("Found non-https repository URL in pom file");
-                raiseLastError();
-                return;
-            }
-
-        } catch (Exception e) {
-            addError("Failed to check pom file", e);
-            raiseLastError();
-        }
+        // Collect using OpenRewrite
+        maven.collectMetadata(this);
     }
 
     /**
@@ -663,6 +622,39 @@ public class Plugin {
      */
     public void setMetadata(PluginMetadata metadata) {
         this.metadata = metadata;
+    }
+
+    /**
+     * Build cache manager for this plugin
+     * @return Cache manager
+     */
+    public CacheManager buildPluginTargetDirectoryCacheManager() {
+        return new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
+                .resolve(getLocalRepository().resolve("target")));
+    }
+
+    /**
+     * Static parse of the pom file to a XML document
+     * @param pom The path to the pom file
+     * @return The XML document
+     */
+    private Document staticPomParse(Path pom) {
+        if (pom == null || !pom.toFile().exists()) {
+            addError("No pom file found");
+            raiseLastError();
+            return null;
+        }
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            return builder.parse(pom.toFile());
+        } catch (Exception e) {
+            addError("Failed to parse pom file: " + pom, e);
+            raiseLastError();
+            return null;
+        }
     }
 
     @Override

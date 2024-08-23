@@ -6,10 +6,11 @@ import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.openrewrite.ExecutionContext;
@@ -59,8 +60,8 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
     public static class MetadataAccumulator {
         private final List<ArchetypeCommonFile> commonFiles = new ArrayList<>();
         private final List<String> otherFiles = new ArrayList<>();
-        private final List<MetadataFlag> flags = new LinkedList<>();
-        private final List<JDK> jdkVersions = new ArrayList<>();
+        private final Set<MetadataFlag> flags = new HashSet<>();
+        private final Set<JDK> jdkVersions = new HashSet<>();
 
         public List<ArchetypeCommonFile> getCommonFiles() {
             return commonFiles;
@@ -70,7 +71,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
             return otherFiles;
         }
 
-        public List<JDK> getJdkVersions() {
+        public Set<JDK> getJdkVersions() {
             return jdkVersions;
         }
 
@@ -86,7 +87,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
             jdkVersions.add(jdk);
         }
 
-        public List<MetadataFlag> getFlags() {
+        public Set<MetadataFlag> getFlags() {
             return flags;
         }
 

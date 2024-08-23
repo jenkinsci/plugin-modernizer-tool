@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 /**
@@ -213,7 +214,7 @@ public enum JDK {
      * @param jdks List of JDKS. Can be null or empty
      * @return The minimum JDK. If the list is empty, return the minimum JDK available
      */
-    public static JDK min(List<JDK> jdks) {
+    public static JDK min(Set<JDK> jdks) {
         if (jdks == null || jdks.isEmpty()) {
             return JDK.min();
         }

@@ -115,7 +115,8 @@ public abstract class CacheEntry<T extends CacheEntry<T>> implements Serializabl
      */
     public final void save() {
         LOG.debug(
-                "Saving object to {}", cacheManager.getLocation().resolve(path).resolve(key));
+                "Saving object to {}",
+                cacheManager.getLocation().resolve(path).resolve(key).toAbsolutePath());
         cacheManager.put(this);
     }
 
