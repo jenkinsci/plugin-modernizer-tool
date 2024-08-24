@@ -1,10 +1,13 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.openrewrite.Recipe;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -45,5 +48,16 @@ public class SettingsEnvTest {
     @Test
     public void testGithubOwner() throws Exception {
         assertEquals("fake-org", Settings.GITHUB_OWNER);
+    }
+
+    @Test
+    public void ensureAllRecipesHaveAttributes() {
+        for (Recipe recipe : Settings.AVAILABLE_RECIPES) {
+            assertNotNull(recipe.getName(), "Recipe name is null");
+            assertNotNull(recipe.getDisplayName(), "Recipe display name is null for " + recipe.getName());
+            assertNotNull(recipe.getDescription(), "Recipe description is null for " + recipe.getName());
+            assertNotNull(recipe.getTags(), "Recipe tags are null for " + recipe.getName());
+            assertFalse(recipe.getTags().isEmpty(), "Recipe tags are empty for " + recipe.getName());
+        }
     }
 }

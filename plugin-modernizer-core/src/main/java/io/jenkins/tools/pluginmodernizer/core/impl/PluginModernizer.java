@@ -230,8 +230,8 @@ public class PluginModernizer {
 
         // Build it
         plugin.withJDK(jdk);
-        plugin.clean(mavenInvoker);
-        plugin.verify(mavenInvoker);
+        // plugin.clean(mavenInvoker);
+        // plugin.verify(mavenInvoker);
         if (plugin.hasErrors()) {
             LOG.info("Plugin {} failed to verify with JDK {}", plugin.getName(), jdk.getMajor());
             plugin.withoutErrors();

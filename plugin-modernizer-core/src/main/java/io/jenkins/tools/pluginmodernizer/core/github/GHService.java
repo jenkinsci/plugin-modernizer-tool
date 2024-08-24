@@ -6,6 +6,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
+import io.jenkins.tools.pluginmodernizer.core.utils.TemplateUtils;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -26,7 +27,6 @@ import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
-import org.openrewrite.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +34,6 @@ import org.slf4j.LoggerFactory;
 public class GHService {
 
     private static final Logger LOG = LoggerFactory.getLogger(GHService.class);
-
-    // TODO: Change commit message and PR title based on applied recipes
-    private static final String COMMIT_MESSAGE = "Applied transformations with specified recipes";
-    private static final String PR_TITLE = "Automated PR";
 
     // TODO: Use unique branch name (with prefix ?) to avoid conflicts
     private static final String BRANCH_NAME = "plugin-modernizer-tool";
@@ -463,6 +459,8 @@ public class GHService {
             return;
         }
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
+            String commitMessage = TemplateUtils.renderCommitMessage(plugin, config.getRecipes());
+            LOG.debug("Commit message: {}", commitMessage);
             if (git.status().call().hasUncommittedChanges()) {
                 git.add().addFilepattern(".").call();
                 Optional<GHEmail> email = github.getMyself().getEmails2().stream()
@@ -473,7 +471,7 @@ public class GHService {
                 }
                 git.commit()
                         .setAuthor(github.getMyself().getName(), email.get().getEmail())
-                        .setMessage(COMMIT_MESSAGE)
+                        .setMessage(commitMessage)
                         .setSign(false) // Maybe a new option to sign commit?
                         .call();
                 LOG.debug("Changes committed for plugin {}", plugin.getName());
@@ -530,6 +528,13 @@ public class GHService {
      * @param plugin The plugin to open a pull request for
      */
     public void openPullRequest(Plugin plugin) {
+
+        // Renders parts and log then even if dry-run
+        String prTitle = TemplateUtils.renderPullRequestTitle(plugin, config.getRecipes());
+        String prBody = TemplateUtils.renderPullRequestBody(plugin, config.getRecipes());
+        LOG.debug("Pull request title: {}", prTitle);
+        LOG.debug("Pull request body: {}", prBody);
+
         if (config.isDryRun()) {
             LOG.info("Skipping pull request changes for plugin {} in dry-run mode", plugin);
             return;
@@ -559,14 +564,9 @@ public class GHService {
             return;
         }
 
-        // TODO: Update PR body to give more details
-        String prBody = String.format(
-                "Applied the following recipes: %s",
-                String.join(
-                        ", ", config.getRecipes().stream().map(Recipe::getName).toList()));
         try {
             GHPullRequest pr = repository.createPullRequest(
-                    PR_TITLE, config.getGithubOwner() + ":" + BRANCH_NAME, repository.getDefaultBranch(), prBody);
+                    prTitle, config.getGithubOwner() + ":" + BRANCH_NAME, repository.getDefaultBranch(), prBody);
             pr.addLabels(plugin.getTags().toArray(String[]::new));
             LOG.info("Pull request created: {}", pr.getHtmlUrl());
             plugin.withoutTags();
@@ -617,8 +617,7 @@ public class GHService {
         try {
             List<GHPullRequest> pullRequests = repository.getPullRequests(GHIssueState.OPEN);
             return pullRequests.stream()
-                    .filter(pr -> pr.getHead().getRef().equals(BRANCH_NAME)
-                            && pr.getTitle().equals(PR_TITLE))
+                    .filter(pr -> pr.getHead().getRef().equals(BRANCH_NAME))
                     .findFirst();
         } catch (IOException e) {
             plugin.addError("Failed to check if pull request exists", e);

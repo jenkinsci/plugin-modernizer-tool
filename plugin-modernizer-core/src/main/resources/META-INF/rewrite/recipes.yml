@@ -1,21 +1,27 @@
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.FetchMetadata
+displayName: Fetch metadata
 description: Extracts metadata from a Jenkins plugin
+tags: ['extractor']
 recipeList:
   - io.jenkins.tools.pluginmodernizer.core.extractor.MetadataCollector
 ---
 # Similar to https://docs.openrewrite.org/recipes/jenkins/modernizepluginforjava8 but for a minimal build on JDK 8
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.MinimalBuildJava8
+displayName: Minimal build for JDK 8
 description: Ensuring a minimal build for a Jenkins plugin with JDK 8
+tags: ['java8']
 recipeList:
   - org.openrewrite.maven.security.UseHttpsForRepositories
   - org.openrewrite.jenkins.DisableLocalResolutionForParentPom
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddPluginsBom
-description: Adds a BOM to a Jenkins plugin
+displayName: Add plugins BOM
+description: |
+  Add the Jenkins BOM to the dependenciesManagement section of the pom.xml.
 tags: ['chore', 'dependencies']
 recipeList:
   - org.openrewrite.jenkins.AddPluginsBom
@@ -24,6 +30,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddCodeOwner
+displayName: Add CODEOWNERS file
 description: Adds a CODEOWNERS file to a Jenkins plugin
 tags: ['chore']
 recipeList:
@@ -31,6 +38,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeParentVersion
+displayName: Upgrade parent version
 description: Upgrade the parent version to latest available
 tags: ['dependencies']
 recipeList:
@@ -42,6 +50,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
+displayName: Upgrade BOM version
 description: Upgrade the bom version to latest available. Doesn't change the artifact id
 tags: ['dependencies']
 recipeList:
@@ -54,6 +63,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
+displayName: Remove dependency version override
 description: Remove dependencies version override if managed from parent or bom
 tags: ['dependencies']
 recipeList:
@@ -62,6 +72,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.RemoveExtraMavenProperties
+displayName: Remove extra maven properties
 tags: ['chore']
 description: Remove extra maven properties from the pom
 recipeList:
@@ -72,6 +83,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.ReplaceLibrariesWithApiPlugin
+displayName: Use API plugin instead of direct dependency
 tags: ['developer']
 description: Use API plugins instead of direct dependency
 recipeList:
@@ -80,6 +92,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
+displayName: Use JSON API plugin instead of direct dependency
 description: Use JSON API plugin instead of direct dependency
 tags: ['developer']
 recipeList:
@@ -94,6 +107,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToRecommendCoreVersion
+displayName: Upgrade to latest recommended core version and ensure the bom is matching the core version
 description: Upgrade to latest recommended core version and ensure the bom is matching the core version
 tags: ['developer']
 recipeList:
@@ -108,6 +122,7 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToJava17
+displayName: Migrate from Java 8 to Java 11
 description: Migrate from Java 8 to Java 11
 tags: ['developer']
 recipeList:
