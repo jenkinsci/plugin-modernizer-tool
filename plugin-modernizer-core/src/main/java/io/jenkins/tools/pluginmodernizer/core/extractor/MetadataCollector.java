@@ -5,11 +5,13 @@ import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.FindSourceFiles;
 import org.openrewrite.Preconditions;
@@ -122,19 +124,48 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
 
             final TreeVisitor<?, ExecutionContext> groovyIsoVisitor = Preconditions.check(
                     new FindSourceFiles("**/Jenkinsfile"), new GroovyIsoVisitor<ExecutionContext>() {
+                        private final Map<String, Object> variableMap = new HashMap<>();
+
+                        @Override
+                        public J.VariableDeclarations visitVariableDeclarations(
+                                J.VariableDeclarations v, ExecutionContext ec) {
+                            J.VariableDeclarations variableDeclarations = super.visitVariableDeclarations(v, ec);
+
+                            for (J.VariableDeclarations.NamedVariable variable : variableDeclarations.getVariables()) {
+                                variableMap.put(variable.getSimpleName(), variable.getInitializer());
+                            }
+
+                            return variableDeclarations;
+                        }
+
                         @Override
                         public J.MethodInvocation visitMethodInvocation(
                                 J.MethodInvocation method, ExecutionContext ctx) {
                             J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
+
                             if ("buildPlugin".equals(m.getSimpleName())) {
                                 List<Expression> args = m.getArguments();
 
                                 List<Integer> jdkVersions = args.stream()
-                                        .filter(arg -> arg instanceof G.MapEntry)
+                                        .flatMap(this::extractJdkVersions)
+                                        .distinct()
+                                        .toList();
+
+                                jdkVersions.forEach(jdkVersion -> acc.addJdk(JDK.get(jdkVersion)));
+                            }
+
+                            return m;
+                        }
+
+                        private Stream<Integer> extractJdkVersions(Expression arg) {
+                            if (arg instanceof G.MapEntry) {
+                                return Stream.of(arg)
                                         .map(G.MapEntry.class::cast)
                                         .filter(entry ->
                                                 "configurations".equals(((J.Literal) entry.getKey()).getValue()))
-                                        .flatMap(entry -> ((G.ListLiteral) entry.getValue()).getElements().stream())
+                                        .map(entry -> resolveConfigurations(entry.getValue()))
+                                        .filter(value -> value instanceof G.ListLiteral)
+                                        .flatMap(value -> ((G.ListLiteral) value).getElements().stream())
                                         .filter(expression -> expression instanceof G.MapLiteral)
                                         .flatMap(expression -> ((G.MapLiteral) expression).getElements().stream())
                                         .filter(mapExpr -> mapExpr instanceof G.MapEntry)
@@ -142,13 +173,42 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                                         .filter(mapEntry -> "jdk".equals(((J.Literal) mapEntry.getKey()).getValue()))
                                         .map(mapEntry -> Integer.parseInt(((J.Literal) mapEntry.getValue())
                                                 .getValue()
-                                                .toString()))
-                                        .distinct()
-                                        .toList();
-
-                                jdkVersions.forEach(jdkVersion -> acc.addJdk(JDK.get(jdkVersion)));
+                                                .toString()));
+                            } else {
+                                Expression resolvedArg = resolveVariable(arg);
+                                return Stream.of(resolvedArg)
+                                        .filter(resolved -> resolved instanceof G.MapLiteral)
+                                        .flatMap(resolved -> ((G.MapLiteral) resolved).getElements().stream())
+                                        .filter(entry -> entry instanceof G.MapEntry)
+                                        .map(G.MapEntry.class::cast)
+                                        .filter(entry ->
+                                                "configurations".equals(((J.Literal) entry.getKey()).getValue()))
+                                        .map(entry -> resolveConfigurations(entry.getValue()))
+                                        .filter(value -> value instanceof G.ListLiteral)
+                                        .flatMap(value -> ((G.ListLiteral) value).getElements().stream())
+                                        .filter(expression -> expression instanceof G.MapLiteral)
+                                        .flatMap(expression -> ((G.MapLiteral) expression).getElements().stream())
+                                        .filter(mapExpr -> mapExpr instanceof G.MapEntry)
+                                        .map(G.MapEntry.class::cast)
+                                        .filter(mapEntry -> "jdk".equals(((J.Literal) mapEntry.getKey()).getValue()))
+                                        .map(mapEntry -> Integer.parseInt(((J.Literal) mapEntry.getValue())
+                                                .getValue()
+                                                .toString()));
                             }
-                            return m;
+                        }
+
+                        private Expression resolveVariable(Expression expression) {
+                            if (expression instanceof J.Identifier) {
+                                String variableName = ((J.Identifier) expression).getSimpleName();
+                                if (variableMap.containsKey(variableName)) {
+                                    return (Expression) variableMap.get(variableName);
+                                }
+                            }
+                            return expression;
+                        }
+
+                        private Expression resolveConfigurations(Expression entry) {
+                            return entry instanceof G.ListLiteral ? entry : resolveVariable(entry);
                         }
                     });
         };
