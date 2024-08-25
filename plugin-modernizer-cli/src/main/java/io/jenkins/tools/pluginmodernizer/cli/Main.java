@@ -39,7 +39,7 @@ public class Main implements Runnable {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                LOG.info("Plugin Modernizer aborted.");
+                LOG.info("Plugin Modernizer finished.");
             }
         });
         new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);

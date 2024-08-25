@@ -109,7 +109,7 @@ class UpdateCenterUtilsTest {
         Exception exception = assertThrows(ModernizerException.class, () -> {
             UpdateCenterUtils.extractRepoName(Plugin.build("not-present").withConfig(config), cacheManager);
         });
-        assertEquals("Plugin not found in update center: not-present", exception.getMessage());
+        assertEquals("Plugin not found in update center", exception.getMessage());
     }
 
     @Test

@@ -32,7 +32,9 @@ public class UpdateCenterUtils {
         UpdateCenterData.UpdateCenterPlugin updateCenterPlugin =
                 updateCenterData.getPlugins().get(plugin.getName());
         if (updateCenterPlugin == null) {
-            throw new ModernizerException("Plugin not found in update center: " + plugin.getName());
+            plugin.addError("Plugin not found in update center");
+            plugin.raiseLastError();
+            return null;
         }
         String scmUrl = updateCenterPlugin.scm();
         int lastSlashIndex = scmUrl.lastIndexOf('/');

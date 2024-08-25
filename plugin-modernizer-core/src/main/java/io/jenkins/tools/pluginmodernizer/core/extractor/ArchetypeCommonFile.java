@@ -22,6 +22,21 @@ public enum ArchetypeCommonFile {
     WORKFLOW_CD(".github/workflows/cd.yaml"),
 
     /**
+     * The workflow Jenkins security scan
+     */
+    WORKFLOW_SECURITY(".github/workflows/jenkins-security-scan.yml"),
+
+    /**
+     * Release drafter file
+     */
+    RELEASE_DRAFTER(".github/release-drafter.yml"),
+
+    /**
+     * Pull request template file
+     */
+    PULL_REQUEST_TEMPLATE(".github/PULL_REQUEST_TEMPLATE.md"),
+
+    /**
      * Codeowners file
      */
     CODEOWNERS(".github/CODEOWNERS"),
@@ -40,6 +55,11 @@ public enum ArchetypeCommonFile {
      * License file
      */
     LICENSE("LICENSE.md"),
+
+    /**
+     * Contributing file
+     */
+    CONTRIBUTING("CONTRIBUTING.md"),
 
     /**
      * Dependabot configuration file
