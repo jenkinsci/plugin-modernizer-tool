@@ -12,6 +12,8 @@ import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.openrewrite.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +55,8 @@ public class PluginModernizer {
 
         // Debug config
         LOG.debug("Plugins: {}", config.getPlugins());
-        LOG.debug("Recipes: {}", config.getRecipes());
+        LOG.debug(
+                "Recipes: {}", config.getRecipes().stream().map(Recipe::getName).collect(Collectors.joining(", ")));
         LOG.debug("GitHub owner: {}", config.getGithubOwner());
         LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
         LOG.debug("Cache Path: {}", config.getCachePath());
@@ -107,21 +110,17 @@ public class PluginModernizer {
             // Compile only if we are able to find metadata
             // For the moment it's local cache only but later will fetch on remote storage
             if (!config.isFetchMetadataOnly()) {
-                if (plugin.getMetadata() != null) {
+                if (plugin.getMetadata() != null && !plugin.hasPreconditionErrors()) {
                     JDK jdk = compilePlugin(plugin);
                     LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk.getMajor());
                 } else {
-                    LOG.info("No metadata found for plugin {}. Skipping initial compilation.", plugin.getName());
+                    LOG.info(
+                            "No metadata or precondition errors found for plugin {}. Skipping initial compilation.",
+                            plugin.getName());
                 }
             }
 
             plugin.checkoutBranch(ghService);
-
-            // Ensure minimum baseline of JDK 8.
-            // For the moment some plugin cannot be refreshed due to some condition
-            // (Non HTTPS URL, java 7 build). For those plugin we will fail until we find a solution
-            LOG.info("Checking if plugin {} can be modernized", plugin.getName());
-            plugin.ensureMinimalBuild(mavenInvoker);
 
             // Minimum JDK to run openrewrite
             plugin.withJDK(JDK.JAVA_17);
@@ -131,8 +130,7 @@ public class PluginModernizer {
 
                 plugin.collectMetadata(mavenInvoker);
 
-                CacheManager pluginCacheManager = new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
-                        .resolve(plugin.getLocalRepository().resolve("target")));
+                CacheManager pluginCacheManager = plugin.buildPluginTargetDirectoryCacheManager();
                 plugin.setMetadata(pluginCacheManager.move(
                         cacheManager,
                         Path.of(plugin.getName()),
@@ -144,6 +142,15 @@ public class PluginModernizer {
                         plugin.getMetadata().getLocation().toAbsolutePath());
             } else {
                 LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
+            }
+
+            // Abort here if we have errors
+            if (plugin.hasErrors() || plugin.hasPreconditionErrors()) {
+                plugin.addPreconditionErrors(plugin.getMetadata());
+                LOG.info(
+                        "Skipping plugin {} due to metadata/precondition errors. Check logs for more details.",
+                        plugin.getName());
+                return;
             }
 
             // Run OpenRewrite
