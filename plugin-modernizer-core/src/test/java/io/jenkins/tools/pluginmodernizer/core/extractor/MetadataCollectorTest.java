@@ -201,7 +201,7 @@ public class MetadataCollectorTest implements RewriteTest {
     }
 
     @Test
-    void testWeirdJenkinsfile() {
+    void testJenkinsfileWithConfigurationsAsParameter() {
         rewriteRun(
                 // language=groovy
                 groovy(
@@ -226,6 +226,32 @@ public class MetadataCollectorTest implements RewriteTest {
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
         List<JDK> jdkVersion = pluginMetadata.getJdks();
-        assertEquals(0, jdkVersion.size());
+        assertEquals(2, jdkVersion.size());
+    }
+
+    @Test
+    void testJenkinsfileWithInlineConfigurations() {
+        rewriteRun(
+                // language=groovy
+                groovy(
+                        """
+                            def configurations = [
+                              [ platform: "linux", jdk: "11" ],
+                              [ platform: "windows", jdk: "17" ]
+                            ]
+
+                            buildPlugin(
+                                failFast: false,
+                                configurations: configurations,
+                                checkstyle: [qualityGates: [[threshold: 1, type: 'NEW', unstable: true]]],
+                                pmd: [qualityGates: [[threshold: 1, type: 'NEW', unstable: true]]],
+                                jacoco: [sourceCodeRetention: 'MODIFIED'])
+                            """,
+                        spec -> spec.path("Jenkinsfile")),
+                pomXml(POM_XML));
+        PluginMetadata pluginMetadata = new PluginMetadata().refresh();
+        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
+        List<JDK> jdkVersion = pluginMetadata.getJdks();
+        assertEquals(2, jdkVersion.size());
     }
 }
