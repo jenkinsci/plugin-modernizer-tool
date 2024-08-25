@@ -16,6 +16,7 @@ public class Config {
     private final List<Plugin> plugins;
     private final List<Recipe> recipes;
     private final URL jenkinsUpdateCenter;
+    private final URL pluginHealthScore;
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
@@ -32,6 +33,7 @@ public class Config {
             List<Plugin> plugins,
             List<Recipe> recipes,
             URL jenkinsUpdateCenter,
+            URL pluginHealthScore,
             Path cachePath,
             Path mavenHome,
             boolean dryRun,
@@ -45,6 +47,7 @@ public class Config {
         this.plugins = plugins;
         this.recipes = recipes;
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
+        this.pluginHealthScore = pluginHealthScore;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
@@ -81,6 +84,10 @@ public class Config {
 
     public URL getJenkinsUpdateCenter() {
         return jenkinsUpdateCenter;
+    }
+
+    public URL getPluginHealthScore() {
+        return pluginHealthScore;
     }
 
     public Path getCachePath() {
@@ -129,6 +136,7 @@ public class Config {
         private List<Plugin> plugins;
         private List<Recipe> recipes;
         private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
+        private URL pluginHealthScore = Settings.DEFAULT_HEALTH_SCORE_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
@@ -161,6 +169,13 @@ public class Config {
         public Builder withJenkinsUpdateCenter(URL jenkinsUpdateCenter) {
             if (jenkinsUpdateCenter != null) {
                 this.jenkinsUpdateCenter = jenkinsUpdateCenter;
+            }
+            return this;
+        }
+
+        public Builder withPluginHealthScore(URL pluginHealthScore) {
+            if (pluginHealthScore != null) {
+                this.pluginHealthScore = pluginHealthScore;
             }
             return this;
         }
@@ -216,6 +231,7 @@ public class Config {
                     plugins,
                     recipes,
                     jenkinsUpdateCenter,
+                    pluginHealthScore,
                     cachePath,
                     mavenHome,
                     dryRun,

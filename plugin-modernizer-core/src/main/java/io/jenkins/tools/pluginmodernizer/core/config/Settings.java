@@ -24,6 +24,8 @@ public class Settings {
 
     public static final URL DEFAULT_UPDATE_CENTER_URL;
 
+    public static final URL DEFAULT_HEALTH_SCORE_URL;
+
     public static final Path DEFAULT_CACHE_PATH;
 
     public static final Path DEFAULT_MAVEN_HOME;
@@ -76,6 +78,11 @@ public class Settings {
         } catch (MalformedURLException e) {
             throw new ModernizerException("Invalid URL format", e);
         }
+        try {
+            DEFAULT_HEALTH_SCORE_URL = getHealthScoreUrl();
+        } catch (MalformedURLException e) {
+            throw new ModernizerException("Invalid URL format", e);
+        }
 
         // Get recipes module
         try (InputStream inputStream = Settings.class.getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
@@ -120,7 +127,15 @@ public class Settings {
         if (url != null) {
             return new URL(url);
         }
-        return new URL(readProperty("update.center.url", "update_center.properties"));
+        return new URL(readProperty("update.center.url", "urls.properties"));
+    }
+
+    private static @Nullable URL getHealthScoreUrl() throws MalformedURLException {
+        String url = System.getenv("JENKINS_PHS");
+        if (url != null) {
+            return new URL(url);
+        }
+        return new URL(readProperty("plugin.health.score.url", "urls.properties"));
     }
 
     private static String getGithubToken() {

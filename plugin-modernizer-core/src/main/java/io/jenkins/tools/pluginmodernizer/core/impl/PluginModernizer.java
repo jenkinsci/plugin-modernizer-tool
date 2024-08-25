@@ -8,6 +8,7 @@ import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
+import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
 import java.nio.file.Path;
@@ -59,6 +60,7 @@ public class PluginModernizer {
                 "Recipes: {}", config.getRecipes().stream().map(Recipe::getName).collect(Collectors.joining(", ")));
         LOG.debug("GitHub owner: {}", config.getGithubOwner());
         LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
+        LOG.debug("Plugin Health Score Url: {}", config.getPluginHealthScore());
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Skip Push: {}", config.isSkipPush());
@@ -82,6 +84,11 @@ public class PluginModernizer {
 
             // Determine repo name
             plugin.withRepositoryName(UpdateCenterUtils.extractRepoName(plugin, cacheManager));
+
+            LOG.info(
+                    "Plugin {} health score: {}",
+                    plugin.getName(),
+                    HealthScoreUtils.extractScore(plugin, cacheManager));
 
             if (config.isRemoveForks()) {
                 plugin.deleteFork(ghService);
