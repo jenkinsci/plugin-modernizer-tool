@@ -1,16 +1,10 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
-import com.google.gson.JsonSyntaxException;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,21 +63,6 @@ public class UpdateCenterUtils {
      * @return Update center data
      */
     public static UpdateCenterData download(Config config) {
-        try {
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .GET()
-                    .uri(config.getJenkinsUpdateCenter().toURI())
-                    .build();
-            LOG.debug("Fetching update center data from: {}", config.getJenkinsUpdateCenter());
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                throw new ModernizerException("Failed to fetch update center data: " + response.statusCode());
-            }
-            LOG.debug("Fetched update center data from: {}", config.getJenkinsUpdateCenter());
-            return JsonUtils.fromJson(response.body(), UpdateCenterData.class);
-        } catch (IOException | JsonSyntaxException | URISyntaxException | InterruptedException e) {
-            throw new ModernizerException("Unable to fetch update center data", e);
-        }
+        return JsonUtils.fromUrl(config.getJenkinsUpdateCenter(), UpdateCenterData.class);
     }
 }

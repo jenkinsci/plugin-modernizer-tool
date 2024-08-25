@@ -1,8 +1,14 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
@@ -69,6 +75,30 @@ public class JsonUtils {
             return gson.fromJson(FileUtils.readFileToString(path.toFile(), StandardCharsets.UTF_8), clazz);
         } catch (IOException e) {
             throw new ModernizerException("Unable to read JSON file due to IO error", e);
+        }
+    }
+
+    /**
+     * Download JSON data from a URL and convert it to an object
+     * @param url The URL to download from
+     * @param clazz The class of the object
+     * @return The object
+     * @param <T> The type of the object
+     */
+    public static <T> T fromUrl(URL url, Class<T> clazz) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request =
+                    HttpRequest.newBuilder().GET().uri(url.toURI()).build();
+            LOG.debug("Fetching data from: {}", url);
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new ModernizerException("Failed to fetch health score: " + response.statusCode());
+            }
+            LOG.debug("Fetched data from: {}", url);
+            return JsonUtils.fromJson(response.body(), clazz);
+        } catch (IOException | JsonSyntaxException | URISyntaxException | InterruptedException e) {
+            throw new ModernizerException("Unable to fetch data from " + url, e);
         }
     }
 }

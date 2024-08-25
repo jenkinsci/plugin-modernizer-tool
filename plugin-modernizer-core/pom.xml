@@ -135,7 +135,7 @@
         <directory>src/main/resources</directory>
         <includes>
           <include>versions.properties</include>
-          <include>update_center.properties</include>
+          <include>urls.properties</include>
         </includes>
       </resource>
       <resource>
