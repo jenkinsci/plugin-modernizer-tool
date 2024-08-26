@@ -617,6 +617,14 @@ public class Plugin {
     }
 
     /**
+     * Return if the plugin has metadata loaded in memory
+     * @return True if the plugin has metadata loaded
+     */
+    public boolean hasMetadata() {
+        return metadata != null;
+    }
+
+    /**
      * Set the metadata of the plugin
      * @param metadata Plugin metadata
      */
@@ -625,10 +633,49 @@ public class Plugin {
     }
 
     /**
+     * Load metadata from cache
+     * @param cacheManager The cache manager
+     */
+    public void loadMetadata(CacheManager cacheManager) {
+        setMetadata(cacheManager.get(Path.of(getName()), CacheManager.PLUGIN_METADATA_CACHE_KEY, PluginMetadata.class));
+    }
+
+    /**
+     * Move metadata from plugin target directory to cache
+     * @param cacheManager The cache manager
+     */
+    public void moveMetadata(CacheManager cacheManager) {
+        CacheManager pluginCacheManager = buildPluginTargetDirectoryCacheManager();
+        setMetadata(pluginCacheManager.move(
+                cacheManager,
+                Path.of(getName()),
+                CacheManager.PLUGIN_METADATA_CACHE_KEY,
+                new PluginMetadata(pluginCacheManager)));
+        LOG.debug(
+                "Moved plugin {} metadata to cache: {}",
+                getName(),
+                getMetadata().getLocation().toAbsolutePath());
+    }
+
+    /**
+     * Read the target metadata of the plugin. Generally to use after running recipes to get the updated metadata
+     */
+    public PluginMetadata readTargetMetadata() {
+        CacheManager pluginCacheManager = buildPluginTargetDirectoryCacheManager();
+        PluginMetadata metadata = pluginCacheManager.get(
+                pluginCacheManager.root(), CacheManager.PLUGIN_METADATA_CACHE_KEY, PluginMetadata.class);
+        if (metadata == null) {
+            addError("Failed to read target metadata for plugin " + getName());
+            raiseLastError();
+        }
+        return metadata;
+    }
+
+    /**
      * Build cache manager for this plugin
      * @return Cache manager
      */
-    public CacheManager buildPluginTargetDirectoryCacheManager() {
+    private CacheManager buildPluginTargetDirectoryCacheManager() {
         return new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
                 .resolve(getLocalRepository().resolve("target")));
     }
