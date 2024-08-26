@@ -252,6 +252,12 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 if (parent != null) {
                     pluginMetadata.setParentVersion(parent.getVersion());
                 }
+                // Lookup by group ID to set the BOM version if any
+                pom.getDependencyManagement().stream()
+                        .peek(dependency -> LOG.debug("Dependency: {}", dependency))
+                        .filter(dependency -> "io.jenkins.tools.bom".equals(dependency.getGroupId()))
+                        .findFirst()
+                        .ifPresent(dependency -> pluginMetadata.setBomVersion(dependency.getVersion()));
                 pluginMetadata.setProperties(properties);
                 pluginMetadata.setJenkinsVersion(
                         resolvedPom.getManagedVersion("org.jenkins-ci.main", "jenkins-core", null, null));

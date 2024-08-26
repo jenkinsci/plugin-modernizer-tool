@@ -153,6 +153,7 @@ public class MetadataCollectorTest implements RewriteTest {
         assertEquals("4.80", pluginMetadata.getParentVersion());
         String jenkinsVersion = pluginMetadata.getJenkinsVersion();
         assertEquals("2.426.3", jenkinsVersion);
+        assertEquals("2950.va_633b_f42f759", pluginMetadata.getBomVersion());
         assertNotNull(pluginMetadata.getProperties().get("java.level"));
         assertTrue(pluginMetadata.hasFlag(MetadataFlag.SCM_HTTPS));
         assertTrue(pluginMetadata.hasFlag(MetadataFlag.MAVEN_REPOSITORIES_HTTPS));
