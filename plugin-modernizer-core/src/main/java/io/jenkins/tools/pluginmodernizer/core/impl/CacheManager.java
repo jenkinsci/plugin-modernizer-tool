@@ -5,6 +5,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Clock;
@@ -108,9 +109,11 @@ public class CacheManager {
             T entry = JsonUtils.fromJson(cachedPath, clazz);
             entry.setCacheManager(this);
             return entry;
-        } catch (IOException e) {
+        } catch (NoSuchFileException e) {
             LOG.debug("Cache entry not found for cache {} at path {} and key {}", location, path, cacheKey);
             return null;
+        } catch (IOException e) {
+            throw new ModernizerException("Failed to read cache entry for key: " + cacheKey, e);
         }
     }
 

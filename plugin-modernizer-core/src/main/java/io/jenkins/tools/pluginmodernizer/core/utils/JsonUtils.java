@@ -93,7 +93,7 @@ public class JsonUtils {
             LOG.debug("Fetching data from: {}", url);
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                throw new ModernizerException("Failed to fetch health score: " + response.statusCode());
+                throw new ModernizerException("Failed to JSON data: " + response.statusCode());
             }
             LOG.debug("Fetched data from: {}", url);
             return JsonUtils.fromJson(response.body(), clazz);

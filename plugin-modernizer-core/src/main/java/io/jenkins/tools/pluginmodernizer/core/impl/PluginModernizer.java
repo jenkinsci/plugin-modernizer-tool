@@ -11,7 +11,6 @@ import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.openrewrite.Recipe;
@@ -111,8 +110,7 @@ public class PluginModernizer {
             }
 
             // Set the metadata from cache if available
-            plugin.setMetadata(cacheManager.get(
-                    Path.of(plugin.getName()), CacheManager.PLUGIN_METADATA_CACHE_KEY, PluginMetadata.class));
+            plugin.loadMetadata(cacheManager);
 
             // Compile only if we are able to find metadata
             // For the moment it's local cache only but later will fetch on remote storage
@@ -133,20 +131,9 @@ public class PluginModernizer {
             plugin.withJDK(JDK.JAVA_17);
 
             // Collect metadata and move metadata from the target directory of the plugin to the common cache
-            if (plugin.getMetadata() == null) {
-
+            if (!plugin.hasMetadata()) {
                 plugin.collectMetadata(mavenInvoker);
-
-                CacheManager pluginCacheManager = plugin.buildPluginTargetDirectoryCacheManager();
-                plugin.setMetadata(pluginCacheManager.move(
-                        cacheManager,
-                        Path.of(plugin.getName()),
-                        CacheManager.PLUGIN_METADATA_CACHE_KEY,
-                        new PluginMetadata(pluginCacheManager)));
-                LOG.debug(
-                        "Moved plugin {} metadata to cache: {}",
-                        plugin.getName(),
-                        plugin.getMetadata().getLocation().toAbsolutePath());
+                plugin.moveMetadata(cacheManager);
             } else {
                 LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
             }
@@ -181,6 +168,15 @@ public class PluginModernizer {
                         plugin.getName());
                 return;
             }
+
+            // Recollect metadata after modernization
+            plugin.collectMetadata(mavenInvoker);
+            PluginMetadata metadata = plugin.readTargetMetadata();
+            LOG.debug(
+                    "Plugin {} metadata before modernization: {}",
+                    plugin.getName(),
+                    plugin.getMetadata().toJson());
+            LOG.debug("Plugin {} metadata after modernization: {}", plugin.getName(), metadata.toJson());
 
             plugin.commit(ghService);
             plugin.push(ghService);
