@@ -201,6 +201,10 @@ The property `project.build.outputTimestamp` will be set with the timestamp of t
 
 If you are using a mirror for `central` you should adapt the `reference.repo` property accordingly to match the id of the mirror in your `settings.xml`.
 
+## Contributing
+
+Thanks to all our contributors! Check out our [CONTRIBUTING](docs/CONTRIBUTING.md) file to learn how to get started.
+
 ## References
 
 - [GSoC 2024 Project Proposal](https://docs.google.com/document/d/1e1QkprPN6fLpFXk_QqBUQlJhZrAl9RvXbOXOiJ-gAuY/edit?usp=sharing)
