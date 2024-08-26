@@ -57,6 +57,11 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     private String parentVersion;
 
     /**
+     * BOM version
+     */
+    private String bomVersion;
+
+    /**
      * Properties defined in the POM file of the plugin
      */
     private Map<String, String> properties;
@@ -186,6 +191,14 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
 
     public void setParentVersion(String parentVersion) {
         this.parentVersion = parentVersion;
+    }
+
+    public String getBomVersion() {
+        return bomVersion;
+    }
+
+    public void setBomVersion(String bomVersion) {
+        this.bomVersion = bomVersion;
     }
 
     public Map<String, String> getProperties() {
