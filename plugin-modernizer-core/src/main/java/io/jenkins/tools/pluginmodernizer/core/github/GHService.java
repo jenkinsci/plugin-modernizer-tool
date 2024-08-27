@@ -166,7 +166,7 @@ public class GHService {
         GHRepository originalRepo = plugin.getRemoteRepository(this);
         if (organization != null) {
             if (isRepositoryForked(organization, originalRepo.getName())) {
-                LOG.info("Repository already forked to organization {}", organization.getLogin());
+                LOG.debug("Repository already forked to organization {}", organization.getLogin());
                 return getRepositoryFork(organization, originalRepo.getName());
             } else {
                 GHRepository fork = forkRepository(originalRepo, organization);
@@ -175,7 +175,7 @@ public class GHService {
             }
         } else {
             if (isRepositoryForked(originalRepo.getName())) {
-                LOG.info(
+                LOG.debug(
                         "Repository already forked to personal account {}",
                         github.getMyself().getLogin());
                 return getRepositoryFork(originalRepo.getName());
@@ -308,7 +308,7 @@ public class GHService {
      * @throws IOException if an error occurs while syncing the repository
      */
     private GHBranchSync syncRepository(GHRepository forkedRepo) throws IOException {
-        LOG.info("Syncing the forked repository {}", forkedRepo.getFullName());
+        LOG.debug("Syncing the forked repository {}", forkedRepo.getFullName());
         return forkedRepo.sync(forkedRepo.getDefaultBranch());
     }
 

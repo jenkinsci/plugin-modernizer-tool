@@ -52,13 +52,14 @@ class UpdateCenterUtilsTest {
         plugins.put(
                 "valid-plugin",
                 new UpdateCenterData.UpdateCenterPlugin(
-                        "valid-plugin", "https://github.com/jenkinsci/valid-url", "main", "gav", null));
+                        "valid-plugin", "1.0", "https://github.com/jenkinsci/valid-url", "main", "gav", null));
         plugins.put(
                 "invalid-plugin",
-                new UpdateCenterData.UpdateCenterPlugin("invalid-plugin", "invalid-scm-url", "main", "gav", null));
+                new UpdateCenterData.UpdateCenterPlugin(
+                        "invalid-plugin", "1.0", "invalid-scm-url", "main", "gav", null));
         plugins.put(
                 "invalid-plugin-2",
-                new UpdateCenterData.UpdateCenterPlugin("invalid-plugin-2", "/", "main", "gav", null));
+                new UpdateCenterData.UpdateCenterPlugin("invalid-plugin-2", "1.0", "/", "main", "gav", null));
 
         // Set plugins
         Field field = ReflectionUtils.findFields(

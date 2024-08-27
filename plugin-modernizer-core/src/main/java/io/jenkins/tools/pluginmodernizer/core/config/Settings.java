@@ -24,6 +24,8 @@ public class Settings {
 
     public static final URL DEFAULT_UPDATE_CENTER_URL;
 
+    public static final URL DEFAULT_PLUGIN_VERSIONS;
+
     public static final URL DEFAULT_HEALTH_SCORE_URL;
 
     public static final Path DEFAULT_CACHE_PATH;
@@ -79,6 +81,11 @@ public class Settings {
             throw new ModernizerException("Invalid URL format", e);
         }
         try {
+            DEFAULT_PLUGIN_VERSIONS = getPluginVersions();
+        } catch (MalformedURLException e) {
+            throw new ModernizerException("Invalid URL format", e);
+        }
+        try {
             DEFAULT_HEALTH_SCORE_URL = getHealthScoreUrl();
         } catch (MalformedURLException e) {
             throw new ModernizerException("Invalid URL format", e);
@@ -128,6 +135,14 @@ public class Settings {
             return new URL(url);
         }
         return new URL(readProperty("update.center.url", "urls.properties"));
+    }
+
+    private static @Nullable URL getPluginVersions() throws MalformedURLException {
+        String url = System.getenv("JENKINS_PLUGIN_INFO");
+        if (url != null) {
+            return new URL(url);
+        }
+        return new URL(readProperty("plugin.versions.url", "urls.properties"));
     }
 
     private static @Nullable URL getHealthScoreUrl() throws MalformedURLException {

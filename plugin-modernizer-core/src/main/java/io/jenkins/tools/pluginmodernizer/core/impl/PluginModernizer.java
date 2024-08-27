@@ -10,6 +10,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
+import io.jenkins.tools.pluginmodernizer.core.utils.PluginVersionUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,12 +60,16 @@ public class PluginModernizer {
                 "Recipes: {}", config.getRecipes().stream().map(Recipe::getName).collect(Collectors.joining(", ")));
         LOG.debug("GitHub owner: {}", config.getGithubOwner());
         LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
+        LOG.debug("Plugin versions Url: {}", config.getJenkinsPluginVersions());
         LOG.debug("Plugin Health Score Url: {}", config.getPluginHealthScore());
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Skip Push: {}", config.isSkipPush());
         LOG.debug("Skip Pull Request: {}", config.isSkipPullRequest());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
+
+        // Fetch plugin versions
+        PluginVersionUtils.get(config, cacheManager);
 
         List<Plugin> plugins = config.getPlugins();
         plugins.forEach(this::process);
@@ -84,10 +89,25 @@ public class PluginModernizer {
             // Determine repo name
             plugin.withRepositoryName(UpdateCenterUtils.extractRepoName(plugin, cacheManager));
 
-            LOG.info(
+            LOG.debug(
+                    "Plugin {} latest version: {}",
+                    plugin.getName(),
+                    UpdateCenterUtils.extractVersion(plugin, cacheManager));
+            LOG.debug(
                     "Plugin {} health score: {}",
                     plugin.getName(),
                     HealthScoreUtils.extractScore(plugin, cacheManager));
+            LOG.debug("Is API plugin {} : {}", plugin.getName(), plugin.isApiPlugin(cacheManager));
+            if (plugin.isDeprecated(cacheManager)) {
+                LOG.info("Plugin {} is deprecated. Skipping.", plugin.getName());
+                plugin.addError("Plugin is deprecated");
+                return;
+            }
+            if (plugin.isArchived(ghService)) {
+                LOG.info("Plugin {} is archived. Skipping.", plugin.getName());
+                plugin.addError("Plugin is archived");
+                return;
+            }
 
             if (config.isRemoveForks()) {
                 plugin.deleteFork(ghService);
@@ -117,9 +137,9 @@ public class PluginModernizer {
             if (!config.isFetchMetadataOnly()) {
                 if (plugin.getMetadata() != null && !plugin.hasPreconditionErrors()) {
                     JDK jdk = compilePlugin(plugin);
-                    LOG.info("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk.getMajor());
+                    LOG.debug("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk.getMajor());
                 } else {
-                    LOG.info(
+                    LOG.debug(
                             "No metadata or precondition errors found for plugin {}. Skipping initial compilation.",
                             plugin.getName());
                 }
