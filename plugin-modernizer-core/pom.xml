@@ -107,6 +107,10 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.openrewrite.recipe</groupId>
+      <artifactId>rewrite-testing-frameworks</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
