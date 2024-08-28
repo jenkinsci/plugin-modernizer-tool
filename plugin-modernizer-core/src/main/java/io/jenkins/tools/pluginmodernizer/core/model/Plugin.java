@@ -6,6 +6,7 @@ import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
+import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -525,6 +526,24 @@ public class Plugin {
      */
     public boolean isArchived(GHService service) {
         return service.isArchived(this);
+    }
+
+    /**
+     * Return if this plugin is deprecated in the update center
+     * @param cacheManager The cache manager
+     * @return True if the plugin is deprecated
+     */
+    public boolean isDeprecated(CacheManager cacheManager) {
+        return UpdateCenterUtils.isDeprecated(this, cacheManager);
+    }
+
+    /**
+     * Return if this plugin is an API plugin
+     * @param cacheManager The cache manager
+     * @return True if the plugin is an API plugin
+     */
+    public boolean isApiPlugin(CacheManager cacheManager) {
+        return UpdateCenterUtils.isApiPlugin(this, cacheManager);
     }
 
     /**

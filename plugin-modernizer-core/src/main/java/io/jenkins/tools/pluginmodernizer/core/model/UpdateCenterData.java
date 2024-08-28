@@ -18,6 +18,11 @@ public class UpdateCenterData extends CacheEntry<UpdateCenterData> implements Se
      */
     private Map<String, UpdateCenterPlugin> plugins;
 
+    /**
+     * List of deprecation
+     */
+    private Map<String, DeprecatedPlugin> deprecations;
+
     public UpdateCenterData(CacheManager cacheManager) {
         super(cacheManager, UpdateCenterData.class, CacheManager.UPDATE_CENTER_CACHE_KEY, Path.of("."));
     }
@@ -31,6 +36,14 @@ public class UpdateCenterData extends CacheEntry<UpdateCenterData> implements Se
     }
 
     /**
+     * Get the deprecations
+     * @return Deprecations
+     */
+    public Map<String, DeprecatedPlugin> getDeprecations() {
+        return deprecations;
+    }
+
+    /**
      * An update center plugin record with what we need
      * @param name Plugin name
      * @param scm SCM URL
@@ -38,6 +51,13 @@ public class UpdateCenterData extends CacheEntry<UpdateCenterData> implements Se
      * @param gav GAV
      * @param labels Labels
      */
-    public record UpdateCenterPlugin(String name, String scm, String defaultBranch, String gav, List<String> labels)
+    public record UpdateCenterPlugin(
+            String name, String version, String scm, String defaultBranch, String gav, List<String> labels)
             implements Serializable {}
+
+    /**
+     * Hold a deprecated plugin in the update center
+     * @param url URL
+     */
+    public record DeprecatedPlugin(String url) implements Serializable {}
 }

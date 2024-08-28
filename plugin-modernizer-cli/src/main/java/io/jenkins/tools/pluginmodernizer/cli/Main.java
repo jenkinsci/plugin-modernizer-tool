@@ -121,6 +121,12 @@ public class Main implements Runnable {
     public URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
 
     @Option(
+            names = "--jenkins-plugin-info",
+            description =
+                    "Sets jenkins plugin version; will override JENKINS_PLUGIN_INFO environment variable. If not set via CLI option or environment variable, will use default plugin info")
+    public URL jenkinsPluginVersions = Settings.DEFAULT_PLUGIN_VERSIONS;
+
+    @Option(
             names = "--plugin-health-score",
             description =
                     "Sets the plugin health score URL; will override JENKINS_PHS environment variable. If not set via CLI option or environment variable, will use default health score url.")
@@ -156,6 +162,7 @@ public class Main implements Runnable {
                 .withRemoveForks(removeForks)
                 .withExportDatatables(exportDatatables)
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
+                .withJenkinsPluginVersions(jenkinsPluginVersions)
                 .withPluginHealthScore(pluginHealthScore)
                 .withCachePath(cachePath)
                 .withMavenHome(mavenHome)
