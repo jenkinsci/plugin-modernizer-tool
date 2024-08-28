@@ -127,3 +127,11 @@ description: Migrate from Java 8 to Java 11
 tags: ['developer']
 recipeList:
   - org.openrewrite.java.migrate.UpgradeToJava17
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.MigrateJUnitTestCase
+displayName: Convert JUnit 4 TestCase to JUnit Jupiter
+description: Convert JUnit 4 TestCase to JUnit Jupiter
+tags: ['tests']
+recipeList:
+  - org.openrewrite.java.testing.junit5.MigrateJUnitTestCase
