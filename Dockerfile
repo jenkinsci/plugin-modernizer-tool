@@ -4,14 +4,19 @@ RUN apt-get update && \
     apt-get install -y curl zip unzip \
     && rm -rf /var/lib/apt/lists/*
 
+ENV JDK8_PACKAGE=8.0.422-tem
+ENV JDK11_PACKAGE=11.0.24-tem
+ENV JDK17_PACKAGE=17.0.12-tem
+ENV JDK21_PACKAGE=21.0.4-tem
+
 # Install respective JDK via SDK man
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN curl -s "https://get.sdkman.io" | bash
 RUN source "/root/.sdkman/bin/sdkman-init.sh" && \
-    sdk install java 8.0.422-tem && \
-    sdk install java 11.0.24-tem && \
-    sdk install java 17.0.12-tem && \
-    sdk install java 21.0.4-tem
+    sdk install java $JDK8_PACKAGE && \
+    sdk install java $JDK11_PACKAGE && \
+    sdk install java $JDK17_PACKAGE && \
+    sdk install java $JDK21_PACKAGE
 
 ENV VERSION=999999-SNAPSHOT
 
