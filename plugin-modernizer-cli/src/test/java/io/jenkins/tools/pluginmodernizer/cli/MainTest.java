@@ -153,7 +153,7 @@ public class MainTest {
 
     @Test
     public void testSkipPushOptions() throws IOException {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "recipe1,recipe2", "--skip-push"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip-push", "--skip-push"};
         commandLine.execute(args);
         assertTrue(main.setup().isSkipPush());
     }
@@ -161,23 +161,38 @@ public class MainTest {
     @Test
     public void testSkipPullRequestOptions() throws IOException {
         String[] args = {
-            "-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "FetchMetadata", "--skip-pull-request"
+            "-p",
+            "plugin1,plugin2",
+            "-r",
+            "FetchMetadata",
+            "--skip-push",
+            "--recipes",
+            "FetchMetadata",
+            "--skip-pull-request"
         };
         commandLine.execute(args);
         assertTrue(main.setup().isSkipPullRequest());
     }
 
     @Test
-    public void voidTestCleanLocalData() throws IOException {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "FetchMetadata", "--clean-local-data"
+    public void testCleanLocalData() throws IOException {
+        String[] args = {
+            "-p",
+            "plugin1,plugin2",
+            "-r",
+            "FetchMetadata",
+            "--skip-push",
+            "--recipes",
+            "FetchMetadata",
+            "--clean-local-data"
         };
         commandLine.execute(args);
         assertTrue(main.setup().isRemoveLocalData());
     }
 
     @Test
-    public void voidTestCleanForks() throws IOException {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip", "recipe1,recipe2", "--clean-forks"};
+    public void testCleanForks() throws IOException {
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip-push", "--clean-forks"};
         commandLine.execute(args);
         assertTrue(main.setup().isRemoveForks());
     }
@@ -215,7 +230,9 @@ public class MainTest {
     public void testCachePathOption() {
         String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "-c", "/tmp/cache"};
         commandLine.execute(args);
-        assertEquals(Paths.get("/tmp/cache"), main.setup().getCachePath());
+        assertEquals(
+                Paths.get("/tmp/cache/jenkins-plugin-modernizer-cli"),
+                main.setup().getCachePath());
     }
 
     @Test

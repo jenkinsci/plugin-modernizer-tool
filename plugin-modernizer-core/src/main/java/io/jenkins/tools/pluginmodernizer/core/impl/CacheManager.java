@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Clock;
 import java.time.Duration;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,18 @@ public class CacheManager {
             } catch (IOException e) {
                 throw new ModernizerException("Unable to create cache", e);
             }
+        }
+    }
+
+    /**
+     * Wipe the cache including all cloned plugins
+     */
+    public void wipe() {
+        LOG.debug("Removing local data at {}", location.toAbsolutePath());
+        try {
+            FileUtils.deleteDirectory(location.toFile());
+        } catch (Exception e) {
+            throw new ModernizerException("Error removing local data", e);
         }
     }
 

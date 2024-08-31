@@ -3,6 +3,7 @@ package io.jenkins.tools.pluginmodernizer.core.config;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -29,6 +30,7 @@ public class Settings {
     public static final URL DEFAULT_HEALTH_SCORE_URL;
 
     public static final Path DEFAULT_CACHE_PATH;
+    public static final String CACHE_SUBDIR = "jenkins-plugin-modernizer-cli";
 
     public static final Path DEFAULT_MAVEN_HOME;
 
@@ -37,8 +39,6 @@ public class Settings {
     public static final String GITHUB_TOKEN;
 
     public static final String GITHUB_OWNER;
-
-    public static final String TEST_PLUGINS_DIRECTORY;
 
     public static final String ORGANIZATION = "jenkinsci";
 
@@ -66,15 +66,14 @@ public class Settings {
 
         String cacheDirFromEnv = System.getenv("CACHE_DIR");
         if (cacheDirFromEnv == null) {
-            DEFAULT_CACHE_PATH = Paths.get(cacheBaseDir, ".cache", "jenkins-plugin-modernizer-cli");
+            DEFAULT_CACHE_PATH = Paths.get(cacheBaseDir, ".cache", CACHE_SUBDIR);
         } else {
-            DEFAULT_CACHE_PATH = Paths.get(cacheDirFromEnv);
+            DEFAULT_CACHE_PATH = Paths.get(cacheDirFromEnv, CACHE_SUBDIR);
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
-        TEST_PLUGINS_DIRECTORY = getTestPluginsDirectory();
         try {
             DEFAULT_UPDATE_CENTER_URL = getUpdateCenterUrl();
         } catch (MalformedURLException e) {
@@ -175,8 +174,8 @@ public class Settings {
         return Path.of(propertyValue);
     }
 
-    private static String getTestPluginsDirectory() {
-        return System.getProperty("user.dir") + "/test-plugins/";
+    public static Path getPluginsDirectory(Plugin plugin) {
+        return DEFAULT_CACHE_PATH.resolve(plugin.getName());
     }
 
     /**
