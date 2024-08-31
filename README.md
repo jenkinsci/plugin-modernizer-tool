@@ -10,14 +10,20 @@ Using OpenRewrite Recipes for Plugin Modernization or Automation Plugin Build Me
 [![LOC](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main/badge/icon?job=test&status=${lineOfCode}&subject=line%20of%20code&color=blue)](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main)
 [![GitHub license](https://img.shields.io/github/license/jenkinsci/plugin-modernizer-tool)](https://github.com/jenkinsci/plugin-modernizer-tool/blob/main/LICENSE)
 
-> [!WARNING]
-> This tool is currently in development. Please avoid opening issues until the end of the GSoC 2024 period.
+> [!NONE]
+> This tool is currently in development and looking for contributors and early adopters. Please report any issues or feature requests on the GitHub repository.
 >
 > It's configuration and APIs might change in future releases
 
 ## About
 
-Plugin Modernizer is a generic CLI tool designed to automate the modernization of Jenkins plugins. It utilizes OpenRewrite recipes, JDOM, and refaster to apply transformations to the plugin, validating the applied transformations and creating pull requests with the results.
+Plugin Modernizer is a generic CLI tool designed to automate the modernization of Jenkins plugins. It utilizes OpenRewrite recipes to apply transformations to the plugin, validating the applied transformations and creating pull requests with the results.
+
+The CLI is also used to collect metadata from Jenkins plugins, such as the plugin's dependencies (including transitive) or JDKs used for building the plugin. Such metadata is planned to be integrated with existing Jenkins tooling such as 
+
+- [Jenkins Plugin Site](https://plugins.jenkins.io/)
+- [Jenkins stastistics](https://stats.jenkins.io/)
+- [Plugin Health Scoring](https://github.com/jenkins-infra/plugin-health-scoring)
 
 Learn more at [this project page](https://www.jenkins.io/projects/gsoc/2024/projects/using-openrewrite-recipes-for-plugin-modernization-or-automation-plugin-build-metadata-updates/).
 
