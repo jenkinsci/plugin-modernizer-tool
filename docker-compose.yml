@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  jenkins-plugin-modernizer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+        - GH_TOKEN=${GH_TOKEN}
+    env_file:
+      - .env
+    command:
+      - --recipes ${RECIPES}
+      - --plugins ${PLUGINS}
+      - --debug
+      - --dry-run
+    volumes:
+      - ./logs:/logs/
+    image: jenkins-plugin-modernizer:latest
