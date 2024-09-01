@@ -27,7 +27,7 @@ public class SettingsEnvTest {
 
     @Test
     public void testCustomCache() throws Exception {
-        assertEquals(Paths.get(".my-cache"), Settings.DEFAULT_CACHE_PATH);
+        assertEquals(Paths.get(".my-cache", Settings.CACHE_SUBDIR), Settings.DEFAULT_CACHE_PATH);
     }
 
     @Test

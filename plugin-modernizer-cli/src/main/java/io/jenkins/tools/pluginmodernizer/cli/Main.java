@@ -164,7 +164,10 @@ public class Main implements Runnable {
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withJenkinsPluginVersions(jenkinsPluginVersions)
                 .withPluginHealthScore(pluginHealthScore)
-                .withCachePath(cachePath)
+                .withCachePath(
+                        !cachePath.endsWith(Settings.CACHE_SUBDIR)
+                                ? cachePath.resolve(Settings.CACHE_SUBDIR)
+                                : cachePath)
                 .withMavenHome(mavenHome)
                 .build();
     }
