@@ -10,7 +10,7 @@ Using OpenRewrite Recipes for Plugin Modernization or Automation Plugin Build Me
 [![LOC](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main/badge/icon?job=test&status=${lineOfCode}&subject=line%20of%20code&color=blue)](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main)
 [![GitHub license](https://img.shields.io/github/license/jenkinsci/plugin-modernizer-tool)](https://github.com/jenkinsci/plugin-modernizer-tool/blob/main/LICENSE)
 
-> [!NONE]
+> [!Note]
 > This tool is currently in development and looking for contributors and early adopters. Please report any issues or feature requests on the GitHub repository.
 >
 > It's configuration and APIs might change in future releases
