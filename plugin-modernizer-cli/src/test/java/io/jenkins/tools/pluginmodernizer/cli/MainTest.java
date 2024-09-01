@@ -153,7 +153,7 @@ public class MainTest {
 
     @Test
     public void testSkipPushOptions() throws IOException {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip-push", "--skip-push"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata", "--skip-push"};
         commandLine.execute(args);
         assertTrue(main.setup().isSkipPush());
     }
