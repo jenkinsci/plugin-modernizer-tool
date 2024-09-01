@@ -1,5 +1,5 @@
 # This YAML configuration file is used by the updatecli tool to automate the process of updating Temurin JDK versions
-# managed by SDKMAN in a GitPod Dockerfile. It defines the sources from which to retrieve the latest JDK versions,
+# managed by SDKMAN in a Dockerfile. It defines the sources from which to retrieve the latest JDK versions,
 # the targets where these versions should be applied, and the actions to take upon successful updates.
 
 # Define the source control management (SCM) configuration for GitHub.
@@ -79,9 +79,11 @@ targets:
   setJDK8:
     kind: dockerfile
     spec:
-      file: .gitpod/Dockerfile # The Dockerfile to update.
+      files: # The Dockerfiles to update.
+        - .gitpod/Dockerfile
+        - Dockerfile
       instruction:
-        keyword: "ARG" # The Dockerfile instruction to target.
+        keyword: "ENV" # The Dockerfile instruction to target.
         matcher: "JDK8_PACKAGE" # The specific ARG to update with the new JDK 8 version.
     name: "[GitPod] Update the JDK8 version for SDKMAN"
     sourceid: JDK8 # Link to the source of JDK 8 version.
@@ -89,29 +91,35 @@ targets:
   setJDK11:
     kind: dockerfile
     spec:
-      file: .gitpod/Dockerfile # The Dockerfile to update.
+      files: # The Dockerfiles to update.
+        - .gitpod/Dockerfile
+        - Dockerfile
       instruction:
-        keyword: "ARG" # The Dockerfile instruction to target.
+        keyword: "ENV" # The Dockerfile instruction to target.
         matcher: "JDK11_PACKAGE" # The specific ARG to update with the new JDK 11 version.
-    name: "[GitPod] Update the JDK11 version for SDKMAN"
+    name: "[Dockerfile] Update the JDK11 version for SDKMAN"
     sourceid: JDK11 # Link to the source of JDK 11 version.
     scmid: default # Use the default SCM configuration.
   setJDK17:
     kind: dockerfile
     spec:
-      file: .gitpod/Dockerfile # The Dockerfile to update.
+      files: # The Dockerfiles to update.
+        - .gitpod/Dockerfile
+        - Dockerfile
       instruction:
-        keyword: "ARG" # The Dockerfile instruction to target.
+        keyword: "ENV" # The Dockerfile instruction to target.
         matcher: "JDK17_PACKAGE" # The specific ARG to update with the new JDK 17 version.
-    name: "[GitPod] Update the JDK17 version for SDKMAN"
+    name: "[Dockerfile] Update the JDK17 version for SDKMAN"
     sourceid: JDK17 # Link to the source of JDK 17 version.
     scmid: default # Use the default SCM configuration.
   setJDK21:
     kind: dockerfile
     spec:
-      file: .gitpod/Dockerfile # The Dockerfile to update.
+      files: # The Dockerfiles to update.
+        - .gitpod/Dockerfile
+        - Dockerfile
       instruction:
-        keyword: "ARG" # The Dockerfile instruction to target.
+        keyword: "ENV" # The Dockerfile instruction to target.
         matcher: "JDK21_PACKAGE" # The specific ARG to update with the new JDK 21 version.
     name: "[GitPod] Update the JDK21 version for SDKMAN"
     sourceid: JDK21 # Link to the source of JDK 21 version.
