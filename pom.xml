@@ -64,6 +64,7 @@
     <byte-buddy.version>1.15.1</byte-buddy.version>
     <wiremock.version>3.9.1</wiremock.version>
     <jte.version>3.1.12</jte.version>
+    <snakeyaml.version>2.3</snakeyaml.version>
   </properties>
 
   <dependencyManagement>
@@ -193,6 +194,11 @@
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock-standalone</artifactId>
         <version>${wiremock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${snakeyaml.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
