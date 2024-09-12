@@ -1,60 +1,71 @@
 ---
+# This YAML configuration file is used by the updatecli tool to automate the process of updating the Maven docker image versions
+# in a Dockerfile. It defines the sources from which to retrieve the latest Maven version, the targets where this version should be applied,
+# and the actions to take upon successful updates.
+
+# Define the name of the updatecli configuration.
 name: Bump the Maven docker images versions in the Dockerfile
 
+# Define the source control management (SCM) configuration for GitHub.
 scms:
   default:
     kind: github
     spec:
-      user: "{{ .github.user }}"
-      email: "{{ .github.email }}"
-      owner: "{{ .github.owner }}"
-      repository: "{{ .github.repository }}"
-      token: "{{ requiredEnv .github.token }}"
-      username: "{{ .github.username }}"
-      branch: "{{ .github.branch }}"
+      user: "{{ .github.user }}" # The GitHub username to use for commits.
+      email: "{{ .github.email }}" # The email associated with the GitHub user.
+      owner: "{{ .github.owner }}" # The owner of the repository where changes will be made.
+      repository: "{{ .github.repository }}" # The repository to update.
+      token: "{{ requiredEnv .github.token }}" # GitHub token for authentication, marked as required.
+      username: "{{ .github.username }}" # GitHub username for authentication.
+      branch: "{{ .github.branch }}" # The branch to update with the new Maven version.
 
+# Define the sources from which to retrieve the latest Maven version.
 sources:
   mavenLatestVersion:
     kind: githubrelease
     spec:
-      owner: "apache"
-      repository: "maven"
-      token: "{{ requiredEnv .github.token }}"
-      username: "{{ .github.username }}"
+      owner: "apache" # The owner of the Maven repository on GitHub.
+      repository: "maven" # The repository name for Maven.
+      token: "{{ requiredEnv .github.token }}" # GitHub token for authentication, marked as required.
+      username: "{{ .github.username }}" # GitHub username for authentication.
       versioning:
-        kind: semver
-        pattern: "~3"
+        kind: semver # Use semantic versioning to find the latest version.
+        pattern: "~3" # Match versions that are compatible with version 3.x.
     transformers:
-      - trimprefix: "maven-"
+      - trimprefix: "maven-" # Remove the "maven-" prefix from the version string.
 
+# Define the conditions to check if the Maven Alpine image with the latest version is published.
 conditions:
   testMavenAlpineImagePublished:
-    name: "Test maven:<latest_version>-eclipse-temurin-21 docker image tag"
+    name: "Test maven:<latest_version>-eclipse-temurin-21 docker image tag" # Description of the condition.
     kind: dockerimage
     disablesourceinput: true
     spec:
-      image: "maven"
-      tag: '{{ source "mavenLatestVersion" }}-eclipse-temurin-21'
+      image: "maven" # The Docker image name.
+      tag: '{{ source "mavenLatestVersion" }}-eclipse-temurin-21' # The Docker image tag to check.
 
+# Define the targets where the Maven version will be applied.
 targets:
   updateDockerfile:
-    name: "Update the value of the maven docker image in the Dockerfile"
+    name: "Update the value of the maven docker image in the Dockerfile" # Description of the target.
     kind: dockerfile
-    sourceid: mavenLatestVersion
+    sourceid: mavenLatestVersion # Link to the source of the Maven version.
     spec:
-      file: Dockerfile
+      file: Dockerfile # The Dockerfile to update.
       instruction:
-        keyword: "FROM"
-        matcher: "maven"
+        keyword: "FROM" # The Dockerfile instruction to target.
+        matcher: "maven" # The specific Docker image to update with the new Maven version.
     transformers:
-      - addsuffix: "-eclipse-temurin-21"
-    scmid: default
+      - addsuffix: "-eclipse-temurin-21" # Add the suffix to the Maven version.
+    scmid: default # Use the default SCM configuration.
 
+# Define the actions to take after the targets are updated.
 actions:
   default:
     kind: github/pullrequest
-    scmid: default
-    title: 'Bump Maven Eclipse Temurin docker image version to {{ source "mavenLatestVersion" }}-eclipse-temurin-21'
+    scmid: default # Use the default SCM configuration.
+    title: 'Bump Maven Eclipse Temurin docker image version to {{ source "mavenLatestVersion" }}-eclipse-temurin-21' # Title of the pull request.
     spec:
       labels:
-        - dependencies
+        - dependencies # Labels to add to the GitHub pull request.
+        - Dockerfile
