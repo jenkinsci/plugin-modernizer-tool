@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci</groupId>
     <artifactId>jenkins</artifactId>
-    <version>1.119</version>
+    <version>1.122</version>
     <relativePath />
   </parent>
 
@@ -43,26 +43,28 @@
     <spotless.check.skip>false</spotless.check.skip>
 
     <!-- Version -->
-    <openrewrite.bom.version>2.17.0</openrewrite.bom.version>
-    <openrewrite.maven.plugin.version>5.39.1</openrewrite.maven.plugin.version>
-    <openrewrite.jenkins.version>0.11.0</openrewrite.jenkins.version>
+    <openrewrite.bom.version>2.19.0</openrewrite.bom.version>
+    <openrewrite.maven.plugin.version>5.40.1</openrewrite.maven.plugin.version>
+    <openrewrite.jenkins.version>0.13.0</openrewrite.jenkins.version>
+    <micrometer.version>1.13.4</micrometer.version>
     <slf4j.version>2.0.16</slf4j.version>
-    <logback.version>1.5.7</logback.version>
+    <logback.version>1.5.8</logback.version>
     <picocli.version>4.7.6</picocli.version>
     <common.io.version>2.16.1</common.io.version>
-    <common.lang3.version>3.16.0</common.lang3.version>
+    <common.lang3.version>3.17.0</common.lang3.version>
     <common.text.version>1.12.0</common.text.version>
     <asm.version>9.7</asm.version>
     <gson.version>2.11.0</gson.version>
     <jackson.version>2.17.2</jackson.version>
     <maven.version>3.9.9</maven.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    <jgit.version>7.0.0.202409201410-m3</jgit.version>
+    <jgit.version>7.0.0.202409031743-r</jgit.version>
     <github-api.version>1.324</github-api.version>
     <commons-compress.version>1.27.1</commons-compress.version>
-    <byte-buddy.version>1.15.0</byte-buddy.version>
+    <byte-buddy.version>1.15.1</byte-buddy.version>
     <wiremock.version>3.9.1</wiremock.version>
     <jte.version>3.1.12</jte.version>
+    <snakeyaml.version>2.3</snakeyaml.version>
   </properties>
 
   <dependencyManagement>
@@ -71,6 +73,13 @@
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
         <version>${jackson.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-bom</artifactId>
+        <version>${micrometer.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -185,6 +194,11 @@
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock-standalone</artifactId>
         <version>${wiremock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.yaml</groupId>
+        <artifactId>snakeyaml</artifactId>
+        <version>${snakeyaml.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

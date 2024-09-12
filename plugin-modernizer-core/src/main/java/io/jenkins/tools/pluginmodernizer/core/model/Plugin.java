@@ -7,8 +7,6 @@ import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -22,7 +20,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
-import org.apache.commons.io.FileUtils;
 import org.kohsuke.github.GHRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -354,7 +351,7 @@ public class Plugin {
      * @return Local repository path
      */
     public Path getLocalRepository() {
-        return Path.of(Settings.TEST_PLUGINS_DIRECTORY, getName());
+        return Settings.getPluginsDirectory(this).resolve("sources");
     }
 
     /**
@@ -595,21 +592,6 @@ public class Plugin {
     }
 
     /**
-     * Remove the plugin local data
-     */
-    public void removeLocalData() {
-        Path path = getLocalRepository();
-        File directory = path.toFile();
-        if (directory.isDirectory() && directory.exists()) {
-            try {
-                FileUtils.deleteDirectory(directory);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Failed to delete directory: " + directory, e);
-            }
-        }
-    }
-
-    /**
      * Get the associated repository for this plugin
      * @param service The GitHub service
      * @return The repository object
@@ -695,8 +677,8 @@ public class Plugin {
      * @return Cache manager
      */
     private CacheManager buildPluginTargetDirectoryCacheManager() {
-        return new CacheManager(Path.of(Settings.TEST_PLUGINS_DIRECTORY)
-                .resolve(getLocalRepository().resolve("target")));
+        return new CacheManager(
+                Settings.getPluginsDirectory(this).resolve(getLocalRepository().resolve("target")));
     }
 
     /**

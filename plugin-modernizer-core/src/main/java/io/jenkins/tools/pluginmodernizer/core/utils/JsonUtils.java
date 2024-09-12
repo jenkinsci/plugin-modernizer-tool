@@ -87,13 +87,16 @@ public class JsonUtils {
      */
     public static <T> T fromUrl(URL url, Class<T> clazz) {
         try {
-            HttpClient client = HttpClient.newHttpClient();
+            HttpClient client = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .build();
             HttpRequest request =
                     HttpRequest.newBuilder().GET().uri(url.toURI()).build();
             LOG.debug("Fetching data from: {}", url);
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                throw new ModernizerException("Failed to JSON data: " + response.statusCode());
+                throw new ModernizerException(
+                        "Failed to get JSON data. Received response code: " + response.statusCode());
             }
             LOG.debug("Fetched data from: {}", url);
             return JsonUtils.fromJson(response.body(), clazz);

@@ -52,6 +52,9 @@ public class PluginModernizer {
 
         // Setup
         this.ghService.connect();
+        if (config.isRemoveLocalData()) {
+            cacheManager.wipe();
+        }
         cacheManager.init();
 
         // Debug config
@@ -114,15 +117,6 @@ public class PluginModernizer {
             }
             plugin.fork(ghService);
             plugin.sync(ghService);
-            if (config.isRemoveLocalData()) {
-                if (config.isDebug()) {
-                    LOG.debug("Removing local data for plugin: {} at {}", plugin, plugin.getLocalRepository());
-                } else {
-                    LOG.info("Removing local data for plugin: {}", plugin);
-                }
-                plugin.removeLocalData();
-            }
-
             plugin.fetch(ghService);
 
             if (plugin.hasErrors()) {
