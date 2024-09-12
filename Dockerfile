@@ -38,4 +38,4 @@ RUN mvn org.apache.maven.plugins:maven-install-plugin:${MVN_INSTALL_PLUGIN_VERSI
     -Dpackaging=jar
 
 # Set the entry point for the Docker container
-ENTRYPOINT ["java", "-jar", "/jenkins-plugin-modernizer.jar"]do
+ENTRYPOINT ["java", "-jar", "/jenkins-plugin-modernizer.jar"]
