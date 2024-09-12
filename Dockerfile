@@ -8,6 +8,7 @@ ENV JDK8_PACKAGE=8.0.422-tem
 ENV JDK11_PACKAGE=11.0.24-tem
 ENV JDK17_PACKAGE=17.0.12-tem
 ENV JDK21_PACKAGE=21.0.4-tem
+ENV MVN_INSTALL_PLUGIN_VERSION=3.1.2
 
 # Install respective JDK via SDK man
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
