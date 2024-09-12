@@ -25,10 +25,6 @@ RUN source "/root/.sdkman/bin/sdkman-init.sh" && \
 # Set the version for the plugin-modernizer
 ENV VERSION=999999-SNAPSHOT
 
-# Add the plugin-modernizer JAR files to the image
-ADD plugin-modernizer-cli/target/jenkins-plugin-modernizer-${VERSION}.jar /jenkins-plugin-modernizer.jar
-ADD plugin-modernizer-core/target/plugin-modernizer-core-${VERSION}.jar /jenkins-plugin-modernizer-core.jar
-
 # Install the core dependency using the Maven install plugin
 RUN mvn org.apache.maven.plugins:maven-install-plugin:${MVN_INSTALL_PLUGIN_VERSION}:install-file  \
     -Dfile=/jenkins-plugin-modernizer-core.jar \
@@ -36,6 +32,10 @@ RUN mvn org.apache.maven.plugins:maven-install-plugin:${MVN_INSTALL_PLUGIN_VERSI
     -DartifactId=plugin-modernizer-core \
     -Dversion=${VERSION} \
     -Dpackaging=jar
+
+# Add the plugin-modernizer JAR files to the image
+ADD plugin-modernizer-cli/target/jenkins-plugin-modernizer-${VERSION}.jar /jenkins-plugin-modernizer.jar
+ADD plugin-modernizer-core/target/plugin-modernizer-core-${VERSION}.jar /jenkins-plugin-modernizer-core.jar
 
 # Set the entry point for the Docker container
 ENTRYPOINT ["java", "-jar", "/jenkins-plugin-modernizer.jar"]
