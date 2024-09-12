@@ -1,0 +1,58 @@
+---
+# This YAML configuration file is used by the updatecli tool to automate the process of updating the Maven install plugin version
+# in a Dockerfile. It defines the sources from which to retrieve the latest plugin version, the targets where this version should be applied,
+# and the actions to take upon successful updates.
+
+# Define the name of the updatecli configuration.
+name: Bump the Maven install tool up to date in the docker file
+
+# Define the source control management (SCM) configuration for GitHub.
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}" # The GitHub username to use for commits.
+      email: "{{ .github.email }}" # The email associated with the GitHub user.
+      owner: "{{ .github.owner }}" # The owner of the repository where changes will be made.
+      repository: "{{ .github.repository }}" # The repository to update.
+      token: "{{ requiredEnv .github.token }}" # GitHub token for authentication, marked as required.
+      username: "{{ .github.username }}" # GitHub username for authentication.
+      branch: "{{ .github.branch }}" # The branch to update with the new plugin version.
+
+# Define the sources from which to retrieve the latest Maven install plugin version.
+sources:
+  mavenInstallLatestVersion:
+    kind: maven
+    spec:
+      url: "repo1.maven.org" # The URL of the Maven repository.
+      repository: "maven2" # The specific Maven repository to use.
+      groupid: "org.apache.maven.plugins" # The group ID of the Maven install plugin.
+      artifactid: "maven-install-plugin" # The artifact ID of the Maven install plugin.
+      versionfilter:
+        kind: regex
+        pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+$" # Only match versions without "beta".
+
+# Define the targets where the Maven install plugin version will be applied.
+targets:
+  updateDockerfile:
+    name: "Update the value of the maven install plugin in the Dockerfile" # Description of the target.
+    kind: dockerfile
+    spec:
+      files: # The Dockerfiles to update.
+          - Dockerfile
+      instruction:
+        keyword: "ENV" # The Dockerfile instruction to target.
+        matcher: "MVN_INSTALL_PLUGIN_VERSION" # The specific ENV variable to update with the new plugin version.
+    sourceid: mavenInstallLatestVersion # Link to the source of the Maven install plugin version.
+    scmid: default # Use the default SCM configuration.
+
+# Define the actions to take after the targets are updated.
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default # Use the default SCM configuration.
+    title: 'Bump the maven install plugin version version to {{ source "mavenInstallLatestVersion" }}' # Title of the pull request.
+    spec:
+      labels:
+        - dependencies # Labels to add to the GitHub pull request.
+        - dockerfile # Additional label for the pull request.
