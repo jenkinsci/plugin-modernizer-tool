@@ -17,6 +17,7 @@ env:
   DOCKER_BUILDKIT: 1 # Enable Docker BuildKit for faster builds.
   GHCR_USERNAME: ${{ github.repository_owner }} # Set the GitHub Container Registry username.
   GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }} # Set the GitHub Container Registry token.
+  MAVEN_CACHE_PATH: ~/.m2/repository # Set the Maven cache path explicitly
 
 jobs:
   docker:
@@ -38,9 +39,16 @@ jobs:
           cache: 'maven'
       - name: Build with Maven
         run: mvn clean install
+        env:
+          MAVEN_CACHE: ${{ env.MAVEN_CACHE_PATH }} # Use the Maven cache path
 
-      - name: Set Maven cache path
-        run: echo "MAVEN_CACHE_PATH=$(realpath ~/.m2/repository)" >> $GITHUB_ENV
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.MAVEN_CACHE_PATH }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3 # Set up QEMU for multi-platform builds.
