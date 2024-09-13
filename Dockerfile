@@ -18,8 +18,11 @@ ADD . /plugin-modernizer
 RUN mkdir -p /plugin-modernizer
 WORKDIR /plugin-modernizer
 
-# Change to the /plugin-modernizer directory and build the project, skipping tests
-RUN cd /plugin-modernizer && mvn clean install -DskipTests
+# Use BuildKit's mount option to cache Maven dependencies
+RUN --mount=type=cache,target=/root/.m2 \
+    mkdir -p /plugin-modernizer && \
+    cd /plugin-modernizer && \
+    mvn clean install -DskipTests
 
 # Second stage: Create the final image using Maven and Eclipse Temurin JDK 21
 FROM maven:3.9.9-eclipse-temurin-21 AS result-image
