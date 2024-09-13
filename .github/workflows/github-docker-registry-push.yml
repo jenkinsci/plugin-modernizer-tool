@@ -37,7 +37,7 @@ jobs:
           java-version: '21'
           cache: 'maven'
       - name: Build with Maven
-        run: mvn clean install
+        run: mvn clean install && ls ~/.m2/repository
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3 # Set up QEMU for multi-platform builds.
@@ -66,6 +66,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            MAVEN_CACHE=~/.m2/repository
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1

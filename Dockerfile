@@ -10,17 +10,17 @@ ARG VERSION
 # Set the VERSION environment variable
 ENV VERSION=${VERSION}
 
-# Define a volume for the Maven cache to speed up dependency downloads
-VOLUME /root/.m2
 
 # Add the current directory to the /plugin-modernizer directory in the container
 ADD . /plugin-modernizer
 RUN mkdir -p /plugin-modernizer
 WORKDIR /plugin-modernizer
 
-# Use BuildKit's mount option to cache Maven dependencies
-RUN --mount=type=cache,target=/root/.m2 \
-    mkdir -p /plugin-modernizer && \
+# Define a build argument for the Maven cache location
+ARG MAVEN_CACHE=/root/.m2
+
+# Use the build argument to set the Maven cache location with a bind mount
+RUN --mount=type=bind,source=${MAVEN_CACHE},target=/root/.m2 \
     cd /plugin-modernizer && \
     mvn clean install -DskipTests
 
