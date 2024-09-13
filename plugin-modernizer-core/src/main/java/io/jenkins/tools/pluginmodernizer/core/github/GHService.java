@@ -398,12 +398,19 @@ public class GHService {
         if (Files.isDirectory(plugin.getLocalRepository())) {
             // Ensure to set the correct remote, reset changes and pull
             try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
+                String defaultBranch = config.isDryRun() || plugin.isArchived(this)
+                        ? plugin.getRemoteRepository(this).getDefaultBranch()
+                        : plugin.getRemoteForkRepository(this).getDefaultBranch();
                 git.remoteSetUrl()
                         .setRemoteName("origin")
                         .setRemoteUri(new URIish(repository.getHttpTransportUrl()))
                         .call();
+                git.fetch().setRemote("origin").call();
                 LOG.debug("Resetting changes and pulling latest changes from {}", remoteUrl);
-                git.reset().setMode(ResetCommand.ResetType.HARD).call();
+                git.reset()
+                        .setMode(ResetCommand.ResetType.HARD)
+                        .setRef("origin/" + defaultBranch)
+                        .call();
                 git.pull().setRemote("origin").setRemoteBranchName(repository.getDefaultBranch());
             } catch (IOException | URISyntaxException e) {
                 plugin.addError("Failed fetch repository", e);
@@ -511,6 +518,7 @@ public class GHService {
         }
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
             git.push()
+                    .setForce(true)
                     .setCredentialsProvider(new UsernamePasswordCredentialsProvider(Settings.GITHUB_TOKEN, ""))
                     .setRemote("origin")
                     .setRefSpecs(new RefSpec(BRANCH_NAME + ":" + BRANCH_NAME))
