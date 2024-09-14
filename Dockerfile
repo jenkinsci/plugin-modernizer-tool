@@ -19,6 +19,12 @@ WORKDIR /plugin-modernizer
 # Define a build argument for the Maven cache location
 ARG MAVEN_CACHE=/root/.m2
 
+# Print the Maven local repository path
+RUN echo "Maven local repository path: $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)"
+
+# List the Maven cache directory itself
+RUN ls -ld $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
+
 # Use the build argument to set the Maven cache location with a bind mount
 RUN --mount=type=bind,source=${MAVEN_CACHE},target=/root/.m2 \
     cd /plugin-modernizer && \
