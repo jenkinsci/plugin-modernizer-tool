@@ -44,7 +44,7 @@
 
     <!-- Version -->
     <openrewrite.bom.version>2.19.0</openrewrite.bom.version>
-    <openrewrite.maven.plugin.version>5.40.1</openrewrite.maven.plugin.version>
+    <openrewrite.maven.plugin.version>5.40.2</openrewrite.maven.plugin.version>
     <openrewrite.jenkins.version>0.13.0</openrewrite.jenkins.version>
     <micrometer.version>1.13.4</micrometer.version>
     <slf4j.version>2.0.16</slf4j.version>
@@ -59,7 +59,7 @@
     <maven.version>3.9.9</maven.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jgit.version>7.0.0.202409031743-r</jgit.version>
-    <github-api.version>1.324</github-api.version>
+    <github-api.version>1.325</github-api.version>
     <commons-compress.version>1.27.1</commons-compress.version>
     <byte-buddy.version>1.15.1</byte-buddy.version>
     <wiremock.version>3.9.1</wiremock.version>
