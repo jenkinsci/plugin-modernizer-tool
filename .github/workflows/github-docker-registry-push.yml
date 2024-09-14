@@ -1,48 +1,41 @@
-# This GitHub Actions workflow is designed to build and push Docker images to GitHub Packages.
-# It triggers on pushes to the 'main' branch and on a schedule, and it can also be triggered manually.
-
 name: docker image building and pushing to GitHub Packages
 
 on:
   push:
     branches:
-      - 'main' # Trigger the workflow on pushes to the 'main' branch.
+      - 'main'
   schedule:
-    - cron:  '30 4,16 * * *' # Trigger the workflow on a schedule (twice daily).
-  workflow_dispatch: # Allow the workflow to be triggered manually.
+    - cron:  '30 4,16 * * *'
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  DOCKER_BUILDKIT: 1 # Enable Docker BuildKit for faster builds.
-  GHCR_USERNAME: ${{ github.repository_owner }} # Set the GitHub Container Registry username.
-  GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }} # Set the GitHub Container Registry token.
+  DOCKER_BUILDKIT: 1
+  GHCR_USERNAME: ${{ github.repository_owner }}
+  GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
 jobs:
   docker:
-    runs-on: ubuntu-latest # Use the latest Ubuntu runner.
+    runs-on: ubuntu-latest
     steps:
       - name: Check if PR is from a fork
         run: echo "IS_FORK=$(if [ '${{ github.event.pull_request.head.repo.full_name }}' != '${{ github.repository }}' ]; then echo 'true'; else echo 'false'; fi)" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v4 # Checkout the repository.
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for all branches and tags.
+          fetch-depth: 0
 
-      - name: Resolve Maven cache path
-        run: echo "MAVEN_CACHE_PATH=$(realpath ~/.m2/repository)" >> $GITHUB_ENV
-
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - name: Build with Maven
-        run: mvn clean install
-        env:
-          MAVEN_CACHE: ${{ env.MAVEN_CACHE_PATH }} # Use the Maven cache path
+
+      - name: Resolve Maven cache path
+        run: echo "MAVEN_CACHE_PATH=$(realpath ~/.m2/repository)" >> $GITHUB_ENV
 
       - name: Cache Maven dependencies
         uses: actions/cache@v3
@@ -52,14 +45,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Build with Maven and install dependencies in the Docker context
+        run: mvn clean install && cp -vraxu ~/.m2 .m2
+        env:
+          MAVEN_CACHE: ${{ env.MAVEN_CACHE_PATH }}
+
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3 # Set up QEMU for multi-platform builds.
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3 # Set up Docker Buildx for building and pushing images.
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3 # Log in to GitHub Container Registry.
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -80,7 +78,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            MAVEN_CACHE=${{ env.MAVEN_CACHE_PATH }}
+            MAVEN_CACHE=.m2
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1

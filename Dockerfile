@@ -17,7 +17,8 @@ RUN mkdir -p /plugin-modernizer
 WORKDIR /plugin-modernizer
 
 # Define a build argument for the Maven cache location
-ARG MAVEN_CACHE=/root/.m2
+ARG MAVEN_CACHE=.m2
+ADD ${MAVEN_CACHE} /root/.m2
 
 # Print the Maven local repository path
 RUN echo "Maven local repository path: $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)"
@@ -25,9 +26,10 @@ RUN echo "Maven local repository path: $(mvn help:evaluate -Dexpression=settings
 # List the Maven cache directory itself
 RUN ls -ld $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
 
-# Use the build argument to set the Maven cache location with a bind mount
-RUN --mount=type=bind,source=${MAVEN_CACHE},target=/root/.m2 \
-    cd /plugin-modernizer && \
+# Ensure the Maven cache directory is writable
+RUN chmod -R 777 $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
+
+RUN cd /plugin-modernizer && \
     mvn clean install -DskipTests
 
 # Second stage: Create the final image using Maven and Eclipse Temurin JDK 21
