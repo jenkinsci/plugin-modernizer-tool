@@ -59,7 +59,7 @@
     <maven.version>3.9.9</maven.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jgit.version>7.0.0.202409031743-r</jgit.version>
-    <github-api.version>1.324</github-api.version>
+    <github-api.version>1.325</github-api.version>
     <commons-compress.version>1.27.1</commons-compress.version>
     <byte-buddy.version>1.15.1</byte-buddy.version>
     <wiremock.version>3.9.1</wiremock.version>
