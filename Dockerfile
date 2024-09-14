@@ -10,16 +10,27 @@ ARG VERSION
 # Set the VERSION environment variable
 ENV VERSION=${VERSION}
 
-# Define a volume for the Maven cache to speed up dependency downloads
-VOLUME /root/.m2
 
 # Add the current directory to the /plugin-modernizer directory in the container
 ADD . /plugin-modernizer
 RUN mkdir -p /plugin-modernizer
 WORKDIR /plugin-modernizer
 
-# Change to the /plugin-modernizer directory and build the project, skipping tests
-RUN cd /plugin-modernizer && mvn clean install -DskipTests
+# Define a build argument for the Maven cache location
+ARG MAVEN_CACHE=.m2
+ADD ${MAVEN_CACHE} /root/.m2
+
+# Print the Maven local repository path
+RUN echo "Maven local repository path: $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)"
+
+# List the Maven cache directory itself
+RUN ls -ld $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
+
+# Ensure the Maven cache directory is writable
+RUN chmod -R 777 $(mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout)
+
+RUN cd /plugin-modernizer && \
+    mvn clean install -DskipTests
 
 # Second stage: Create the final image using Maven and Eclipse Temurin JDK 21
 FROM maven:3.9.9-eclipse-temurin-21 AS result-image

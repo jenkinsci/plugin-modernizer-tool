@@ -1,88 +1,92 @@
-# This GitHub Actions workflow is designed to build and push Docker images to GitHub Packages.
-# It triggers on pushes to the 'main' branch and on a schedule, and it can also be triggered manually.
-
 name: docker image building and pushing to GitHub Packages
 
 on:
   push:
     branches:
-      - 'main' # Trigger the workflow on pushes to the 'main' branch.
+      - 'main'
   schedule:
-    - cron:  '30 4,16 * * *' # Trigger the workflow on a schedule (twice daily).
-  workflow_dispatch: # Allow the workflow to be triggered manually.
+    - cron:  '30 4,16 * * *'
+  workflow_dispatch:
 
 env:
-  GHCR_USERNAME: ${{ github.repository_owner }} # Set the GitHub Container Registry username.
-  GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }} # Set the GitHub Container Registry token.
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DOCKER_BUILDKIT: 1
+  GHCR_USERNAME: ${{ github.repository_owner }}
+  GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
 jobs:
   docker:
-    runs-on: ubuntu-latest # Use the latest Ubuntu runner.
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Check if PR is from a fork
         run: echo "IS_FORK=$(if [ '${{ github.event.pull_request.head.repo.full_name }}' != '${{ github.repository }}' ]; then echo 'true'; else echo 'false'; fi)" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v4 # Checkout the repository.
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for all branches and tags.
+          fetch-depth: 0
 
-      - name: Retrieve modified files
-        id: changes
-        run: echo "files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | tr '\n' ' ')" >> $GITHUB_ENV
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
 
-      - name: Check for Dockerfile and context changes
-        run: |
-          for file in ${{ env.files }}; do
-            if [[ $file =~ (^|/)Dockerfile($|/)|(^|/)dockerfiles/ ]]; then
-              echo "Dockerfile or dockerfiles directory has changed."
-              echo "Changed file: $file"
-              break
-            fi
-          done
-          
-          if (( $? == 0 )); then
-            echo "No Dockerfile or context directory changes. Skipping Docker image build and push steps."
-            echo "Changed files: ${{ env.files }}"
-          fi
+      - name: Resolve Maven cache path
+        run: echo "MAVEN_CACHE_PATH=$(realpath ~/.m2/repository)" >> $GITHUB_ENV
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.MAVEN_CACHE_PATH }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven and install dependencies in the Docker context
+        run: mvn clean install && cp -vraxu ~/.m2 .m2
+        env:
+          MAVEN_CACHE: ${{ env.MAVEN_CACHE_PATH }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3 # Set up QEMU for multi-platform builds.
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3 # Set up Docker Buildx for building and pushing images.
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
-        if: contains(env.files, 'Dockerfile')
-        uses: docker/login-action@v3 # Log in to GitHub Container Registry.
+        uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ env.GHCR_USERNAME }}
-          password: ${{ env.GHCR_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract branch name
-        shell: bash
-        run: |
-          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed -e 's#/#-#g')
-          if [[ "$BRANCH_NAME" == "main" ]]; then BRANCH_NAME=""; fi
-          echo "BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
-        id: extract_branch
-
-      - name: Extract branch name and set BRANCH environment variable
-        shell: bash
-        run: |
-          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | sed -e 's#/#-#g')
-          if [[ "$BRANCH_NAME" == "main" ]]; then BRANCH_NAME=""; fi
-          echo "BRANCH=$BRANCH_NAME" >> $GITHUB_ENV
-
-      - name: Set repository name to lowercase
-        run: echo "REPO_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-      - name: Build and push the main image
-        if: contains(env.files, 'Dockerfile') || contains(env.files, 'dockerfiles/')
-        uses: docker/build-push-action@v5 # Build and push the Docker image.
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          context: ./
-          platforms: linux/amd64, linux/aarch64
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
           push: true
-          tags: ghcr.io/${{ env.REPO_NAME }}/plugin-modernizer:_${{ env.BRANCH }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            MAVEN_CACHE=.m2
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+          show-summary: true
