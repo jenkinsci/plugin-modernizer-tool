@@ -122,8 +122,8 @@ recipeList:
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToJava17
-displayName: Migrate from Java 8 to Java 11
-description: Migrate from Java 8 to Java 11
+displayName: Migrate from Java 11 to Java 17
+description: Migrate from Java 11 to Java 17
 tags: ['developer']
 recipeList:
   - org.openrewrite.java.migrate.UpgradeToJava17
