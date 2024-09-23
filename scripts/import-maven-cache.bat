@@ -1,27 +1,27 @@
-@echo off
-REM This script copies the Maven local repository to the current directory.
+# This script copies the Maven local repository to the current directory.
 
-echo Determining Maven local repository path...
+Write-Output "Determining Maven local repository path..."
 
-REM Get the Maven local repository path using Maven's help:evaluate goal.
-for /f "delims=" %%i in ('mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout') do set MAVEN_REPO=%%i
+# Get the Maven local repository path using Maven's help:evaluate goal.
+$mavenRepo = mvn help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
 
-REM Check if the Maven repository path was found.
-if "%MAVEN_REPO%"=="" (
-    echo Failed to determine Maven local repository path.
-    exit /b 1
-)
+# Check if the Maven repository path was found.
+if (-not $mavenRepo) {
+    Write-Output "Failed to determine Maven local repository path."
+    exit 1
+}
 
-echo Maven local repository path determined: %MAVEN_REPO%
+Write-Output "Maven local repository path determined: $mavenRepo"
 
-REM Copy the Maven repository to the current directory.
-echo Copying Maven repository to the current directory...
-xcopy /E /I "%MAVEN_REPO%" ".m2"
+# Copy the Maven repository to the current directory.
+Write-Output "Copying Maven repository to the current directory..."
+New-Item -ItemType Directory -Path .m2\repository -Force
+Copy-Item -Recurse -Force "$mavenRepo\*" .m2\repository
 
-REM Verify the copy operation.
-if %errorlevel%==0 (
-    echo Maven repository copied successfully to .m2
-) else (
-    echo Failed to copy Maven repository.
-    exit /b 1
-)
+# Verify the copy operation.
+if ($?) {
+    Write-Output "Maven repository copied successfully to .m2"
+} else {
+    Write-Output "Failed to copy Maven repository."
+    exit 1
+}
