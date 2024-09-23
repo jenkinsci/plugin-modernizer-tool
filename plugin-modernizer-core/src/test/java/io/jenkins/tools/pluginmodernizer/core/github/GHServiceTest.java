@@ -29,13 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.platform.commons.util.ReflectionUtils;
-import org.kohsuke.github.GHCommitPointer;
-import org.kohsuke.github.GHIssueState;
-import org.kohsuke.github.GHMyself;
-import org.kohsuke.github.GHOrganization;
-import org.kohsuke.github.GHPullRequest;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
+import org.kohsuke.github.*;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -365,6 +359,8 @@ public class GHServiceTest {
         GHMyself myself = Mockito.mock(GHMyself.class);
         GHPullRequest pr = Mockito.mock(GHPullRequest.class);
         GHCommitPointer head = Mockito.mock(GHCommitPointer.class);
+        GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
+        PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
         doReturn("fake-owner/fake-repo").when(fork).getFullName();
         doReturn("fake-repo").when(plugin).getRepositoryName();
@@ -376,7 +372,10 @@ public class GHServiceTest {
         // Return at least one PR open
         doReturn(head).when(pr).getHead();
         doReturn(fork).when(head).getRepository();
-        doReturn(List.of(pr)).when(repository).getPullRequests(eq(GHIssueState.OPEN));
+        doReturn(prQuery).when(repository).queryPullRequests();
+        doReturn(prQuery).when(prQuery).state(eq(GHIssueState.OPEN));
+        doReturn(prQueryList).when(prQuery).list();
+        doReturn(List.of(pr)).when(prQueryList).toList();
 
         // Test
         service.deleteFork(plugin);
@@ -392,6 +391,8 @@ public class GHServiceTest {
         GHMyself myself = Mockito.mock(GHMyself.class);
         GHPullRequest pr = Mockito.mock(GHPullRequest.class);
         GHCommitPointer head = Mockito.mock(GHCommitPointer.class);
+        GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
+        PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
         doReturn(false).when(fork).isFork();
         doReturn(fork).when(github).getRepository(eq("fake-owner/fake-repo"));
@@ -407,7 +408,10 @@ public class GHServiceTest {
         GHRepository otherFork = Mockito.mock(GHRepository.class);
         doReturn("an/other").when(otherFork).getFullName();
         doReturn(otherFork).when(head).getRepository();
-        doReturn(List.of(pr)).when(repository).getPullRequests(eq(GHIssueState.OPEN));
+        doReturn(prQuery).when(repository).queryPullRequests();
+        doReturn(prQuery).when(prQuery).state(eq(GHIssueState.OPEN));
+        doReturn(prQueryList).when(prQuery).list();
+        doReturn(List.of(pr)).when(prQueryList).toList();
 
         // Test
         service.deleteFork(plugin);
@@ -423,6 +427,8 @@ public class GHServiceTest {
         GHMyself myself = Mockito.mock(GHMyself.class);
         GHPullRequest pr = Mockito.mock(GHPullRequest.class);
         GHCommitPointer head = Mockito.mock(GHCommitPointer.class);
+        GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
+        PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
         doReturn(true).when(fork).isFork();
         doReturn(fork).when(github).getRepository(eq("fake-owner/fake-repo"));
@@ -438,7 +444,10 @@ public class GHServiceTest {
         GHRepository otherFork = Mockito.mock(GHRepository.class);
         doReturn("an/other").when(otherFork).getFullName();
         doReturn(otherFork).when(head).getRepository();
-        doReturn(List.of(pr)).when(repository).getPullRequests(eq(GHIssueState.OPEN));
+        doReturn(prQuery).when(repository).queryPullRequests();
+        doReturn(prQuery).when(prQuery).state(eq(GHIssueState.OPEN));
+        doReturn(prQueryList).when(prQuery).list();
+        doReturn(List.of(pr)).when(prQueryList).toList();
 
         // Owner of the fork is jenkinsci
         doReturn(Settings.ORGANIZATION).when(fork).getOwnerName();
@@ -457,6 +466,8 @@ public class GHServiceTest {
         GHMyself myself = Mockito.mock(GHMyself.class);
         GHPullRequest pr = Mockito.mock(GHPullRequest.class);
         GHCommitPointer head = Mockito.mock(GHCommitPointer.class);
+        GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
+        PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
         doReturn(true).when(fork).isFork();
         doReturn(fork).when(github).getRepository(eq("fake-owner/fake-repo"));
@@ -473,7 +484,10 @@ public class GHServiceTest {
         GHRepository otherFork = Mockito.mock(GHRepository.class);
         doReturn("an/other").when(otherFork).getFullName();
         doReturn(otherFork).when(head).getRepository();
-        doReturn(List.of(pr)).when(repository).getPullRequests(eq(GHIssueState.OPEN));
+        doReturn(prQuery).when(repository).queryPullRequests();
+        doReturn(prQuery).when(prQuery).state(eq(GHIssueState.OPEN));
+        doReturn(prQueryList).when(prQuery).list();
+        doReturn(List.of(pr)).when(prQueryList).toList();
 
         // Test
         service.deleteFork(plugin);
