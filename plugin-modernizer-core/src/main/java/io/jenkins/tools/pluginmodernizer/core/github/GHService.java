@@ -599,7 +599,7 @@ public class GHService {
         GHRepository forkRepo = plugin.getRemoteForkRepository(this);
 
         try {
-            boolean hasPullRequest = originalRepo.getPullRequests(GHIssueState.OPEN).stream()
+            boolean hasPullRequest = originalRepo.queryPullRequests().state(GHIssueState.OPEN).list().toList().stream()
                     .peek(pr -> LOG.debug("Checking pull request: {}", pr.getHtmlUrl()))
                     .anyMatch(pr -> pr.getHead().getRepository().getFullName().equals(forkRepo.getFullName()));
             if (hasPullRequest) {
@@ -623,7 +623,11 @@ public class GHService {
     private Optional<GHPullRequest> checkIfPullRequestExists(Plugin plugin) {
         GHRepository repository = plugin.getRemoteRepository(this);
         try {
-            List<GHPullRequest> pullRequests = repository.getPullRequests(GHIssueState.OPEN);
+            List<GHPullRequest> pullRequests = repository
+                    .queryPullRequests()
+                    .state(GHIssueState.OPEN)
+                    .list()
+                    .toList();
             return pullRequests.stream()
                     .filter(pr -> pr.getHead().getRef().equals(BRANCH_NAME))
                     .findFirst();
