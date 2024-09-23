@@ -1,5 +1,6 @@
 # Define the VERSION argument with a default value
 ARG VERSION=999999-SNAPSHOT
+LABEL org.opencontainers.image.description "Using OpenRewrite Recipes for Plugin Modernization or Automation Plugin Build Metadata Updates"
 
 # First stage: Build the project using Maven and Eclipse Temurin JDK 21
 FROM maven:3.9.9-eclipse-temurin-21 AS builder
