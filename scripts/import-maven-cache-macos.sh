@@ -17,7 +17,7 @@ echo "Maven local repository path determined: $MAVEN_REPO"
 
 # Copy the Maven repository to the current directory.
 echo "Copying Maven repository to the current directory..."
-cp -r "$MAVEN_REPO" .m2
+rsync -avxu "$MAVEN_REPO/" .m2
 
 # Verify the copy operation.
 if [ $? -eq 0 ]; then
