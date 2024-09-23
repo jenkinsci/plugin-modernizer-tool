@@ -1,0 +1,98 @@
+name: docker image building and pushing to GitHub Packages
+
+on:
+  push:
+    branches:
+      - 'main'
+  schedule:
+    - cron:  '30 4,16 * * *'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DOCKER_BUILDKIT: 1
+  GHCR_USERNAME: ${{ github.repository_owner }}
+  GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+
+    steps:
+      # Check if the pull request is from a forked repository
+      - name: Check if PR is from a fork
+        run: echo "IS_FORK=$(if [ '${{ github.event.pull_request.head.repo.full_name }}' != '${{ github.repository }}' ]; then echo 'true'; else echo 'false'; fi)" >> $GITHUB_ENV
+
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Java environment
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      # Resolve Maven cache path
+      - name: Resolve Maven cache path
+        run: echo "MAVEN_CACHE_PATH=$(realpath ~/.m2/repository)" >> $GITHUB_ENV
+
+      # Cache Maven dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.MAVEN_CACHE_PATH }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Build the project with Maven and install dependencies in the Docker context
+      - name: Build with Maven and install dependencies in the Docker context
+        run: mvn clean install && cp -vraxu ~/.m2 .m2
+        env:
+          MAVEN_CACHE: ${{ env.MAVEN_CACHE_PATH }}
+
+      # Set up QEMU for multi-platform builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Set up Docker Buildx for building multi-platform images
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Docker
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      # Build and push Docker image to GitHub Container Registry
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            MAVEN_CACHE=.m2
