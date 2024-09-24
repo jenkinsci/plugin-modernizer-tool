@@ -184,6 +184,41 @@ See example generated files:
 
 More about [Openrewrite Data Tables](https://docs.openrewrite.org/running-recipes/data-tables)
 
+## Running with Docker
+
+You can use the Docker image supplied by this project to run the Plugin Modernizer Tool without needing to install Java or Maven on your local machine.
+
+### Prerequisites
+
+- Docker installed on your machine.
+- A GitHub token with the necessary scopes.
+- A file named `plugins.txt` containing the list of plugins.
+
+Of course, you don't need a `plugins.txt` file if you are using the `--plugins` option.
+
+### Example
+Below is an example of how to use the Docker image with a local `plugins.txt` file.
+
+```shell
+docker run \
+  -e GH_TOKEN=${GH_TOKEN} \
+  -e GH_OWNER=${GH_OWNER} \
+  -v $(pwd)/plugins.txt:/plugins.txt \
+  ghcr.io/jenkinsci/plugin-modernizer-tool:main \
+  --plugin-file /plugins.txt --recipes AddPluginsBom,AddCodeOwner
+```
+
+### Explanation
+
+- `-e GH_TOKEN=${GH_TOKEN}`: Passes the GitHub token as an environment variable.
+- `-e GH_OWNER=${GH_OWNER}`: Passes the GitHub owner as an environment variable.
+- `-v $(pwd)/plugins.txt:/plugins.txt`: Mounts the plugins.txt file from the current directory to the Docker container.
+- `ghcr.io/jenkinsci/plugin-modernizer-tool:main`: Specifies the Docker image to use.
+- `--plugin-file /plugins.txt`: Specifies the path to the plugin file inside the Docker container.
+- `--recipes AddPluginsBom,AddCodeOwner`: Specifies the recipes to apply.
+
+This command will run the Plugin Modernizer Tool inside the Docker container using the specified environment variables and plugin file.
+
 ## Reproducibility
 
 The maven build should be reproducible
