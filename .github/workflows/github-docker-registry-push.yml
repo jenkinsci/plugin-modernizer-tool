@@ -57,13 +57,16 @@ jobs:
 
       # Build the project with Maven and install dependencies in the Docker context
       - name: Build with Maven and install dependencies in the Docker context
-        run: mvn clean install && cp -vraxu ~/.m2 .m2 &&  lsb_release -a
+        run: mvn clean install && cp -vraxu ~/.m2 .m2
         env:
           MAVEN_CACHE: ${{ env.MAVEN_CACHE_PATH }}
 
       # Set up QEMU for multi-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+
+      - name: Checks which architecture is being used
+        run: lsb_release -a
 
       # Set up Docker Buildx for building multi-platform images
       - name: Set up Docker Buildx
