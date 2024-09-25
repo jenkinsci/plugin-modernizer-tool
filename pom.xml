@@ -44,7 +44,7 @@
 
     <!-- Version -->
     <openrewrite.bom.version>2.19.0</openrewrite.bom.version>
-    <openrewrite.maven.plugin.version>5.40.2</openrewrite.maven.plugin.version>
+    <openrewrite.maven.plugin.version>5.41.0</openrewrite.maven.plugin.version>
     <openrewrite.jenkins.version>0.13.0</openrewrite.jenkins.version>
     <micrometer.version>1.13.4</micrometer.version>
     <slf4j.version>2.0.16</slf4j.version>
