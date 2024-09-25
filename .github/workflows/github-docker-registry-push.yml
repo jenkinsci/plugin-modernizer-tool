@@ -57,7 +57,7 @@ jobs:
 
       # Build the project with Maven and install dependencies in the Docker context
       - name: Build with Maven and install dependencies in the Docker context
-        run: mvn clean install && cp -vraxu ~/.m2 .m2
+        run: mvn clean install && cp -vraxu ~/.m2 .m2 &&  lsb_release -a
         env:
           MAVEN_CACHE: ${{ env.MAVEN_CACHE_PATH }}
 
