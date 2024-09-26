@@ -2,7 +2,7 @@
 ARG VERSION=999999-SNAPSHOT
 
 # First stage: Build the project using Maven and Eclipse Temurin JDK 21
-FROM maven:3.9.9-eclipse-temurin-21 AS builder
+FROM maven:3.9.9-eclipse-temurin-21-jammy AS builder
 
 # Re-define the VERSION argument for the builder stage
 ARG VERSION
@@ -33,7 +33,7 @@ RUN cd /plugin-modernizer && \
     mvn clean install -DskipTests
 
 # Second stage: Create the final image using Maven and Eclipse Temurin JDK 21
-FROM maven:3.9.9-eclipse-temurin-21 AS result-image
+FROM maven:3.9.9-eclipse-temurin-21-jammy AS result-image
 
 LABEL org.opencontainers.image.description="Using OpenRewrite Recipes for Plugin Modernization or Automation Plugin Build Metadata Updates"
 
