@@ -25,8 +25,6 @@ public class HealthScoreUtils {
         HealthScoreData.HealthScorePlugin healthScorePlugin =
                 healthScoreData.getPlugins().get(plugin.getName());
         if (healthScorePlugin == null) {
-            plugin.addError("Plugin not found in health score data: " + plugin.getName());
-            plugin.raiseLastError();
             return null;
         }
         return healthScorePlugin.value();
