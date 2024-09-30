@@ -1,0 +1,81 @@
+---
+name: Bump last three Jenkins' LTS versions in the documentation
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  JenkinsLatestLTS:
+    name: Get the latest Jenkins LTS version
+    kind: shell
+    spec:
+      command: bash ./updatecli/scripts/jenkins-lts.sh 0 # source input value passed as argument
+  JenkinsLatestLTSBaseline:
+    name: Get the latest Jenkins LTS baseline version
+    kind: shell
+    spec:
+      command: bash ./updatecli/scripts/jenkins-lts-baseline.sh 0 # source input value passed as argument
+  JenkinsPreviousLTS:
+    name: Get the previous Jenkins LTS version
+    kind: shell
+    spec:
+      command: bash ./updatecli/scripts/jenkins-lts.sh 1 # source input value passed as argument
+  JenkinsThirdToLastLTS: &jenkinsThirdToLastLTS
+    name: Get the third to last Jenkins LTS version
+    kind: shell
+    spec: &jenkinsThirdToLastLTSSpec
+      command: bash ./updatecli/scripts/jenkins-lts.sh 2 # source input value passed as argument
+  JenkinsThirdToLastLTSTruncated: &jenkinsThirdToLastLTSTruncated
+    name: Get the previous Jenkins LTS version for the BOM root version
+    kind: shell
+    spec: &jenkinsThirdToLastLTSTruncatedSpec
+      command: bash ./updatecli/scripts/jenkins-lts.sh 2 | rev | cut -d. -f2- | rev # Fetches the third-to-last Jenkins LTS version and trims the last segment after the final dot.
+
+conditions:
+  # Test that the latest LTS Jenkins version exists
+  jenkinsLatestLTSVersion:
+    kind: jenkins
+    sourceid: JenkinsLatestLTS
+  # Test that the latest LTS Jenkins baseline version exists
+  jenkinsLatestLTSBaselineVersion:
+    kind: jenkins
+    sourceid: JenkinsLatestLTSBaseline
+  # Test that the previous LTS Jenkins version exists
+  jenkinsPreviousLTSVersion:
+    kind: jenkins
+    sourceid: JenkinsPreviousLTS
+  # Test that the third to last LTS Jenkins version exists
+  jenkinsThirdToLastVersion:
+    kind: jenkins
+    sourceid: JenkinsThirdToLastLTS
+targets:
+  setLTSVersionInUpdateMinimumRequiredJenkinsVersion:
+    kind: file
+    name: "Bump Jenkins minimum LTS version in the \"improve a plugin tutorial\""
+    sourceid: JenkinsPreviousLTS
+    spec:
+      file: src/main/resources/versions.properties
+      matchpattern: >-
+        (.*jenkins.version = )(.*)
+      replacepattern: >-
+        ${1}{{ source "JenkinsPreviousLTS" }}
+    scmid: default
+
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    title: Update Jenkins LTS versions to {{ source "JenkinsLatestLTS" }} in the `versions.properties` file
+    spec:
+      labels:
+        - dependencies
+        - chore
