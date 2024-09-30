@@ -12,7 +12,6 @@ import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginVersionUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
-import io.jenkins.tools.pluginmodernizer.core.utils.PomModifier;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.openrewrite.Recipe;
