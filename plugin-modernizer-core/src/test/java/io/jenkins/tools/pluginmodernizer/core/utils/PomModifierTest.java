@@ -4,6 +4,7 @@ import static java.nio.file.Files.createTempFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class PomModifierTest {
     private static final Logger logger = Logger.getLogger(PomModifierTest.class.getName());
@@ -90,7 +92,7 @@ public class PomModifierTest {
     @Test
     public void testUpdateJenkinsMinimalVersion() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
-        pomModifier.updateJenkinsMinimalVersion("2.462.2");
+        pomModifier.updateJenkinsMinimalVersion(Settings.JENKINS_VERSION);
         pomModifier.savePom(OUTPUT_POM_PATH);
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -105,6 +107,53 @@ public class PomModifierTest {
                 .item(0)
                 .getTextContent();
         logger.info("Jenkins version found: " + jenkinsVersion);
-        assertEquals("2.462.2", jenkinsVersion);
+        assertEquals(Settings.JENKINS_VERSION, jenkinsVersion);
+    }
+
+    @Test
+    public void testAddBom() throws Exception {
+        PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
+        pomModifier.addBom("io.jenkins.tools.bom", "bom-2.440.x", "3413.v0d896b_76a_30d");
+        pomModifier.savePom(OUTPUT_POM_PATH);
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(new File(OUTPUT_POM_PATH));
+        doc.getDocumentElement().normalize();
+
+        NodeList dependencyManagementList = doc.getElementsByTagName("dependencyManagement");
+        assertTrue(dependencyManagementList.getLength() > 0);
+
+        Element dependencyManagementElement = (Element) dependencyManagementList.item(0);
+        NodeList dependenciesList = dependencyManagementElement.getElementsByTagName("dependencies");
+        assertTrue(dependenciesList.getLength() > 0);
+
+        Element dependenciesElement = (Element) dependenciesList.item(0);
+        NodeList dependencyList = dependenciesElement.getElementsByTagName("dependency");
+        boolean bomFound = false;
+
+        for (int i = 0; i < dependencyList.getLength(); i++) {
+            Element dependencyElement = (Element) dependencyList.item(i);
+            String groupId =
+                    dependencyElement.getElementsByTagName("groupId").item(0).getTextContent();
+            String artifactId =
+                    dependencyElement.getElementsByTagName("artifactId").item(0).getTextContent();
+            String version =
+                    dependencyElement.getElementsByTagName("version").item(0).getTextContent();
+            String scope =
+                    dependencyElement.getElementsByTagName("scope").item(0).getTextContent();
+            String type = dependencyElement.getElementsByTagName("type").item(0).getTextContent();
+
+            if (groupId.equals("io.jenkins.tools.bom")
+                    && artifactId.equals("bom-2.440.x")
+                    && version.equals("3413.v0d896b_76a_30d")
+                    && scope.equals("import")
+                    && type.equals("pom")) {
+                bomFound = true;
+                break;
+            }
+        }
+
+        assertTrue(bomFound, "BOM dependency not found in the POM file");
     }
 }
