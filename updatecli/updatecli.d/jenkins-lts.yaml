@@ -1,5 +1,5 @@
 ---
-name: Bump last three Jenkins' LTS versions in the documentation
+name: Bump Jenkins' LTS versions in the versions.properties file
 
 scms:
   default:
@@ -63,9 +63,9 @@ targets:
     name: "Bump Jenkins minimum LTS version in the \"improve a plugin tutorial\""
     sourceid: JenkinsPreviousLTS
     spec:
-      file: src/main/resources/versions.properties
+      file: plugin-modernizer-core/src/main/resources/versions.properties
       matchpattern: >-
-        (.*jenkins.version = )(.*)
+        (jenkins.version = )(.*)
       replacepattern: >-
         ${1}{{ source "JenkinsPreviousLTS" }}
     scmid: default

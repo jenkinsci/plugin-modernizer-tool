@@ -36,6 +36,8 @@ public class Settings {
 
     public static final String MAVEN_REWRITE_PLUGIN_VERSION;
 
+    public static final String JENKINS_VERSION;
+
     public static final String GITHUB_TOKEN;
 
     public static final String GITHUB_OWNER;
@@ -72,6 +74,7 @@ public class Settings {
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
+        JENKINS_VERSION = getJenkinsVersion();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
         try {
@@ -128,6 +131,10 @@ public class Settings {
         return readProperty("openrewrite.maven.plugin.version", "versions.properties");
     }
 
+    private static @Nullable String getJenkinsVersion() {
+        return readProperty("jenkins.version", "versions.properties");
+    }
+
     private static @Nullable URL getUpdateCenterUrl() throws MalformedURLException {
         String url = System.getenv("JENKINS_UC");
         if (url != null) {
@@ -180,7 +187,8 @@ public class Settings {
 
     /**
      * Read a property from a resource file.
-     * @param key The key to read
+     *
+     * @param key      The key to read
      * @param resource The resource file to read from
      * @return The value of the property or null if it could not be read
      */

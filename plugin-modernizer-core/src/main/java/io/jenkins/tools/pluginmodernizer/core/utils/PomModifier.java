@@ -168,6 +168,56 @@ public class PomModifier {
     }
 
     /**
+     * Adds a BOM section to the POM file.
+     *
+     * @param groupId the groupId of the BOM
+     * @param artifactId the artifactId of the BOM
+     * @param version the version of the BOM
+     */
+    public void addBom(String groupId, String artifactId, String version) {
+        NodeList dependencyManagementList = document.getElementsByTagName("dependencyManagement");
+        Element dependencyManagementElement;
+
+        if (dependencyManagementList.getLength() > 0) {
+            dependencyManagementElement = (Element) dependencyManagementList.item(0);
+        } else {
+            dependencyManagementElement = document.createElement("dependencyManagement");
+            document.getDocumentElement().appendChild(dependencyManagementElement);
+        }
+
+        Element dependenciesElement = (Element)
+                dependencyManagementElement.getElementsByTagName("dependencies").item(0);
+        if (dependenciesElement == null) {
+            dependenciesElement = document.createElement("dependencies");
+            dependencyManagementElement.appendChild(dependenciesElement);
+        }
+
+        Element dependencyElement = document.createElement("dependency");
+
+        Element groupIdElement = document.createElement("groupId");
+        groupIdElement.appendChild(document.createTextNode(groupId));
+        dependencyElement.appendChild(groupIdElement);
+
+        Element artifactIdElement = document.createElement("artifactId");
+        artifactIdElement.appendChild(document.createTextNode(artifactId));
+        dependencyElement.appendChild(artifactIdElement);
+
+        Element versionElement = document.createElement("version");
+        versionElement.appendChild(document.createTextNode(version));
+        dependencyElement.appendChild(versionElement);
+
+        Element typeElement = document.createElement("type");
+        typeElement.appendChild(document.createTextNode("pom"));
+        dependencyElement.appendChild(typeElement);
+
+        Element scopeElement = document.createElement("scope");
+        scopeElement.appendChild(document.createTextNode("import"));
+        dependencyElement.appendChild(scopeElement);
+
+        dependenciesElement.appendChild(dependencyElement);
+    }
+
+    /**
      * Saves the modified POM file to the specified output path.
      *
      * @param outputPath the path to save the POM file
