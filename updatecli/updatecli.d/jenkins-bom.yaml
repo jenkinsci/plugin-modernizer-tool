@@ -42,9 +42,20 @@ conditions:
     sourceid: JenkinsThirdToLastLTS
 
 targets:
+  setBOMBaseVersionInUpdateMinimumRequiredJenkinsVersion:
+    kind: file
+    name: "Bump Jenkins minimum BOM artifact"
+    sourceid: BOM
+    spec:
+      file: plugin-modernizer-core/src/main/resources/versions.properties
+      matchpattern: >-
+        (bom.base = )(.*)
+      replacepattern: >-
+        ${1}bom-{{ source "JenkinsThirdToLastLTSTruncated" }}.x
+    scmid: default
   setBOMVersionInUpdateMinimumRequiredJenkinsVersion:
     kind: file
-    name: "Bump Jenkins minimum BOM artifact version in the \"improve a plugin tutorial\""
+    name: "Bump Jenkins minimum BOM artifact"
     sourceid: BOM
     spec:
       file: plugin-modernizer-core/src/main/resources/versions.properties
