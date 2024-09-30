@@ -48,7 +48,7 @@ jobs:
 
       # Cache Maven dependencies
       - name: Cache Maven dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.MAVEN_CACHE_PATH }}
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
