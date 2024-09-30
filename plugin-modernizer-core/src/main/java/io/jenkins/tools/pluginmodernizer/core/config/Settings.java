@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -13,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
+
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.openrewrite.Recipe;
 import org.openrewrite.config.YamlResourceLoader;
@@ -38,6 +40,10 @@ public class Settings {
 
     public static final String JENKINS_VERSION;
 
+    public static final String BOM_BASE;
+
+    public static final String BOM_VERSION;
+
     public static final String GITHUB_TOKEN;
 
     public static final String GITHUB_OWNER;
@@ -58,7 +64,8 @@ public class Settings {
 
     public static final Recipe MINIMAL_BUILD_JAVA_8_RECIPE;
 
-    private Settings() {}
+    private Settings() {
+    }
 
     static {
         String cacheBaseDir = System.getProperty("user.home");
@@ -75,6 +82,8 @@ public class Settings {
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
         JENKINS_VERSION = getJenkinsVersion();
+        BOM_BASE = getBomBase();
+        BOM_VERSION = getBomVersion();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
         try {
@@ -133,6 +142,14 @@ public class Settings {
 
     private static @Nullable String getJenkinsVersion() {
         return readProperty("jenkins.version", "versions.properties");
+    }
+
+    private static @Nullable String getBomBase() {
+        return readProperty("bom.base", "versions.properties");
+    }
+
+    private static  @Nullable String getBomVersion() {
+        return readProperty("bom.version", "versions.properties");
     }
 
     private static @Nullable URL getUpdateCenterUrl() throws MalformedURLException {

@@ -1,10 +1,14 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
-import static java.nio.file.Files.createTempFile;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,13 +16,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+
+import static java.nio.file.Files.createTempFile;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PomModifierTest {
     private static final Logger logger = Logger.getLogger(PomModifierTest.class.getName());
@@ -61,8 +62,8 @@ public class PomModifierTest {
                 (Element) doc.getElementsByTagName("properties").item(0);
         assertTrue(propertiesElement.getElementsByTagName("java.level").getLength() == 0);
         assertTrue(propertiesElement
-                        .getElementsByTagName("jenkins-test-harness.version")
-                        .getLength()
+                .getElementsByTagName("jenkins-test-harness.version")
+                .getLength()
                 == 0);
         logger.info("Offending properties removed successfully");
     }
@@ -113,7 +114,7 @@ public class PomModifierTest {
     @Test
     public void testAddBom() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
-        pomModifier.addBom("io.jenkins.tools.bom", "bom-2.440.x", "3413.v0d896b_76a_30d");
+        pomModifier.addBom("io.jenkins.tools.bom", Settings.BOM_BASE, Settings.BOM_VERSION);
         pomModifier.savePom(OUTPUT_POM_PATH);
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -145,8 +146,8 @@ public class PomModifierTest {
             String type = dependencyElement.getElementsByTagName("type").item(0).getTextContent();
 
             if (groupId.equals("io.jenkins.tools.bom")
-                    && artifactId.equals("bom-2.440.x")
-                    && version.equals("3413.v0d896b_76a_30d")
+                    && artifactId.equals(Settings.BOM_BASE)
+                    && version.equals(Settings.BOM_VERSION)
                     && scope.equals("import")
                     && type.equals("pom")) {
                 bomFound = true;
