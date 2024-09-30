@@ -1,14 +1,10 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
-import io.jenkins.tools.pluginmodernizer.core.config.Settings;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import static java.nio.file.Files.createTempFile;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,10 +12,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.logging.Logger;
-
-import static java.nio.file.Files.createTempFile;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class PomModifierTest {
     private static final Logger logger = Logger.getLogger(PomModifierTest.class.getName());
@@ -62,8 +61,8 @@ public class PomModifierTest {
                 (Element) doc.getElementsByTagName("properties").item(0);
         assertTrue(propertiesElement.getElementsByTagName("java.level").getLength() == 0);
         assertTrue(propertiesElement
-                .getElementsByTagName("jenkins-test-harness.version")
-                .getLength()
+                        .getElementsByTagName("jenkins-test-harness.version")
+                        .getLength()
                 == 0);
         logger.info("Offending properties removed successfully");
     }
