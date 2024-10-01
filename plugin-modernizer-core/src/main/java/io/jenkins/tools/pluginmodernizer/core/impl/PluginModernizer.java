@@ -11,6 +11,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginVersionUtils;
+import io.jenkins.tools.pluginmodernizer.core.utils.PomModifier;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -159,6 +160,15 @@ public class PluginModernizer {
                         "Skipping plugin {} due to metadata/precondition errors. Check logs for more details.",
                         plugin.getName());
                 return;
+            }
+
+            // Check for ignoreJdk7Error option and use PomModifier if set
+            if (config.isIgnoreJdk7Error() && plugin.hasPreconditionErrors()) {
+                LOG.info("Ignoring JDK7 error for plugin {} and modifying pom.xml", plugin.getName());
+                PomModifier pomModifier = new PomModifier(plugin.getLocalRepository().resolve("pom.xml").toString());
+                pomModifier.removeOffendingProperties();
+                pomModifier.savePom(plugin.getLocalRepository().resolve("pom.xml").toString());
+                plugin.withoutErrors();
             }
 
             // Run OpenRewrite

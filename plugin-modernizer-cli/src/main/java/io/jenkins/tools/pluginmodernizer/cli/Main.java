@@ -148,6 +148,11 @@ public class Main implements Runnable {
             description = "List available recipes.")
     public boolean listRecipes;
 
+    @Option(
+            names = {"--ignore-jdk7-error"},
+            description = "Ignore errors for plugins using JDK7 or older and launch PomModifier on the faulty pom.xml.")
+    public boolean ignoreJdk7Error;
+
     public Config setup() {
         Config.DEBUG = debug;
         return Config.builder()
@@ -169,6 +174,7 @@ public class Main implements Runnable {
                                 ? cachePath.resolve(Settings.CACHE_SUBDIR)
                                 : cachePath)
                 .withMavenHome(mavenHome)
+                .withIgnoreJdk7Error(ignoreJdk7Error)
                 .build();
     }
 

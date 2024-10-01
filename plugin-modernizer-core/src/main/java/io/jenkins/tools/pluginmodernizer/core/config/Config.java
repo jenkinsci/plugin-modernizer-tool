@@ -27,6 +27,7 @@ public class Config {
     private final boolean removeForks;
     private final boolean exportDatatables;
     private final String githubOwner;
+    private final boolean ignoreJdk7Error;
 
     private Config(
             String version,
@@ -43,7 +44,8 @@ public class Config {
             boolean skipPullRequest,
             boolean removeLocalData,
             boolean removeForks,
-            boolean exportDatatables) {
+            boolean exportDatatables,
+            boolean ignoreJdk7Error) {
         this.version = version;
         this.githubOwner = githubOwner;
         this.plugins = plugins;
@@ -59,6 +61,7 @@ public class Config {
         this.removeLocalData = removeLocalData;
         this.removeForks = removeForks;
         this.exportDatatables = exportDatatables;
+        this.ignoreJdk7Error = ignoreJdk7Error;
     }
 
     public String getVersion() {
@@ -133,6 +136,10 @@ public class Config {
         return exportDatatables;
     }
 
+    public boolean isIgnoreJdk7Error() {
+        return ignoreJdk7Error;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -153,6 +160,7 @@ public class Config {
         private boolean exportDatatables = false;
         public boolean removeLocalData = false;
         public boolean removeForks = false;
+        private boolean ignoreJdk7Error = false;
 
         public Builder withVersion(String version) {
             this.version = version;
@@ -239,6 +247,11 @@ public class Config {
             return this;
         }
 
+        public Builder withIgnoreJdk7Error(boolean ignoreJdk7Error) {
+            this.ignoreJdk7Error = ignoreJdk7Error;
+            return this;
+        }
+
         public Config build() {
             return new Config(
                     version,
@@ -255,7 +268,8 @@ public class Config {
                     skipPullRequest,
                     removeLocalData,
                     removeForks,
-                    exportDatatables);
+                    exportDatatables,
+                    ignoreJdk7Error);
         }
     }
 }
