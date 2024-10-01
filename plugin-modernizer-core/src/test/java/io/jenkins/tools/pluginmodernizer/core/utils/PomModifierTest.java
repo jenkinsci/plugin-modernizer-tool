@@ -20,6 +20,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/**
+ * Test class for PomModifier.
+ */
 public class PomModifierTest {
     private static final Logger logger = Logger.getLogger(PomModifierTest.class.getName());
 
@@ -39,6 +42,11 @@ public class PomModifierTest {
         }
     }
 
+    /**
+     * Sets up the test environment by copying the test POM to a temporary file.
+     *
+     * @throws Exception if an error occurs during setup
+     */
     @BeforeEach
     public void setUp() throws Exception {
         Path tempFile = new File(OUTPUT_POM_PATH).toPath();
@@ -46,6 +54,11 @@ public class PomModifierTest {
         logger.info("Setup completed, copied test POM to temporary file: " + tempFile.toString());
     }
 
+    /**
+     * Tests the removeOffendingProperties method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
     @Test
     public void testRemoveOffendingProperties() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
@@ -67,6 +80,11 @@ public class PomModifierTest {
         logger.info("Offending properties removed successfully");
     }
 
+    /**
+     * Tests the updateParentPom method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
     @Test
     public void testUpdateParentPom() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
@@ -89,6 +107,11 @@ public class PomModifierTest {
                 "4.80", parentElement.getElementsByTagName("version").item(0).getTextContent());
     }
 
+    /**
+     * Tests the updateJenkinsMinimalVersion method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
     @Test
     public void testUpdateJenkinsMinimalVersion() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
@@ -110,10 +133,15 @@ public class PomModifierTest {
         assertEquals(Settings.JENKINS_VERSION, jenkinsVersion);
     }
 
+    /**
+     * Tests the addBom method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
     @Test
     public void testAddBom() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
-        pomModifier.addBom("io.jenkins.tools.bom", "bom-2.440.x", "3413.v0d896b_76a_30d");
+        pomModifier.addBom("io.jenkins.tools.bom", Settings.BOM_BASE, Settings.BOM_VERSION);
         pomModifier.savePom(OUTPUT_POM_PATH);
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -145,8 +173,8 @@ public class PomModifierTest {
             String type = dependencyElement.getElementsByTagName("type").item(0).getTextContent();
 
             if (groupId.equals("io.jenkins.tools.bom")
-                    && artifactId.equals("bom-2.440.x")
-                    && version.equals("3413.v0d896b_76a_30d")
+                    && artifactId.equals(Settings.BOM_BASE)
+                    && version.equals(Settings.BOM_VERSION)
                     && scope.equals("import")
                     && type.equals("pom")) {
                 bomFound = true;
