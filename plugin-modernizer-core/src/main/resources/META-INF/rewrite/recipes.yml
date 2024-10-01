@@ -16,6 +16,7 @@ tags: ['java8']
 recipeList:
   - org.openrewrite.maven.security.UseHttpsForRepositories
   - org.openrewrite.jenkins.DisableLocalResolutionForParentPom
+  - org.openrewrite.java.cleanup.RemoveRedundantNullChecks
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddPluginsBom

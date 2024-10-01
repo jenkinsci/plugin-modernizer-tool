@@ -47,6 +47,7 @@ public class ConfigTest {
                 .withExportDatatables(true)
                 .withRemoveForks(true)
                 .withRemoveLocalData(true)
+                .withIgnoreJdk7Error(true)
                 .build();
 
         assertEquals(version, config.getVersion());
@@ -63,6 +64,7 @@ public class ConfigTest {
         assertTrue(config.isRemoveLocalData());
         assertTrue(config.isExportDatatables());
         assertTrue(config.isDryRun());
+        assertTrue(config.isIgnoreJdk7Error());
     }
 
     @Test
@@ -82,6 +84,7 @@ public class ConfigTest {
         assertFalse(config.isRemoveLocalData());
         assertFalse(config.isExportDatatables());
         assertFalse(config.isDryRun());
+        assertFalse(config.isIgnoreJdk7Error());
     }
 
     @Test

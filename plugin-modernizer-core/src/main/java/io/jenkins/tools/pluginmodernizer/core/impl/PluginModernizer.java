@@ -36,6 +36,7 @@ public class PluginModernizer {
 
     /**
      * Create a new PluginModernizer
+     *
      * @param config The configuration to use
      */
     public PluginModernizer(Config config) {
@@ -82,6 +83,7 @@ public class PluginModernizer {
 
     /**
      * Process a plugin
+     *
      * @param plugin The plugin to process
      */
     private void process(Plugin plugin) {
@@ -135,7 +137,7 @@ public class PluginModernizer {
                     LOG.debug("Plugin {} compiled successfully with JDK {}", plugin.getName(), jdk.getMajor());
                 } else {
                     LOG.debug(
-                            "No metadata or precondition errors found for plugin {}. Skipping initial compilation.",
+                            "There are no metadata or we found precondition errors for plugin {}. Skipping initial compilation.",
                             plugin.getName());
                 }
             }
@@ -153,6 +155,23 @@ public class PluginModernizer {
                 LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
             }
 
+            // Check for ignoreJdk7Error option and use PomModifier if set
+            if (config.isIgnoreJdk7Error() && plugin.hasPreconditionErrors()) {
+                LOG.info("Ignoring JDK7 error for plugin {} and modifying pom.xml", plugin.getName());
+                PomModifier pomModifier = new PomModifier(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                pomModifier.removeOffendingProperties();
+                pomModifier.addBom("io.jenkins.tools.bom", Settings.BOM_BASE, Settings.BOM_VERSION);
+                pomModifier.updateParentPom("org.jenkins-ci.plugins", "plugin", Settings.PLUGIN_PARENT_VERSION);
+                pomModifier.updateJenkinsMinimalVersion(Settings.JENKINS_VERSION);
+
+                pomModifier.savePom(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                plugin.withoutErrors();
+                // Retry the metadata fetching
+                plugin.collectMetadata(mavenInvoker);
+                plugin.moveMetadata(cacheManager);
+            } else
             // Abort here if we have errors
             if (plugin.hasErrors() || plugin.hasPreconditionErrors()) {
                 plugin.addPreconditionErrors(plugin.getMetadata());
@@ -160,15 +179,6 @@ public class PluginModernizer {
                         "Skipping plugin {} due to metadata/precondition errors. Check logs for more details.",
                         plugin.getName());
                 return;
-            }
-
-            // Check for ignoreJdk7Error option and use PomModifier if set
-            if (config.isIgnoreJdk7Error() && plugin.hasPreconditionErrors()) {
-                LOG.info("Ignoring JDK7 error for plugin {} and modifying pom.xml", plugin.getName());
-                PomModifier pomModifier = new PomModifier(plugin.getLocalRepository().resolve("pom.xml").toString());
-                pomModifier.removeOffendingProperties();
-                pomModifier.savePom(plugin.getLocalRepository().resolve("pom.xml").toString());
-                plugin.withoutErrors();
             }
 
             // Run OpenRewrite
@@ -226,6 +236,7 @@ public class PluginModernizer {
 
     /**
      * Compile a plugin
+     *
      * @param plugin The plugin to compile
      */
     private JDK compilePlugin(Plugin plugin) {
@@ -239,6 +250,7 @@ public class PluginModernizer {
 
     /**
      * Verify a plugin and return the first JDK that successfully verifies it, starting from the target JDK and moving backward
+     *
      * @param plugin The plugin to verify
      * @return The JDK that verifies the plugin
      */
@@ -277,6 +289,7 @@ public class PluginModernizer {
 
     /**
      * Collect results from the plugins and display a summary
+     *
      * @param plugins The plugins
      */
     private void printResults(List<Plugin> plugins) {

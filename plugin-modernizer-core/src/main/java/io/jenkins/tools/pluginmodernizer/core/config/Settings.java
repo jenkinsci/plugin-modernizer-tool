@@ -38,6 +38,8 @@ public class Settings {
 
     public static final String JENKINS_VERSION;
 
+    public static final String PLUGIN_PARENT_VERSION;
+
     public static final String BOM_BASE;
 
     public static final String BOM_VERSION;
@@ -81,6 +83,7 @@ public class Settings {
         JENKINS_VERSION = getJenkinsVersion();
         BOM_BASE = getBomBase();
         BOM_VERSION = getBomVersion();
+        PLUGIN_PARENT_VERSION = getPluginParentVersion();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
         try {
@@ -139,6 +142,10 @@ public class Settings {
 
     private static @Nullable String getJenkinsVersion() {
         return readProperty("jenkins.version", "versions.properties");
+    }
+
+    private static @Nullable String getPluginParentVersion() {
+        return readProperty("jenkins.plugin.parent.version", "versions.properties");
     }
 
     private static @Nullable String getBomBase() {
