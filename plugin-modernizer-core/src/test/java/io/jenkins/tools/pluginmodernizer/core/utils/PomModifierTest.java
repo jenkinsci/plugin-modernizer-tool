@@ -115,7 +115,7 @@ public class PomModifierTest {
     @Test
     public void testUpdateJenkinsMinimalVersion() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
-        pomModifier.updateJenkinsMinimalVersion(Settings.JENKINS_VERSION);
+        pomModifier.updateJenkinsMinimalVersion(Settings.JENKINS_MINIMUM_VERSION);
         pomModifier.savePom(OUTPUT_POM_PATH);
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -130,7 +130,7 @@ public class PomModifierTest {
                 .item(0)
                 .getTextContent();
         logger.info("Jenkins version found: " + jenkinsVersion);
-        assertEquals(Settings.JENKINS_VERSION, jenkinsVersion);
+        assertEquals(Settings.JENKINS_MINIMUM_VERSION, jenkinsVersion);
     }
 
     /**
