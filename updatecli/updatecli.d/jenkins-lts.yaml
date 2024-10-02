@@ -60,12 +60,12 @@ conditions:
 targets:
   setLTSVersionInUpdateMinimumRequiredJenkinsVersion:
     kind: file
-    name: "Bump Jenkins minimum LTS version in the \"improve a plugin tutorial\""
+    name: "Bump Jenkins minimum LTS version in the `versions.properties` file"
     sourceid: JenkinsPreviousLTS
     spec:
       file: plugin-modernizer-core/src/main/resources/versions.properties
       matchpattern: >-
-        (jenkins.version = )(.*)
+        (jenkins.minimum.version = )(.*)
       replacepattern: >-
         ${1}{{ source "JenkinsPreviousLTS" }}
     scmid: default
