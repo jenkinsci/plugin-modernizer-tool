@@ -36,7 +36,7 @@ public class Settings {
 
     public static final String MAVEN_REWRITE_PLUGIN_VERSION;
 
-    public static final String JENKINS_VERSION;
+    public static final String JENKINS_MINIMUM_VERSION;
 
     public static final String PLUGIN_PARENT_VERSION;
 
@@ -80,7 +80,7 @@ public class Settings {
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
-        JENKINS_VERSION = getJenkinsVersion();
+        JENKINS_MINIMUM_VERSION = getJenkinsMinimumVersion();
         BOM_BASE = getBomBase();
         BOM_VERSION = getBomVersion();
         PLUGIN_PARENT_VERSION = getPluginParentVersion();
@@ -140,8 +140,8 @@ public class Settings {
         return readProperty("openrewrite.maven.plugin.version", "versions.properties");
     }
 
-    private static @Nullable String getJenkinsVersion() {
-        return readProperty("jenkins.version", "versions.properties");
+    private static @Nullable String getJenkinsMinimumVersion() {
+        return readProperty("jenkins.minimum.version", "versions.properties");
     }
 
     private static @Nullable String getPluginParentVersion() {
