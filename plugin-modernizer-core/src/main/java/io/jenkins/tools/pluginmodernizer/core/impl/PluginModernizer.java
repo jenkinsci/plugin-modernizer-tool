@@ -163,7 +163,7 @@ public class PluginModernizer {
                 pomModifier.removeOffendingProperties();
                 pomModifier.addBom("io.jenkins.tools.bom", Settings.BOM_BASE, Settings.BOM_VERSION);
                 pomModifier.updateParentPom("org.jenkins-ci.plugins", "plugin", Settings.PLUGIN_PARENT_VERSION);
-                pomModifier.updateJenkinsMinimalVersion(Settings.JENKINS_VERSION);
+                pomModifier.updateJenkinsMinimalVersion(Settings.JENKINS_MINIMUM_VERSION);
 
                 pomModifier.savePom(
                         plugin.getLocalRepository().resolve("pom.xml").toString());
