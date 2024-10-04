@@ -542,6 +542,7 @@ public class GHService {
         String prBody = TemplateUtils.renderPullRequestBody(plugin, config.getRecipes());
         LOG.debug("Pull request title: {}", prTitle);
         LOG.debug("Pull request body: {}", prBody);
+        LOG.debug("Draft mode: {}", config.isDraft());
 
         if (config.isDryRun()) {
             LOG.info("Skipping pull request changes for plugin {} in dry-run mode", plugin);
@@ -574,7 +575,12 @@ public class GHService {
 
         try {
             GHPullRequest pr = repository.createPullRequest(
-                    prTitle, config.getGithubOwner() + ":" + BRANCH_NAME, repository.getDefaultBranch(), prBody);
+                    prTitle,
+                    config.getGithubOwner() + ":" + BRANCH_NAME,
+                    repository.getDefaultBranch(),
+                    prBody,
+                    false,
+                    config.isDraft());
             pr.addLabels(plugin.getTags().toArray(String[]::new));
             LOG.info("Pull request created: {}", pr.getHtmlUrl());
             plugin.withoutTags();
