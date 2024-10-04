@@ -63,6 +63,8 @@ recipeList:
       artifactId: plugin
       newVersion: 5.X
   - io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
+  - org.openrewrite.maven.RemoveProperty: # Set by 5.x parent, ensure it's removed
+      propertyName: maven.compiler.release
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
