@@ -22,6 +22,7 @@ public class Config {
     private final Path mavenHome;
     private final boolean dryRun;
     private final boolean skipPush;
+    private final boolean draft;
     private final boolean skipPullRequest;
     private final boolean removeLocalData;
     private final boolean removeForks;
@@ -41,6 +42,7 @@ public class Config {
             Path mavenHome,
             boolean dryRun,
             boolean skipPush,
+            boolean draft,
             boolean skipPullRequest,
             boolean removeLocalData,
             boolean removeForks,
@@ -57,6 +59,7 @@ public class Config {
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
         this.skipPush = skipPush;
+        this.draft = draft;
         this.skipPullRequest = skipPullRequest;
         this.removeLocalData = removeLocalData;
         this.removeForks = removeForks;
@@ -120,6 +123,10 @@ public class Config {
         return skipPullRequest;
     }
 
+    public boolean isDraft() {
+        return draft;
+    }
+
     public boolean isSkipPush() {
         return skipPush;
     }
@@ -155,6 +162,7 @@ public class Config {
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
+        private boolean draft = false;
         private boolean skipPush = false;
         private boolean skipPullRequest = false;
         private boolean exportDatatables = false;
@@ -222,6 +230,11 @@ public class Config {
             return this;
         }
 
+        public Builder withDraft(boolean draft) {
+            this.draft = draft;
+            return this;
+        }
+
         public Builder withSkipPush(boolean skipPush) {
             this.skipPush = skipPush;
             return this;
@@ -265,6 +278,7 @@ public class Config {
                     mavenHome,
                     dryRun,
                     skipPush,
+                    draft,
                     skipPullRequest,
                     removeLocalData,
                     removeForks,

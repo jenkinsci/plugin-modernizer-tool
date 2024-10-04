@@ -1,7 +1,9 @@
 package io.jenkins.tools.pluginmodernizer.core.github;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -551,5 +553,59 @@ public class GHServiceTest {
             verify(cloneCommand, times(1)).call();
             verifyNoMoreInteractions(cloneCommand);
         }
+    }
+
+    @Test
+    public void shouldOpenPullRequest() throws Exception {
+
+        // Mocks
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        GHPullRequest pr = Mockito.mock(GHPullRequest.class);
+        GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
+        PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
+
+        doReturn(false).when(config).isDraft();
+        doReturn(true).when(plugin).hasChangesPushed();
+        doReturn(repository).when(plugin).getRemoteRepository(eq(service));
+
+        // Return no open PR
+        doReturn(prQuery).when(repository).queryPullRequests();
+        doReturn(prQuery).when(prQuery).state(eq(GHIssueState.OPEN));
+        doReturn(prQueryList).when(prQuery).list();
+        doReturn(List.of()).when(prQueryList).toList();
+
+        doReturn(pr)
+                .when(repository)
+                .createPullRequest(anyString(), anyString(), isNull(), anyString(), eq(false), eq(false));
+
+        // Test
+        service.openPullRequest(plugin);
+    }
+
+    @Test
+    public void shouldOpenDraftPullRequest() throws Exception {
+
+        // Mocks
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        GHPullRequest pr = Mockito.mock(GHPullRequest.class);
+        GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
+        PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
+
+        doReturn(true).when(config).isDraft();
+        doReturn(true).when(plugin).hasChangesPushed();
+        doReturn(repository).when(plugin).getRemoteRepository(eq(service));
+
+        // Return no open PR
+        doReturn(prQuery).when(repository).queryPullRequests();
+        doReturn(prQuery).when(prQuery).state(eq(GHIssueState.OPEN));
+        doReturn(prQueryList).when(prQuery).list();
+        doReturn(List.of()).when(prQueryList).toList();
+
+        doReturn(pr)
+                .when(repository)
+                .createPullRequest(anyString(), anyString(), isNull(), anyString(), eq(false), eq(true));
+
+        // Test
+        service.openPullRequest(plugin);
     }
 }

@@ -84,6 +84,11 @@ public class Main implements Runnable {
     public boolean dryRun;
 
     @Option(
+            names = {"--draft"},
+            description = "Open a draft pull request.")
+    public boolean draft;
+
+    @Option(
             names = {"--skip-push"},
             description = "Skip pushing changes to the forked repositories. Always true if --dry-run is set.")
     public boolean skipPush;
@@ -163,6 +168,7 @@ public class Main implements Runnable {
                 .withDryRun(dryRun)
                 .withSkipPush(skipPush)
                 .withSkipPullRequest(skipPullRequest)
+                .withDraft(draft)
                 .withRemoveLocalData(removeLocalData)
                 .withRemoveForks(removeForks)
                 .withExportDatatables(exportDatatables)
