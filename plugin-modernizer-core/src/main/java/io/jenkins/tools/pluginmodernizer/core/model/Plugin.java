@@ -214,6 +214,16 @@ public class Plugin {
     }
 
     /**
+     * Convenience method to check if the plugin is using Spotless
+     * @return True if the plugin is using Spotless
+     */
+    public boolean isUsingSpotless() {
+        return metadata != null
+                && metadata.getProperties().get("spotless.check.skip") != null
+                && metadata.getProperties().get("spotless.check.skip").equals("false");
+    }
+
+    /**
      * Return if the plugin has any errors
      * @return True if the plugin has errors
      */
@@ -436,6 +446,27 @@ public class Plugin {
                 name,
                 this.getJDK().getMajor());
         maven.invokeGoal(this, "verify");
+        LOG.info("Done");
+    }
+
+    /**
+     * Format the plugin using spotless
+     * @param maven The maven invoker instance
+     */
+    public void format(MavenInvoker maven) {
+        if (!isUsingSpotless()) {
+            LOG.info("Skipping formatting for plugin {} as it is not using Spotless", name);
+            return;
+        }
+        if (config.isFetchMetadataOnly()) {
+            LOG.info("Skipping formatting for plugin {} as only metadata is required", name);
+            return;
+        }
+        LOG.info(
+                "Formatting plugin {} with JDK {}... Please be patient",
+                name,
+                this.getJDK().getMajor());
+        maven.invokeGoal(this, "spotless:apply");
         LOG.info("Done");
     }
 
