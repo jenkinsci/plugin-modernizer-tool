@@ -49,6 +49,22 @@ recipeList:
   - io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UpgradeNextMajorParentVersion
+displayName: Upgrade to the next major parent version (5.X) requiring Jenkins 2.479 and Java 17
+description: Upgrade to the next major parent version (5.X) requiring Jenkins 2.479 and Java 17
+tags: ['dependencies']
+recipeList:
+  - io.jenkins.tools.pluginmodernizer.UpgradeToJava17
+  - org.openrewrite.jenkins.UpgradeVersionProperty:
+      key: jenkins.version
+      minimumVersion: 2.479 # To be adapted when the next LTS is released
+  - org.openrewrite.maven.UpgradeParentVersion:
+      groupId: org.jenkins-ci.plugins
+      artifactId: plugin
+      newVersion: 5.X
+  - io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
 displayName: Upgrade BOM version
 description: Upgrade the bom version to latest available. Doesn't change the artifact id
