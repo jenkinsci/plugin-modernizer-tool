@@ -40,7 +40,7 @@ public class Settings {
 
     public static final String GITHUB_OWNER;
 
-    public static final String ORGANIZATION = "jenkinsci";
+    public static final String ORGANIZATION = getTargetOrganisation();
 
     public static final String RECIPE_DATA_YAML_PATH = "META-INF/rewrite/recipes.yml";
 
@@ -166,6 +166,14 @@ public class Settings {
             username = System.getenv("GITHUB_OWNER");
         }
         return username;
+    }
+
+    private static String getTargetOrganisation() {
+        String targetOrganisation = System.getenv("GH_TARGET_ORGANISATION");
+        if (targetOrganisation == null) {
+            targetOrganisation = "jenkinsci";
+        }
+        return targetOrganisation;
     }
 
     public static Path getDefaultSdkManJava(final String key) {
