@@ -167,7 +167,9 @@ public class GHService {
         if (organization != null) {
             if (isRepositoryForked(organization, originalRepo.getName())) {
                 LOG.debug("Repository already forked to organization {}", organization.getLogin());
-                return getRepositoryFork(organization, originalRepo.getName());
+                GHRepository fork = getRepositoryFork(organization, originalRepo.getName());
+                checkSameParentRepository(plugin, originalRepo, fork);
+                return fork;
             } else {
                 GHRepository fork = forkRepository(originalRepo, organization);
                 Thread.sleep(5000); // Wait for the fork to be ready
@@ -178,7 +180,9 @@ public class GHService {
                 LOG.debug(
                         "Repository already forked to personal account {}",
                         github.getMyself().getLogin());
-                return getRepositoryFork(originalRepo.getName());
+                GHRepository fork = getRepositoryFork(originalRepo.getName());
+                checkSameParentRepository(plugin, originalRepo, fork);
+                return fork;
             } else {
                 GHRepository fork = forkRepository(originalRepo);
                 Thread.sleep(5000); // Wait for the fork to be ready
@@ -640,6 +644,29 @@ public class GHService {
         } catch (IOException e) {
             plugin.addError("Failed to check if pull request exists", e);
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Ensure the forked reository correspond of the origin parent repository
+     * @param originalRepo The original repository
+     * @param fork The forked repository
+     * @throws IOException If the check failed
+     */
+    private void checkSameParentRepository(Plugin plugin, GHRepository originalRepo, GHRepository fork)
+            throws IOException {
+        if (!fork.getParent().equals(originalRepo)) {
+            LOG.warn(
+                    "Forked repository {} is not forked from the original repository {}. Please remove forks if changing the source repo",
+                    fork.getFullName(),
+                    originalRepo.getFullName());
+            throw new PluginProcessingException(
+                    "Forked repository %s is not forked from the original repository %s but %s. Please remove forks if changing the source repo"
+                            .formatted(
+                                    fork.getFullName(),
+                                    originalRepo.getFullName(),
+                                    fork.getParent().getFullName()),
+                    plugin);
         }
     }
 }
