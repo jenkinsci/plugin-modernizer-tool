@@ -81,6 +81,24 @@ public class Main implements Runnable {
     private String githubOwner = Settings.GITHUB_OWNER;
 
     @Option(
+            names = {"--github-app-id"},
+            description =
+                    "GitHub App ID. If set you will need to set GH_APP_CLIENT_ID, GH_APP_CLIENT_SECRET, GH_APP_PRIVATE_KEY_FILE as environment variables to use JWT authentication. The app installation must be done on the given github owner (personal or organization).")
+    public Long githubAppId;
+
+    @Option(
+            names = {"--github-app-source-installation-id"},
+            description =
+                    "GitHub App Installation ID for the source repositories. If set, the app installation must be done on the given github owner (personal or organization).")
+    public Long githubAppSourceInstallationId;
+
+    @Option(
+            names = {"--github-app-target-installation-id"},
+            description =
+                    "GitHub App Installation ID for the target repositories. If set, the app installation must be done on the given github owner (personal or organization).")
+    public Long githubAppTargetInstallationId;
+
+    @Option(
             names = {"-n", "--dry-run"},
             description = "Perform a dry run without making any changes.")
     public boolean dryRun;
@@ -160,6 +178,9 @@ public class Main implements Runnable {
         return Config.builder()
                 .withVersion(getVersion())
                 .withGitHubOwner(githubOwner)
+                .withGitHubAppId(githubAppId)
+                .withGitHubAppSourceInstallationId(githubAppSourceInstallationId)
+                .withGitHubAppTargetInstallationId(githubAppTargetInstallationId)
                 .withPlugins(pluginOptions != null ? pluginOptions.plugins : new ArrayList<>())
                 .withRecipes(recipes)
                 .withDryRun(dryRun)

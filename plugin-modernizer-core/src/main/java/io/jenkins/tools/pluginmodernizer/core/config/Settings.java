@@ -39,6 +39,7 @@ public class Settings {
     public static final String GITHUB_TOKEN;
 
     public static final String GITHUB_OWNER;
+    public static final Path GITHUB_APP_PRIVATE_KEY_FILE;
 
     public static final String ORGANIZATION = getTargetOrganisation();
 
@@ -74,6 +75,7 @@ public class Settings {
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
+        GITHUB_APP_PRIVATE_KEY_FILE = getGithubAppPrivateKeyFile();
         try {
             DEFAULT_UPDATE_CENTER_URL = getUpdateCenterUrl();
         } catch (MalformedURLException e) {
@@ -158,6 +160,14 @@ public class Settings {
             token = System.getenv("GITHUB_TOKEN");
         }
         return token;
+    }
+
+    private static Path getGithubAppPrivateKeyFile() {
+        String privateKeyFile = System.getenv("GH_APP_PRIVATE_KEY_FILE");
+        if (privateKeyFile != null) {
+            return Path.of(privateKeyFile);
+        }
+        return null;
     }
 
     private static String getGithubOwner() {
