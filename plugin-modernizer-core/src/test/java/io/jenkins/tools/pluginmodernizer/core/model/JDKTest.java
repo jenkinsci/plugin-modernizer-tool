@@ -79,13 +79,17 @@ public class JDKTest {
         assertEquals(JDK.JAVA_17, JDK.get("2.426.1").get(1));
         assertEquals(JDK.JAVA_21, JDK.get("2.426.1").get(2));
 
-        assertEquals(3, JDK.get("2.463").size());
-        assertEquals(JDK.JAVA_11, JDK.get("2.463").get(0));
-        assertEquals(JDK.JAVA_17, JDK.get("2.463").get(1));
-        assertEquals(JDK.JAVA_21, JDK.get("2.463").get(2));
+        assertEquals(3, JDK.get("2.462.3").size());
+        assertEquals(JDK.JAVA_11, JDK.get("2.462.3").get(0));
+        assertEquals(JDK.JAVA_17, JDK.get("2.462.3").get(1));
+        assertEquals(JDK.JAVA_21, JDK.get("2.462.3").get(2));
 
-        assertEquals(2, JDK.get("2.464").size());
-        assertEquals(JDK.JAVA_17, JDK.get("2.464").get(0));
-        assertEquals(JDK.JAVA_21, JDK.get("2.464").get(1));
+        assertEquals(2, JDK.get("2.463").size());
+        assertEquals(JDK.JAVA_17, JDK.get("2.463").get(0));
+        assertEquals(JDK.JAVA_21, JDK.get("2.463").get(1));
+
+        assertEquals(2, JDK.get("2.479.1").size());
+        assertEquals(JDK.JAVA_17, JDK.get("2.479.1").get(0));
+        assertEquals(JDK.JAVA_21, JDK.get("2.479.1").get(1));
     }
 }
