@@ -14,6 +14,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.google.inject.Guice;
+import io.jenkins.tools.pluginmodernizer.core.GuiceModule;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
@@ -63,7 +65,7 @@ public class GHServiceTest {
         doReturn("fake-owner").when(config).getGithubOwner();
 
         // Create service
-        service = new GHService(config);
+        service = Guice.createInjector(new GuiceModule(config)).getInstance(GHService.class);
 
         // Set github mock
         Field field = ReflectionUtils.findFields(

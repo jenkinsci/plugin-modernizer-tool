@@ -65,6 +65,10 @@
     <wiremock.version>3.9.1</wiremock.version>
     <jte.version>3.1.12</jte.version>
     <snakeyaml.version>2.3</snakeyaml.version>
+    <guice.version>7.0.0</guice.version>
+    <error.prone.version>2.27.0</error.prone.version>
+    <checker.qual.version>3.19.0</checker.qual.version>
+    <jakarta.inject.version>2.0.1</jakarta.inject.version>
   </properties>
 
   <dependencyManagement>
@@ -101,6 +105,16 @@
         <version>${gson.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.google.errorprone</groupId>
+        <artifactId>error_prone_annotations</artifactId>
+        <version>${error.prone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>${guice.version}</version>
+      </dependency>
+      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>${common.io.version}</version>
@@ -119,6 +133,11 @@
         <groupId>info.picocli</groupId>
         <artifactId>picocli-codegen</artifactId>
         <version>${picocli.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.inject</groupId>
+        <artifactId>jakarta.inject-api</artifactId>
+        <version>${jakarta.inject.version}</version>
       </dependency>
       <dependency>
         <groupId>net.bytebuddy</groupId>
@@ -149,6 +168,11 @@
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-artifact</artifactId>
         <version>${maven.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.checkerframework</groupId>
+        <artifactId>checker-qual</artifactId>
+        <version>${checker.qual.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jgit</groupId>

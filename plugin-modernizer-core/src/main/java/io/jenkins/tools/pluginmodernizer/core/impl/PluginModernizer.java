@@ -9,9 +9,9 @@ import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
-import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginVersionUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
+import jakarta.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.openrewrite.Recipe;
@@ -23,32 +23,26 @@ public class PluginModernizer {
 
     private static final Logger LOG = LoggerFactory.getLogger(PluginModernizer.class);
 
-    private final Config config;
+    @Inject
+    private Config config;
 
-    private final MavenInvoker mavenInvoker;
+    @Inject
+    private MavenInvoker mavenInvoker;
 
-    private final GHService ghService;
+    @Inject
+    private GHService ghService;
 
-    private final CacheManager cacheManager;
-
-    private final JdkFetcher jdkFetcher;
-
-    /**
-     * Create a new PluginModernizer
-     * @param config The configuration to use
-     */
-    public PluginModernizer(Config config) {
-        this.config = config;
-        this.jdkFetcher = new JdkFetcher(config.getCachePath());
-        this.mavenInvoker = new MavenInvoker(config, jdkFetcher);
-        this.ghService = new GHService(config);
-        this.cacheManager = new CacheManager(config.getCachePath());
-    }
+    @Inject
+    private CacheManager cacheManager;
 
     /**
      * Entry point to start the plugin modernization process
      */
     public void start() {
+
+        // Validate maven
+        mavenInvoker.validateMavenHome();
+        mavenInvoker.validateMavenVersion();
 
         // Setup
         this.ghService.connect();
