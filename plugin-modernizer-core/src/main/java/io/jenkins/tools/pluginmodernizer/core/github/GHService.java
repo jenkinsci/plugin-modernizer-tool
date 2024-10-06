@@ -7,6 +7,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.TemplateUtils;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -38,11 +39,13 @@ public class GHService {
     // TODO: Use unique branch name (with prefix ?) to avoid conflicts
     private static final String BRANCH_NAME = "plugin-modernizer-tool";
 
-    private final Config config;
+    @Inject
+    private Config config;
+
     private GitHub github;
 
-    public GHService(Config config) {
-        this.config = config;
+    @Inject
+    public void init() {
         validate();
     }
 

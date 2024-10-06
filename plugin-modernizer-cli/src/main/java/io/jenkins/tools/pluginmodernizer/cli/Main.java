@@ -1,5 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
+import com.google.inject.Guice;
+import io.jenkins.tools.pluginmodernizer.core.GuiceModule;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
@@ -224,7 +226,8 @@ public class Main implements Runnable {
             pluginOptions.plugins = loadPlugins();
         }
         LOG.info("Starting Plugin Modernizer");
-        PluginModernizer modernizer = new PluginModernizer(setup());
+        PluginModernizer modernizer =
+                Guice.createInjector(new GuiceModule(setup())).getInstance(PluginModernizer.class);
         modernizer.start();
     }
 
