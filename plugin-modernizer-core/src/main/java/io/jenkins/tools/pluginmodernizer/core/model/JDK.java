@@ -25,7 +25,7 @@ public enum JDK {
      * See <a href="https://www.jenkins.io/doc/book/platform-information/support-policy-java/">Java Support Policy</a> for details
      */
     JAVA_8(8, true, null, "2.346.1"),
-    JAVA_11(11, true, "2.164.1", "2.463"), // No LTS drop Java 11 yet
+    JAVA_11(11, true, "2.164.1", "2.462.3"),
     JAVA_17(17, true, "2.346.1", null),
     JAVA_21(21, true, "2.426.1", null);
 
