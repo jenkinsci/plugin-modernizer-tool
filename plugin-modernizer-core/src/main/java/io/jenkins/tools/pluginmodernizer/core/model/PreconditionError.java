@@ -1,5 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.utils.PomModifier;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.xpath.XPath;
@@ -71,6 +73,19 @@ public enum PreconditionError {
             plugin -> {
                 // TODO: Implement remediation function (See
                 // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
+
+                PomModifier pomModifier = new PomModifier(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                pomModifier.removeOffendingProperties();
+                pomModifier.addBom(
+                        "io.jenkins.tools.bom", Settings.REMEDIATION_BOM_BASE, Settings.REMEDIATION_BOM_VERSION);
+                pomModifier.updateParentPom(
+                        "org.jenkins-ci.plugins", "plugin", Settings.REMEDIATION_PLUGIN_PARENT_VERSION);
+                pomModifier.updateJenkinsMinimalVersion(Settings.REMEDIATION_JENKINS_MINIMUM_VERSION);
+
+                pomModifier.savePom(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                plugin.withoutErrors();
                 return false;
             },
             "Found older Java version in pom file preventing using recent Maven older than 3.9.x"),
