@@ -86,7 +86,7 @@ public enum PreconditionError {
                 pomModifier.savePom(
                         plugin.getLocalRepository().resolve("pom.xml").toString());
                 plugin.withoutErrors();
-                return false;
+                return true;
             },
             "Found older Java version in pom file preventing using recent Maven older than 3.9.x"),
 
