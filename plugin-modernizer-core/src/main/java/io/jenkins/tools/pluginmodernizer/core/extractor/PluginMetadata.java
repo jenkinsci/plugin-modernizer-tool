@@ -7,6 +7,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PreconditionError;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -116,7 +117,7 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     }
 
     public Set<PreconditionError> getErrors() {
-        return errors;
+        return Collections.unmodifiableSet(errors);
     }
 
     public void setErrors(Set<PreconditionError> errors) {
