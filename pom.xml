@@ -63,7 +63,7 @@
     <commons-compress.version>1.27.1</commons-compress.version>
     <byte-buddy.version>1.15.3</byte-buddy.version>
     <wiremock.version>3.9.1</wiremock.version>
-    <jte.version>3.1.12</jte.version>
+    <jte.version>3.1.13</jte.version>
     <snakeyaml.version>2.3</snakeyaml.version>
     <guice.version>7.0.0</guice.version>
     <error.prone.version>2.33.0</error.prone.version>
