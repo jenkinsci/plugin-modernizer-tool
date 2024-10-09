@@ -28,10 +28,16 @@ public class Config {
     private final boolean removeForks;
     private final boolean exportDatatables;
     private final String githubOwner;
+    private final Long githubAppId;
+    private final Long githubAppSourceInstallationId;
+    private final Long githubAppTargetInstallationId;
 
     private Config(
             String version,
             String githubOwner,
+            Long githubAppId,
+            Long githubAppSourceInstallationId,
+            Long githubAppTargetInstallationId,
             List<Plugin> plugins,
             List<Recipe> recipes,
             URL jenkinsUpdateCenter,
@@ -48,6 +54,9 @@ public class Config {
             boolean exportDatatables) {
         this.version = version;
         this.githubOwner = githubOwner;
+        this.githubAppId = githubAppId;
+        this.githubAppSourceInstallationId = githubAppSourceInstallationId;
+        this.githubAppTargetInstallationId = githubAppTargetInstallationId;
         this.plugins = plugins;
         this.recipes = recipes;
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
@@ -70,6 +79,18 @@ public class Config {
 
     public String getGithubOwner() {
         return githubOwner;
+    }
+
+    public Long getGithubAppId() {
+        return githubAppId;
+    }
+
+    public Long getGithubAppSourceInstallationId() {
+        return githubAppSourceInstallationId;
+    }
+
+    public Long getGithubAppTargetInstallationId() {
+        return githubAppTargetInstallationId;
     }
 
     public List<Plugin> getPlugins() {
@@ -147,6 +168,9 @@ public class Config {
     public static class Builder {
         private String version;
         private String githubOwner = Settings.GITHUB_OWNER;
+        private Long githubAppId;
+        private Long githubAppSourceInstallationId;
+        private Long githubAppTargetInstallationId;
         private List<Plugin> plugins;
         private List<Recipe> recipes;
         private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
@@ -169,6 +193,21 @@ public class Config {
 
         public Builder withGitHubOwner(String githubOwner) {
             this.githubOwner = githubOwner;
+            return this;
+        }
+
+        public Builder withGitHubAppId(Long githubAppId) {
+            this.githubAppId = githubAppId;
+            return this;
+        }
+
+        public Builder withGitHubAppSourceInstallationId(Long githubAppInstallationId) {
+            this.githubAppSourceInstallationId = githubAppInstallationId;
+            return this;
+        }
+
+        public Builder withGitHubAppTargetInstallationId(Long githubAppInstallationId) {
+            this.githubAppTargetInstallationId = githubAppInstallationId;
             return this;
         }
 
@@ -256,6 +295,9 @@ public class Config {
             return new Config(
                     version,
                     githubOwner,
+                    githubAppId,
+                    githubAppSourceInstallationId,
+                    githubAppTargetInstallationId,
                     plugins,
                     recipes,
                     jenkinsUpdateCenter,

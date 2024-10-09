@@ -69,6 +69,8 @@
     <error.prone.version>2.33.0</error.prone.version>
     <checker.qual.version>3.48.0</checker.qual.version>
     <jakarta.inject.version>2.0.1</jakarta.inject.version>
+    <jwt.version>0.12.6</jwt.version>
+    <bouncycastle.version>1.78.1</bouncycastle.version>
   </properties>
 
   <dependencyManagement>
@@ -135,6 +137,21 @@
         <version>${picocli.version}</version>
       </dependency>
       <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-api</artifactId>
+        <version>${jwt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-gson</artifactId>
+        <version>${jwt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-impl</artifactId>
+        <version>${jwt.version}</version>
+      </dependency>
+      <dependency>
         <groupId>jakarta.inject</groupId>
         <artifactId>jakarta.inject-api</artifactId>
         <version>${jakarta.inject.version}</version>
@@ -168,6 +185,16 @@
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-artifact</artifactId>
         <version>${maven.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
       </dependency>
       <dependency>
         <groupId>org.checkerframework</groupId>

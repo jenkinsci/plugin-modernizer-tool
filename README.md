@@ -82,6 +82,21 @@ Your classic token should have the following scopes
 > The GitHub owner can be either a personal account or an organization.
 >
 
+The CLI also support GitHub app installation for CI scenario.
+
+The app must be installed on the owner's and target account and a private key generated and downloaded in PEM format.
+
+From there you need to save both ID of installation (found on URL)
+
+`https://github.com/organizations/<org>/settings/installations/<installation ID>`
+
+To activate app authentication, just set the following CLI argument
+
+`--github-app-id <app-id>` or `GH_APP_ID` environment variable
+`--github-app-source-installation-id <installation-id>` or `GH_APP_SOURCE_INSTALLATION_ID` environment variable
+`--github-app-target-installation-id <installation-id>` or `GH_APP_TARGET_INSTALLATION_ID` environment variable
+`--github-app-private-key <path-to-private-key>` or `GH_APP_PRIVATE_KEY` environment variable
+
 ## CLI Options
 - `--plugins` or `-p`: (optional) Name(s) of plugin directory cloned inside the `test-plugins` directory.
 

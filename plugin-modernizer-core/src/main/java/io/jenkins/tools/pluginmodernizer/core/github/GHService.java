@@ -6,6 +6,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
+import io.jenkins.tools.pluginmodernizer.core.utils.JWTUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.TemplateUtils;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -20,14 +21,19 @@ import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.kohsuke.github.GHApp;
+import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHBranchSync;
 import org.kohsuke.github.GHEmail;
 import org.kohsuke.github.GHFileNotFoundException;
 import org.kohsuke.github.GHIssueState;
+import org.kohsuke.github.GHMyself;
 import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +48,15 @@ public class GHService {
     @Inject
     private Config config;
 
+    /**
+     * The GitHub client
+     */
     private GitHub github;
+
+    /**
+     * The GitHub App if connected by GitHub App
+     */
+    private GHApp app;
 
     @Inject
     public void init() {
@@ -53,13 +67,20 @@ public class GHService {
      * Validate the configuration of the GHService
      */
     private void validate() {
-        if (Settings.GITHUB_TOKEN == null) {
-            throw new ModernizerException(
-                    "GitHub token is not set. Please set GH_TOKEN or GITHUB_TOKEN environment variable.");
+        if (Settings.GITHUB_TOKEN == null
+                && (config.getGithubAppId() == null
+                        || config.getGithubAppSourceInstallationId() == null
+                        || config.getGithubAppTargetInstallationId() == null)) {
+            throw new ModernizerException("Please set GH_TOKEN, GITHUB_TOKEN or configure GitHub app authentication");
         }
         if (config.getGithubOwner() == null) {
             throw new ModernizerException(
                     "GitHub owner (username/organization) is not set. Please set GH_OWNER or GITHUB_OWNER environment variable.");
+        }
+        if (config.getGithubAppId() != null && config.getGithubAppSourceInstallationId() != null) {
+            if (Settings.GITHUB_APP_PRIVATE_KEY_FILE == null) {
+                throw new ModernizerException("GitHub App not configured. Please set GH_APP_PRIVATE_KEY_FILE");
+            }
         }
     }
 
@@ -71,9 +92,74 @@ public class GHService {
             throw new ModernizerException("GitHub client is already connected.");
         }
         try {
-            github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
+
+            // Connect with GitHub App
+            if (config.getGithubAppId() != null
+                    && config.getGithubAppSourceInstallationId() != null
+                    && config.getGithubAppTargetInstallationId() != null) {
+                LOG.debug("Connecting to GitHub using GitHub App...");
+                LOG.debug("GitHub App ID: {}", config.getGithubAppId());
+                LOG.debug("GitHub App Source Installation ID: {}", config.getGithubAppSourceInstallationId());
+                LOG.debug("GitHub App Target Installation ID: {}", config.getGithubAppTargetInstallationId());
+                LOG.debug("Private key file: {}", Settings.GITHUB_APP_PRIVATE_KEY_FILE);
+                String jwtToken = JWTUtils.getJWT(config, Settings.GITHUB_APP_PRIVATE_KEY_FILE);
+
+                // Get the GitHub App
+                this.app = new GitHubBuilder().withJwtToken(jwtToken).build().getApp();
+                GHAppInstallationToken appInstallationToken = this.app
+                        .getInstallationById(config.getGithubAppSourceInstallationId())
+                        .createToken()
+                        .create();
+                github = new GitHubBuilder()
+                        .withAppInstallationToken(appInstallationToken.getToken())
+                        .build();
+                LOG.debug("Connected to GitHub using GitHub App");
+            }
+            // Connect with token
+            else {
+                LOG.debug("Connecting to GitHub using token...");
+                github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
+            }
+            GHUser user = getCurrentUser();
+            if (user == null) {
+                throw new ModernizerException("Failed to get current user. Cannot use GitHub/SCM integration");
+            }
+            String email = getPrimaryEmail(user);
+            if (email == null) {
+                throw new ModernizerException(
+                        "Email is not set in GitHub account. Please set email in GitHub account.");
+            }
+            LOG.debug("Connected to GitHub as {} <{}>", user.getName() != null ? user.getName() : user.getId(), email);
+
         } catch (IOException e) {
             throw new ModernizerException("Failed to connect to GitHub. Cannot use GitHub/SCM integration", e);
+        }
+    }
+
+    /**
+     * Refresh the JWT token for the GitHub app. Only for GitHub App authentication
+     * @param installationId The installation ID
+     */
+    public void refreshToken(Long installationId) {
+        if (installationId == null) {
+            LOG.debug("Installation ID is not set. Skipping token refresh");
+            return;
+        }
+        if (github == null) {
+            throw new ModernizerException("GitHub client must be connected.");
+        }
+        try {
+            String jwtToken = JWTUtils.getJWT(config, Settings.GITHUB_APP_PRIVATE_KEY_FILE);
+            GHApp app = new GitHubBuilder().withJwtToken(jwtToken).build().getApp();
+            GHAppInstallationToken appInstallationToken =
+                    app.getInstallationById(installationId).createToken().create();
+            github = new GitHubBuilder()
+                    .withAppInstallationToken(appInstallationToken.getToken())
+                    .build();
+            this.app = app;
+            LOG.debug("Refreshed token for GitHub App installation ID {}", installationId);
+        } catch (IOException e) {
+            throw new ModernizerException("Failed to refresh token", e);
         }
     }
 
@@ -182,7 +268,7 @@ public class GHService {
             if (isRepositoryForked(originalRepo.getName())) {
                 LOG.debug(
                         "Repository already forked to personal account {}",
-                        github.getMyself().getLogin());
+                        getCurrentUser().getLogin());
                 GHRepository fork = getRepositoryFork(originalRepo.getName());
                 checkSameParentRepository(plugin, originalRepo, fork);
                 return fork;
@@ -207,7 +293,7 @@ public class GHService {
         if (organization == null) {
             LOG.info(
                     "Forking the repository to personal account {}...",
-                    github.getMyself().getLogin());
+                    getCurrentUser().getLogin());
             return originalRepo.fork();
         } else {
             LOG.info("Forking the repository to organisation {}...", organization.getLogin());
@@ -282,7 +368,7 @@ public class GHService {
      * @throws IOException If the repository access failed
      */
     private GHRepository getRepositoryFork(String repoName) throws IOException {
-        return github.getMyself().getRepository(repoName);
+        return getCurrentUser().getRepository(repoName);
     }
 
     /**
@@ -477,14 +563,10 @@ public class GHService {
             LOG.debug("Commit message: {}", commitMessage);
             if (git.status().call().hasUncommittedChanges()) {
                 git.add().addFilepattern(".").call();
-                Optional<GHEmail> email = github.getMyself().getEmails2().stream()
-                        .filter(GHEmail::isPrimary)
-                        .findFirst();
-                if (email.isEmpty()) {
-                    throw new IllegalArgumentException("Primary email not found for GitHub user");
-                }
+                GHUser user = getCurrentUser();
+                String email = getPrimaryEmail(user);
                 git.commit()
-                        .setAuthor(github.getMyself().getName(), email.get().getEmail())
+                        .setAuthor(user.getName() != null ? user.getName() : String.valueOf(user.getId()), email)
                         .setMessage(commitMessage)
                         .setSign(false) // Maybe a new option to sign commit?
                         .call();
@@ -493,8 +575,55 @@ public class GHService {
             } else {
                 LOG.debug("No changes to commit for plugin {}", plugin.getName());
             }
-        } catch (IOException | GitAPIException e) {
+        } catch (IOException | IllegalArgumentException | GitAPIException e) {
             plugin.addError("Failed to commit changes", e);
+        }
+    }
+
+    /**
+     * Get the current user
+     * @return The current user
+     */
+    public GHUser getCurrentUser() {
+        try {
+            // Get myself
+            if (config.getGithubAppId() == null) {
+                LOG.debug("Getting current user using token...");
+                return github.getMyself();
+            }
+            // Get the bot user
+            else {
+                LOG.debug("Getting current user using GitHub App...");
+                LOG.debug("GitHub App name: {}", app.getName());
+                return github.getUser("%s[bot]".formatted(app.getName()));
+            }
+        } catch (IOException e) {
+            throw new ModernizerException("Failed to get current user", e);
+        }
+    }
+
+    /**
+     * Get the primary email of the user
+     * @param user The user to get the primary email for
+     * @return The primary email
+     */
+    public String getPrimaryEmail(GHUser user) {
+        try {
+            // User
+            if (user instanceof GHMyself myself && myself.getType().equalsIgnoreCase("user")) {
+                return myself.listEmails().toList().stream()
+                        .filter(GHEmail::isPrimary)
+                        .findFirst()
+                        .map(GHEmail::getEmail)
+                        .orElseThrow(() -> new ModernizerException("Primary email not found"));
+            }
+            // Bot
+            else if (app != null && user.getType().equalsIgnoreCase("bot")) {
+                return "%s+%s@users.noreply.github.com".formatted(user.getId(), user.getLogin());
+            }
+            throw new ModernizerException("Unknown user type %s".formatted(user.getType()));
+        } catch (IOException e) {
+            throw new ModernizerException("Failed to get primary email", e);
         }
     }
 
@@ -543,6 +672,9 @@ public class GHService {
      * @param plugin The plugin to open a pull request for
      */
     public void openPullRequest(Plugin plugin) {
+
+        // Ensure to refresh client to target installation
+        refreshToken(config.getGithubAppTargetInstallationId());
 
         // Renders parts and log then even if dry-run
         String prTitle = TemplateUtils.renderPullRequestTitle(plugin, config.getRecipes());

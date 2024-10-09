@@ -64,6 +64,8 @@ public class GHServiceTest {
 
         doReturn("fake-owner").when(config).getGithubOwner();
 
+        doReturn(null).when(config).getGithubAppId();
+
         // Create service
         service = Guice.createInjector(new GuiceModule(config)).getInstance(GHService.class);
 
@@ -613,6 +615,7 @@ public class GHServiceTest {
         GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
         PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
+        doReturn(null).when(config).getGithubAppTargetInstallationId();
         doReturn(false).when(config).isDraft();
         doReturn(true).when(plugin).hasChangesPushed();
         doReturn(repository).when(plugin).getRemoteRepository(eq(service));
@@ -640,6 +643,7 @@ public class GHServiceTest {
         GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
         PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
+        doReturn(null).when(config).getGithubAppTargetInstallationId();
         doReturn(true).when(config).isDraft();
         doReturn(true).when(plugin).hasChangesPushed();
         doReturn(repository).when(plugin).getRemoteRepository(eq(service));
