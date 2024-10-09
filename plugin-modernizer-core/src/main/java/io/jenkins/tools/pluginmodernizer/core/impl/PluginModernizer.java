@@ -146,7 +146,29 @@ public class PluginModernizer {
                 LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
             }
 
-            // Abort here if we have errors
+            // Try to remediate precondition errors
+            if (plugin.hasPreconditionErrors()) {
+                plugin.getPreconditionErrors().forEach(preconditionError -> {
+                    if (preconditionError.remediate(plugin)) {
+                        plugin.removePreconditionError(preconditionError);
+                        LOG.info(
+                                "Precondition error {} was remediated for plugin {}",
+                                preconditionError,
+                                plugin.getName());
+                    } else {
+                        LOG.info(
+                                "Precondition error {} was not remediated for plugin {}",
+                                preconditionError,
+                                plugin.getName());
+                    }
+                });
+
+                // Retry to collect metadata after remediation to get up-to-date results
+                plugin.collectMetadata(mavenInvoker);
+                plugin.moveMetadata(cacheManager);
+            }
+
+            // Check if we still have errors and abort if not remediation is possible
             if (plugin.hasErrors() || plugin.hasPreconditionErrors()) {
                 plugin.addPreconditionErrors(plugin.getMetadata());
                 LOG.info(

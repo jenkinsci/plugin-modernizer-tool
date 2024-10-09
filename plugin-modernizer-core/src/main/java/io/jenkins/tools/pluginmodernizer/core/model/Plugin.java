@@ -10,6 +10,7 @@ import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -242,6 +243,14 @@ public class Plugin {
     }
 
     /**
+     * Get the precondition errors of the plugin
+     * @return Set of precondition errors
+     */
+    public Set<PreconditionError> getPreconditionErrors() {
+        return Collections.unmodifiableSet(metadata.getErrors());
+    }
+
+    /**
      * Add precondition errors to the plugin errors
      */
     public void addPreconditionErrors(PluginMetadata metadata) {
@@ -252,11 +261,24 @@ public class Plugin {
     }
 
     /**
+     * Remove a precondition error from the metadata errors
+     * @param preconditionError Precondition error to remove
+     */
+    public void removePreconditionError(PreconditionError preconditionError) {
+        if (metadata == null) {
+            return;
+        }
+        metadata.setErrors(metadata.getErrors().stream()
+                .filter(error -> !error.equals(preconditionError))
+                .collect(Collectors.toSet()));
+    }
+
+    /**
      * Get the errors of the plugin
      * @return List of errors
      */
     public List<PluginProcessingException> getErrors() {
-        return errors;
+        return Collections.unmodifiableList(errors);
     }
 
     /**

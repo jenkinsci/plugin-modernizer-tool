@@ -1,6 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import org.w3c.dom.Document;
@@ -20,6 +21,7 @@ public enum PreconditionError {
             (document, xpath) -> {
                 return document == null;
             },
+            plugin -> false, // No remediation function available if pom is missing
             "No pom file found"),
 
     /**
@@ -39,6 +41,11 @@ public enum PreconditionError {
                 } catch (Exception e) {
                     return false;
                 }
+            },
+            plugin -> {
+                // TODO: Implement remediation function (See
+                // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
+                return false;
             },
             "Found non-https repository URL in pom file preventing maven older than 3.8.1"),
 
@@ -61,6 +68,11 @@ public enum PreconditionError {
                     return false;
                 }
             },
+            plugin -> {
+                // TODO: Implement remediation function (See
+                // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
+                return false;
+            },
             "Found older Java version in pom file preventing using recent Maven older than 3.9.x"),
 
     /**
@@ -78,12 +90,23 @@ public enum PreconditionError {
                     return false;
                 }
             },
+            plugin -> {
+                // TODO: Implement remediation function (See
+                // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
+                return false;
+            },
             "Missing relative path in pom file preventing parent download");
 
     /**
      * Predicate to check if the flag is applicable for the given Document and XPath
      */
     private final BiFunction<Document, XPath, Boolean> isApplicable;
+
+    /**
+     * Remediation function to fix the error transforming plugin before OpenRewrite
+     * This function should return true if the remediation was successful, false otherwise
+     */
+    private final Function<Plugin, Boolean> remediation;
 
     /**
      * Error message
@@ -94,8 +117,10 @@ public enum PreconditionError {
      * Constructor
      * @param isApplicable Predicate to check if the flag is applicable for the given XML document
      */
-    PreconditionError(BiFunction<Document, XPath, Boolean> isApplicable, String error) {
+    PreconditionError(
+            BiFunction<Document, XPath, Boolean> isApplicable, Function<Plugin, Boolean> remediation, String error) {
         this.isApplicable = isApplicable;
+        this.remediation = remediation;
         this.error = error;
     }
 
@@ -107,6 +132,14 @@ public enum PreconditionError {
      */
     public boolean isApplicable(Document Document, XPath xpath) {
         return isApplicable.apply(Document, xpath);
+    }
+
+    /**
+     * Remediate the error for the given plugin
+     * @param plugin the plugin to remediate
+     */
+    public boolean remediate(Plugin plugin) {
+        return remediation.apply(plugin);
     }
 
     /**
