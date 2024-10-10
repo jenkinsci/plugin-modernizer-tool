@@ -69,9 +69,6 @@ public enum PreconditionError {
                 }
             },
             plugin -> {
-                // TODO: Implement remediation function (See
-                // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
-
                 PomModifier pomModifier = new PomModifier(
                         plugin.getLocalRepository().resolve("pom.xml").toString());
                 pomModifier.removeOffendingProperties();
