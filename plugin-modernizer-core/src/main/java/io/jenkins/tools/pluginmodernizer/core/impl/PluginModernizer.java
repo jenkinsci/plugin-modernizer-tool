@@ -140,9 +140,11 @@ public class PluginModernizer {
             plugin.withJDK(JDK.JAVA_17);
 
             // Collect metadata and move metadata from the target directory of the plugin to the common cache
-            if (!plugin.hasMetadata()) {
+            if (!plugin.hasMetadata() || config.isFetchMetadataOnly()) {
                 plugin.collectMetadata(mavenInvoker);
+                plugin.enrichMetadata(updateCenterService);
                 plugin.moveMetadata(cacheManager);
+
             } else {
                 LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
             }
@@ -166,6 +168,7 @@ public class PluginModernizer {
 
                 // Retry to collect metadata after remediation to get up-to-date results
                 plugin.collectMetadata(mavenInvoker);
+                plugin.enrichMetadata(updateCenterService);
                 plugin.moveMetadata(cacheManager);
             }
 
@@ -202,6 +205,7 @@ public class PluginModernizer {
 
             // Recollect metadata after modernization
             plugin.collectMetadata(mavenInvoker);
+            plugin.enrichMetadata(updateCenterService);
             PluginMetadata metadata = plugin.readTargetMetadata();
             LOG.debug(
                     "Plugin {} metadata before modernization: {}",
