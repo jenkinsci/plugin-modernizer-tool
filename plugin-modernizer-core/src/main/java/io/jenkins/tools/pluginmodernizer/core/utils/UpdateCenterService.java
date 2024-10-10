@@ -5,24 +5,30 @@ import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for Jenkins plugin center
  */
-public class UpdateCenterUtils {
+public class UpdateCenterService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(UpdateCenterUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UpdateCenterService.class);
+
+    @Inject
+    private Config config;
+
+    @Inject
+    private CacheManager cacheManager;
 
     /**
      * Extract the repository name for a plugin
      * @param plugin Plugin
-     * @param cacheManager Cache manager
      * @return Repository name
      */
-    public static String extractRepoName(Plugin plugin, CacheManager cacheManager) {
-        UpdateCenterData updateCenterData = get(plugin.getConfig(), cacheManager);
+    public String extractRepoName(Plugin plugin) {
+        UpdateCenterData updateCenterData = get();
         UpdateCenterData.UpdateCenterPlugin updateCenterPlugin =
                 updateCenterData.getPlugins().get(plugin.getName());
         if (updateCenterPlugin == null) {
@@ -44,12 +50,11 @@ public class UpdateCenterUtils {
     /**
      * Check if a plugin is deprecated
      * @param plugin Plugin
-     * @param cacheManager Cache manager
      * @return True if deprecated
      */
-    public static boolean isDeprecated(Plugin plugin, CacheManager cacheManager) {
+    public boolean isDeprecated(Plugin plugin) {
         // Some old plugin are under a deprecations list
-        UpdateCenterData updateCenterData = get(plugin.getConfig(), cacheManager);
+        UpdateCenterData updateCenterData = get();
         if (updateCenterData.getDeprecations().containsKey(plugin.getName())) {
             return true;
         }
@@ -61,8 +66,8 @@ public class UpdateCenterUtils {
                 && updateCenterPlugin.labels().contains("deprecated");
     }
 
-    public static boolean isApiPlugin(Plugin plugin, CacheManager cacheManager) {
-        UpdateCenterData updateCenterData = get(plugin.getConfig(), cacheManager);
+    public boolean isApiPlugin(Plugin plugin) {
+        UpdateCenterData updateCenterData = get();
         UpdateCenterData.UpdateCenterPlugin updateCenterPlugin =
                 updateCenterData.getPlugins().get(plugin.getName());
 
@@ -76,11 +81,10 @@ public class UpdateCenterUtils {
     /**
      * Extract the version for a plugin in the update center
      * @param plugin Plugin
-     * @param cacheManager Cache manager
      * @return Version
      */
-    public static String extractVersion(Plugin plugin, CacheManager cacheManager) {
-        UpdateCenterData updateCenterData = get(plugin.getConfig(), cacheManager);
+    public String extractVersion(Plugin plugin) {
+        UpdateCenterData updateCenterData = get();
         UpdateCenterData.UpdateCenterPlugin updateCenterPlugin =
                 updateCenterData.getPlugins().get(plugin.getName());
         if (updateCenterPlugin == null) {
@@ -93,15 +97,14 @@ public class UpdateCenterUtils {
 
     /**
      * Retrieve update center data from the given URL of from cache if it exists
-     * @param cacheManager Cache manager
      * @return Update center data
      */
-    public static UpdateCenterData get(Config config, CacheManager cacheManager) {
+    public UpdateCenterData get() {
         UpdateCenterData updateCenterData =
                 cacheManager.get(cacheManager.root(), CacheManager.UPDATE_CENTER_CACHE_KEY, UpdateCenterData.class);
         // Download and update cache
         if (updateCenterData == null) {
-            updateCenterData = download(config);
+            updateCenterData = download();
             updateCenterData.setKey(CacheManager.UPDATE_CENTER_CACHE_KEY);
             updateCenterData.setPath(cacheManager.root());
             cacheManager.put(updateCenterData);
@@ -111,10 +114,9 @@ public class UpdateCenterUtils {
 
     /**
      * Download refreshed update center data from the remote service
-     * @param config Configuration
      * @return Update center data
      */
-    public static UpdateCenterData download(Config config) {
+    public UpdateCenterData download() {
         return JsonUtils.fromUrl(config.getJenkinsUpdateCenter(), UpdateCenterData.class);
     }
 }

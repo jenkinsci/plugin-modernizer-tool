@@ -7,13 +7,14 @@ import static org.mockito.Mockito.doReturn;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.google.inject.Guice;
+import io.jenkins.tools.pluginmodernizer.core.GuiceModule;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -28,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith({MockitoExtension.class})
 @WireMockTest
-class UpdateCenterUtilsTest {
+class UpdateCenterServiceTest {
 
     @Mock
     private CacheManager cacheManager;
@@ -75,17 +76,24 @@ class UpdateCenterUtilsTest {
                 .when(cacheManager)
                 .get(cacheRoot, CacheManager.UPDATE_CENTER_CACHE_KEY, UpdateCenterData.class);
         doReturn(cacheRoot).when(cacheManager).root();
+
+        doReturn(cacheRoot).when(config).getCachePath();
     }
 
     @Test
-    public void shouldExtractRepoName() {
-        String result =
-                UpdateCenterUtils.extractRepoName(Plugin.build("valid-plugin").withConfig(config), cacheManager);
+    public void shouldExtractRepoName() throws Exception {
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
+        UpdateCenterService service = getUpdateCenterService();
+        String result = service.extractRepoName(Plugin.build("valid-plugin").withConfig(config));
         assertEquals("valid-url", result);
     }
 
     @Test
-    public void shouldDownload(WireMockRuntimeInfo wmRuntimeInfo) throws MalformedURLException {
+    public void shouldDownload(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
 
         // Download through wiremock to avoid hitting the real Jenkins update center
         WireMock wireMock = wmRuntimeInfo.getWireMock();
@@ -101,23 +109,52 @@ class UpdateCenterUtilsTest {
         Mockito.reset(cacheManager);
 
         // Get result
-        UpdateCenterData result = UpdateCenterUtils.download(config);
+        UpdateCenterService service = getUpdateCenterService();
+        UpdateCenterData result = service.download();
         assertEquals(result.getPlugins().size(), updateCenterData.getPlugins().size());
     }
 
     @Test
-    public void shouldThrowExceptionIfNotFound() {
+    public void shouldThrowExceptionIfNotFound() throws Exception {
+
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
+
+        UpdateCenterService service = getUpdateCenterService();
         Exception exception = assertThrows(ModernizerException.class, () -> {
-            UpdateCenterUtils.extractRepoName(Plugin.build("not-present").withConfig(config), cacheManager);
+            service.extractRepoName(Plugin.build("not-present").withConfig(config));
         });
         assertEquals("Plugin not found in update center", exception.getMessage());
     }
 
     @Test
-    public void shouldFailIfSCMFormatIsInvalid() {
+    public void shouldFailIfSCMFormatIsInvalid() throws Exception {
+
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
+
+        UpdateCenterService service = getUpdateCenterService();
         Exception exception = assertThrows(ModernizerException.class, () -> {
-            UpdateCenterUtils.extractRepoName(Plugin.build("invalid-plugin").withConfig(config), cacheManager);
+            service.extractRepoName(Plugin.build("invalid-plugin").withConfig(config));
         });
         assertEquals("Invalid SCM URL format", exception.getMessage());
+    }
+
+    /**
+     * Get the update center service to test
+     * @return Update center service
+     * @throws Exception If an error occurs
+     */
+    private UpdateCenterService getUpdateCenterService() throws Exception {
+        UpdateCenterService service =
+                Guice.createInjector(new GuiceModule(config)).getInstance(UpdateCenterService.class);
+        Field field = ReflectionUtils.findFields(
+                        UpdateCenterService.class,
+                        f -> f.getName().equals("cacheManager"),
+                        ReflectionUtils.HierarchyTraversalMode.TOP_DOWN)
+                .get(0);
+        field.setAccessible(true);
+        field.set(service, cacheManager);
+        return service;
     }
 }
