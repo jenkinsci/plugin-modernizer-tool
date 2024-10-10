@@ -8,6 +8,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.PreconditionError;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,11 +113,21 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
         this.flags = flags;
     }
 
+    public void addFlag(MetadataFlag flag) {
+        if (flags == null) {
+            flags = new HashSet<>();
+        }
+        flags.add(flag);
+    }
+
     public boolean hasFlag(MetadataFlag flag) {
-        return flags.contains(flag);
+        return flags != null && flags.contains(flag);
     }
 
     public Set<PreconditionError> getErrors() {
+        if (errors == null) {
+            errors = new HashSet<>();
+        }
         return Collections.unmodifiableSet(errors);
     }
 

@@ -1,9 +1,13 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterService;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import org.openrewrite.xml.tree.Xml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Flag for metadata
@@ -76,7 +80,13 @@ public enum MetadataFlag {
     /**
      * If the plugin is an API plugin
      */
-    IS_API_PLUGIN(null, plugin -> plugin.getMetadata().getProperties().containsKey("isApiPlugin"));
+    IS_API_PLUGIN(null, (plugin, updateCenterService) -> updateCenterService.isApiPlugin(plugin)),
+
+    /**
+     * If the plugin is deprecated
+     */
+    IS_DEPRECATED(null, (plugin, updateCenterService) -> updateCenterService.isDeprecated(plugin)),
+    ;
 
     /**
      * Function to check if the flag is applicable for the given XML tag
@@ -86,13 +96,13 @@ public enum MetadataFlag {
     /**
      * Function to check if the flag is applicable for the given plugin
      */
-    private final Predicate<Plugin> isApplicablePlugin;
+    private final BiPredicate<Plugin, UpdateCenterService> isApplicablePlugin;
 
     /**
      * Constructor
      * @param isApplicableTag Predicate to check if the flag is applicable for the given XML tag
      */
-    MetadataFlag(Predicate<Xml.Tag> isApplicableTag, Predicate<Plugin> isApplicablePlugin) {
+    MetadataFlag(Predicate<Xml.Tag> isApplicableTag, BiPredicate<Plugin, UpdateCenterService> isApplicablePlugin) {
         this.isApplicableTag = isApplicableTag;
         this.isApplicablePlugin = isApplicablePlugin;
     }
@@ -114,16 +124,23 @@ public enum MetadataFlag {
      * @param plugin Plugin
      * @return true if the flag is applicable
      */
-    public boolean isApplicable(Plugin plugin) {
+    public boolean isApplicable(Plugin plugin, UpdateCenterService updateCenterService) {
         if (plugin.getMetadata() == null) {
+            LOG.debug("Metadata not found for plugin {}", plugin.getName());
             return false;
         }
         if (plugin.getMetadata().hasFlag(this)) {
+            LOG.debug("Flag {} already set for plugin {}", this, plugin.getName());
             return true;
         }
         if (isApplicablePlugin == null) {
+            LOG.debug("No applicable plugin check for flag {}", this);
             return false;
         }
-        return isApplicablePlugin.test(plugin);
+        boolean result = isApplicablePlugin.test(plugin, updateCenterService);
+        LOG.debug("Flag {} applicable for plugin {}: {}", this, plugin.getName(), result);
+        return result;
     }
+
+    private static final Logger LOG = LoggerFactory.getLogger(MetadataFlag.class);
 }
