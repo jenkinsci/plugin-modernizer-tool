@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.NotNull;
 import org.openrewrite.Recipe;
 import org.openrewrite.config.YamlResourceLoader;
 import org.slf4j.Logger;
@@ -50,6 +51,14 @@ public class Settings {
     public static final String ADOPTIUM_GITHUB_API_URL = "https://api.github.com/repos/adoptium";
 
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
+
+    public static final String REMEDIATION_JENKINS_MINIMUM_VERSION;
+
+    public static final String REMEDIATION_PLUGIN_PARENT_VERSION;
+
+    public static final String REMEDIATION_BOM_BASE;
+
+    public static final String REMEDIATION_BOM_VERSION;
 
     public static final List<Recipe> AVAILABLE_RECIPES;
 
@@ -91,6 +100,11 @@ public class Settings {
         } catch (MalformedURLException e) {
             throw new ModernizerException("Invalid URL format", e);
         }
+
+        REMEDIATION_JENKINS_MINIMUM_VERSION = getRemediationJenkinsMinimumVersion();
+        REMEDIATION_BOM_BASE = getRemediationBomBase();
+        REMEDIATION_BOM_VERSION = getRemediationBomVersion();
+        REMEDIATION_PLUGIN_PARENT_VERSION = getRemediationPluginParentVersion();
 
         // Get recipes module
         try (InputStream inputStream = Settings.class.getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
@@ -144,6 +158,22 @@ public class Settings {
             return new URL(url);
         }
         return new URL(readProperty("plugin.versions.url", "urls.properties"));
+    }
+
+    private static @NotNull String getRemediationJenkinsMinimumVersion() {
+        return readProperty("remediation.jenkins.minimum.version", "versions.properties");
+    }
+
+    private static @NotNull String getRemediationPluginParentVersion() {
+        return readProperty("remediation.jenkins.plugin.parent.version", "versions.properties");
+    }
+
+    private static @NotNull String getRemediationBomBase() {
+        return readProperty("remediation.bom.base", "versions.properties");
+    }
+
+    private static @NotNull String getRemediationBomVersion() {
+        return readProperty("remediation.bom.version", "versions.properties");
     }
 
     private static @Nullable URL getHealthScoreUrl() throws MalformedURLException {

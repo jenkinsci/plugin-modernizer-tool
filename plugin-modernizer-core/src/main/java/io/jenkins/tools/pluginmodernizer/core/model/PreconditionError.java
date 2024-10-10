@@ -1,5 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.model;
 
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.utils.PomModifier;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.xpath.XPath;
@@ -18,9 +20,7 @@ public enum PreconditionError {
      * No pom file found
      */
     NO_POM(
-            (document, xpath) -> {
-                return document == null;
-            },
+            (document, xpath) -> document == null,
             plugin -> false, // No remediation function available if pom is missing
             "No pom file found"),
 
@@ -69,9 +69,20 @@ public enum PreconditionError {
                 }
             },
             plugin -> {
-                // TODO: Implement remediation function (See
-                // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
-                return false;
+                PomModifier pomModifier = new PomModifier(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                pomModifier.removeOffendingProperties();
+                pomModifier.addBom(
+                        "io.jenkins.tools.bom", Settings.REMEDIATION_BOM_BASE, Settings.REMEDIATION_BOM_VERSION);
+                pomModifier.updateParentPom(
+                        "org.jenkins-ci.plugins", "plugin", Settings.REMEDIATION_PLUGIN_PARENT_VERSION);
+                pomModifier.updateJenkinsMinimalVersion(Settings.REMEDIATION_JENKINS_MINIMUM_VERSION);
+
+                pomModifier.savePom(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                // new CacheManager(config.getCachePath())
+                plugin.withoutErrors();
+                return true;
             },
             "Found older Java version in pom file preventing using recent Maven older than 3.9.x"),
 

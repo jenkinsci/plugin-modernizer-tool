@@ -133,6 +133,7 @@ public class PluginModernizer {
                 }
             }
 
+            mavenInvoker.ensureMinimalBuild(plugin);
             plugin.checkoutBranch(ghService);
 
             // Minimum JDK to run openrewrite
