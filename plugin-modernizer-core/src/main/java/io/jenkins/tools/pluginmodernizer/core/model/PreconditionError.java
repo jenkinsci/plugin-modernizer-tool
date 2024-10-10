@@ -20,9 +20,7 @@ public enum PreconditionError {
      * No pom file found
      */
     NO_POM(
-            (document, xpath) -> {
-                return document == null;
-            },
+            (document, xpath) -> document == null,
             plugin -> false, // No remediation function available if pom is missing
             "No pom file found"),
 
@@ -85,6 +83,7 @@ public enum PreconditionError {
 
                 pomModifier.savePom(
                         plugin.getLocalRepository().resolve("pom.xml").toString());
+                // new CacheManager(config.getCachePath())
                 plugin.withoutErrors();
                 return true;
             },
