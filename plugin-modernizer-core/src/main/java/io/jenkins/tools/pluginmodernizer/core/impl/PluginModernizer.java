@@ -10,7 +10,7 @@ import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginVersionUtils;
-import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterUtils;
+import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterService;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +31,9 @@ public class PluginModernizer {
 
     @Inject
     private GHService ghService;
+
+    @Inject
+    private UpdateCenterService updateCenterService;
 
     @Inject
     private CacheManager cacheManager;
@@ -84,18 +87,15 @@ public class PluginModernizer {
             plugin.withConfig(config);
 
             // Determine repo name
-            plugin.withRepositoryName(UpdateCenterUtils.extractRepoName(plugin, cacheManager));
+            plugin.withRepositoryName(updateCenterService.extractRepoName(plugin));
 
-            LOG.debug(
-                    "Plugin {} latest version: {}",
-                    plugin.getName(),
-                    UpdateCenterUtils.extractVersion(plugin, cacheManager));
+            LOG.debug("Plugin {} latest version: {}", plugin.getName(), updateCenterService.extractVersion(plugin));
             LOG.debug(
                     "Plugin {} health score: {}",
                     plugin.getName(),
                     HealthScoreUtils.extractScore(plugin, cacheManager));
-            LOG.debug("Is API plugin {} : {}", plugin.getName(), plugin.isApiPlugin(cacheManager));
-            if (plugin.isDeprecated(cacheManager)) {
+            LOG.debug("Is API plugin {} : {}", plugin.getName(), plugin.isApiPlugin(updateCenterService));
+            if (plugin.isDeprecated(updateCenterService)) {
                 LOG.info("Plugin {} is deprecated. Skipping.", plugin.getName());
                 plugin.addError("Plugin is deprecated");
                 return;

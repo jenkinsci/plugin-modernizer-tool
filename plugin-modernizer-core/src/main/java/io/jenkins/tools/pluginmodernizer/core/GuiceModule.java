@@ -6,6 +6,7 @@ import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import io.jenkins.tools.pluginmodernizer.core.utils.JdkFetcher;
+import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterService;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.Invoker;
 
@@ -21,8 +22,9 @@ public class GuiceModule extends AbstractModule {
     protected void configure() {
         bind(Invoker.class).to(DefaultInvoker.class);
         bind(Config.class).toInstance(config);
-        bind(GHService.class).toInstance(new GHService());
         bind(CacheManager.class).toInstance(new CacheManager(config.getCachePath()));
+        bind(UpdateCenterService.class).toInstance(new UpdateCenterService());
+        bind(GHService.class).toInstance(new GHService());
         bind(JdkFetcher.class).toInstance(new JdkFetcher(config.getCachePath()));
         bind(PluginModernizer.class).toInstance(new PluginModernizer());
     }
