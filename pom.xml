@@ -61,7 +61,7 @@
     <jgit.version>7.0.0.202409031743-r</jgit.version>
     <github-api.version>1.326</github-api.version>
     <commons-compress.version>1.27.1</commons-compress.version>
-    <byte-buddy.version>1.15.3</byte-buddy.version>
+    <byte-buddy.version>1.15.4</byte-buddy.version>
     <wiremock.version>3.9.1</wiremock.version>
     <jte.version>3.1.13</jte.version>
     <snakeyaml.version>2.3</snakeyaml.version>
