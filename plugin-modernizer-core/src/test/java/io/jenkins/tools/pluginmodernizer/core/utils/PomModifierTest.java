@@ -63,6 +63,11 @@ public class PomModifierTest {
                         .getLength()
                 == 0);
         logger.info("Offending properties removed successfully");
+
+        // Verify that comments associated with the removed properties are also removed
+        String pomContent = new String(Files.readAllBytes(Paths.get(OUTPUT_POM_PATH)));
+        assertTrue(!pomContent.contains("<!-- Java Level to use. Java 7 required when using core >= 1.612 -->"));
+        assertTrue(!pomContent.contains("<!-- Jenkins Test Harness version you use to test the plugin. -->"));
     }
 
     @Test

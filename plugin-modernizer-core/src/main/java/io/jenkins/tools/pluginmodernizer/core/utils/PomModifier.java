@@ -82,6 +82,12 @@ public class PomModifier {
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
                     String nodeName = node.getNodeName();
                     if (nodeName.equals("jenkins-test-harness.version") || nodeName.equals("java.level")) {
+                        // Remove associated comments
+                        Node previousSibling = node.getPreviousSibling();
+                        while (previousSibling != null && previousSibling.getNodeType() == Node.COMMENT_NODE) {
+                            propertiesNode.removeChild(previousSibling);
+                            previousSibling = node.getPreviousSibling();
+                        }
                         propertiesNode.removeChild(node);
                     }
                 }
