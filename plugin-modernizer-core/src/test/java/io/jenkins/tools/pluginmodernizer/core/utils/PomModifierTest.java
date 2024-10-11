@@ -1,8 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
 import static java.nio.file.Files.createTempFile;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class PomModifierTest {
     public void setUp() throws Exception {
         Path tempFile = new File(OUTPUT_POM_PATH).toPath();
         Files.copy(Path.of(TEST_POM_PATH), tempFile, StandardCopyOption.REPLACE_EXISTING);
-        logger.info("Setup completed, copied test POM to temporary file: " + tempFile.toString());
+        logger.info("Setup completed, copied test POM to temporary file: " + tempFile);
     }
 
     @Test
@@ -57,17 +56,25 @@ public class PomModifierTest {
 
         Element propertiesElement =
                 (Element) doc.getElementsByTagName("properties").item(0);
-        assertTrue(propertiesElement.getElementsByTagName("java.level").getLength() == 0);
-        assertTrue(propertiesElement
+        assertEquals(
+                0,
+                propertiesElement.getElementsByTagName("java.level").getLength(),
+                "java.level property should be removed");
+        assertEquals(
+                0,
+                propertiesElement
                         .getElementsByTagName("jenkins-test-harness.version")
-                        .getLength()
-                == 0);
-        logger.info("Offending properties removed successfully");
+                        .getLength(),
+                "jenkins-test-harness.version property should be removed");
 
         // Verify that comments associated with the removed properties are also removed
         String pomContent = new String(Files.readAllBytes(Paths.get(OUTPUT_POM_PATH)));
-        assertTrue(!pomContent.contains("<!-- Java Level to use. Java 7 required when using core >= 1.612 -->"));
-        assertTrue(!pomContent.contains("<!-- Jenkins Test Harness version you use to test the plugin. -->"));
+        assertFalse(
+                pomContent.contains("Java Level to use. Java 7 required when using core >= 1.612"),
+                "Comment for java.level should be removed");
+        assertFalse(
+                pomContent.contains("Jenkins Test Harness version you use to test the plugin."),
+                "Comment for jenkins-test-harness.version should be removed");
     }
 
     @Test
