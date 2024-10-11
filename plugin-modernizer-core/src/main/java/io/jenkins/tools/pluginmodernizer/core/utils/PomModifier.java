@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -76,27 +78,34 @@ public class PomModifier {
         if (propertiesList.getLength() > 0) {
             Node propertiesNode = propertiesList.item(0);
             NodeList childNodes = propertiesNode.getChildNodes();
+            List<Node> nodesToRemove = new ArrayList<>();
+
             for (int i = 0; i < childNodes.getLength(); i++) {
                 Node node = childNodes.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
                     String nodeName = node.getNodeName();
                     if (nodeName.equals("jenkins-test-harness.version") || nodeName.equals("java.level")) {
-                        // Remove the offending property
-                        propertiesNode.removeChild(node);
-                        i--; // Adjust the index after removal
+                        // Add the offending property to the list
+                        nodesToRemove.add(node);
 
-                        // Remove preceding comments
-                        while (i >= 0) {
-                            Node previousNode = childNodes.item(i);
-                            if (previousNode.getNodeType() == Node.COMMENT_NODE) {
-                                propertiesNode.removeChild(previousNode);
-                                i--; // Adjust the index after removal
+                        // Add preceding comments to the list
+                        int j = i - 1;
+                        while (j >= 0) {
+                            Node previousNode = childNodes.item(j);
+                            if (previousNode.getNodeType() == Node.COMMENT_NODE || (previousNode.getNodeType() == Node.TEXT_NODE && previousNode.getTextContent().trim().startsWith("<!--")) || previousNode.getTextContent().replaceAll("\\s+", "").isEmpty()) {
+                                nodesToRemove.add(previousNode);
+                                j--;
                             } else {
                                 break; // Stop if a non-comment node is encountered
                             }
                         }
                     }
                 }
+            }
+
+            // Remove collected nodes
+            for (Node nodeToRemove : nodesToRemove) {
+                propertiesNode.removeChild(nodeToRemove);
             }
         }
     }
