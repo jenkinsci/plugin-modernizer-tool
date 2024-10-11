@@ -95,6 +95,19 @@ public abstract class CacheEntry<T extends CacheEntry<T>> implements Serializabl
      * @return The refreshed object copied
      */
     public final T move(CacheManager newCacheManager, Path newPath, String newKey) {
+        return move(newCacheManager, newPath, newKey, false);
+    }
+
+    /**
+     * Return a copy of this object copied to another cache manager
+     * @param newCacheManager The new cache manager
+     * @return The refreshed object copied
+     */
+    public final T copy(CacheManager newCacheManager, Path newPath, String newKey) {
+        return move(newCacheManager, newPath, newKey, true);
+    }
+
+    private T move(CacheManager newCacheManager, Path newPath, String newKey, boolean copy) {
         LOG.debug(
                 "Moving object from {} to {}",
                 cacheManager.getLocation().resolve(path).resolve(key),
@@ -106,7 +119,9 @@ public abstract class CacheEntry<T extends CacheEntry<T>> implements Serializabl
         refreshedObject.setCacheManager(newCacheManager);
         newCacheManager.put(refreshedObject);
         LOG.debug(refreshedObject.getCacheManager().getLocation().toString());
-        this.delete();
+        if (!copy) {
+            this.delete();
+        }
         return newCacheManager.get(newPath, newKey, clazz);
     }
 

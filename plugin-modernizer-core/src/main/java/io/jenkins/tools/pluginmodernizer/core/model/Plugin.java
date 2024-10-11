@@ -2,6 +2,7 @@ package io.jenkins.tools.pluginmodernizer.core.model;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import io.jenkins.tools.pluginmodernizer.core.extractor.MetadataFlag;
 import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
@@ -493,6 +494,21 @@ public class Plugin {
     }
 
     /**
+     * Enrich the metadata of the plugin and save it
+     * @param updateCenterService The update center service
+     */
+    public void enrichMetadata(UpdateCenterService updateCenterService) {
+        LOG.debug("Setting extra flags for plugin {}", name);
+        if (metadata == null) {
+            throw new IllegalStateException("Metadata not found for plugin " + name);
+        }
+        Arrays.stream(MetadataFlag.values())
+                .filter(flag -> flag.isApplicable(this, updateCenterService))
+                .forEach(metadata::addFlag);
+        this.metadata.save();
+    }
+
+    /**
      * Collect plugin metadata
      * @param maven The maven invoker instance
      */
@@ -580,6 +596,7 @@ public class Plugin {
 
     /**
      * Return if this plugin is deprecated in the update center
+     * @param updateCenterService The update center service
      * @return True if the plugin is deprecated
      */
     public boolean isDeprecated(UpdateCenterService updateCenterService) {
@@ -587,11 +604,28 @@ public class Plugin {
     }
 
     /**
+     * Return if this plugin is deprecated in the update center
+     * @return True if the plugin is deprecated
+     */
+    public boolean isDeprecated() {
+        return hasMetadata() && metadata.hasFlag(MetadataFlag.IS_DEPRECATED);
+    }
+
+    /**
      * Return if this plugin is an API plugin
+     * @param updateCenterService The update center service
      * @return True if the plugin is an API plugin
      */
     public boolean isApiPlugin(UpdateCenterService updateCenterService) {
         return updateCenterService.isApiPlugin(this);
+    }
+
+    /**
+     * Return if this plugin is an API plugin
+     * @return True if the plugin is an API plugin
+     */
+    public boolean isApiPlugin() {
+        return hasMetadata() && metadata.hasFlag(MetadataFlag.IS_API_PLUGIN);
     }
 
     /**

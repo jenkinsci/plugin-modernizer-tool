@@ -66,6 +66,11 @@ public class UpdateCenterService {
                 && updateCenterPlugin.labels().contains("deprecated");
     }
 
+    /**
+     * Check if a plugin is an API plugin
+     * @param plugin Plugin
+     * @return True if API plugin
+     */
     public boolean isApiPlugin(Plugin plugin) {
         UpdateCenterData updateCenterData = get();
         UpdateCenterData.UpdateCenterPlugin updateCenterPlugin =

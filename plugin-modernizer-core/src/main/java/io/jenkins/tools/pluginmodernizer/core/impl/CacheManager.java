@@ -160,6 +160,18 @@ public class CacheManager {
     }
 
     /**
+     * Copy a cache entry to the new cache manager
+     * @param cacheManager The cache manager
+     * @param newPath The new path
+     * @param newKey The new key
+     * @param entry The cache entry to move
+     */
+    public <T extends CacheEntry<T>> T copy(
+            CacheManager cacheManager, Path newPath, String newKey, CacheEntry<T> entry) {
+        return entry.copy(cacheManager, newPath, newKey);
+    }
+
+    /**
      * Get the location of the cache
      * @return The location
      */
