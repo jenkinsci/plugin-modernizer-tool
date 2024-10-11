@@ -17,6 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+/**
+ * Test class for PomModifier.
+ */
 public class PomModifierTest {
     private static final Logger logger = Logger.getLogger(PomModifierTest.class.getName());
 
@@ -36,6 +39,11 @@ public class PomModifierTest {
         }
     }
 
+    /**
+     * Sets up the test environment by copying the test POM file to a temporary file.
+     *
+     * @throws Exception if an error occurs during setup
+     */
     @BeforeEach
     public void setUp() throws Exception {
         Path tempFile = new File(OUTPUT_POM_PATH).toPath();
@@ -43,6 +51,11 @@ public class PomModifierTest {
         logger.info("Setup completed, copied test POM to temporary file: " + tempFile);
     }
 
+    /**
+     * Tests the removeOffendingProperties method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
     @Test
     public void testRemoveOffendingProperties() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
@@ -77,6 +90,11 @@ public class PomModifierTest {
                 "Comment for jenkins-test-harness.version should be removed");
     }
 
+    /**
+     * Tests the updateParentPom method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
     @Test
     public void testUpdateParentPom() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
@@ -99,6 +117,11 @@ public class PomModifierTest {
                 "4.80", parentElement.getElementsByTagName("version").item(0).getTextContent());
     }
 
+    /**
+     * Tests the updateJenkinsMinimalVersion method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
     @Test
     public void testUpdateJenkinsMinimalVersion() throws Exception {
         PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
