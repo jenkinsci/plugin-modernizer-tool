@@ -7,7 +7,7 @@ import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
-import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterService;
+import io.jenkins.tools.pluginmodernizer.core.utils.PluginService;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -495,15 +495,15 @@ public class Plugin {
 
     /**
      * Enrich the metadata of the plugin and save it
-     * @param updateCenterService The update center service
+     * @param pluginService The update center service
      */
-    public void enrichMetadata(UpdateCenterService updateCenterService) {
+    public void enrichMetadata(PluginService pluginService) {
         LOG.debug("Setting extra flags for plugin {}", name);
         if (metadata == null) {
             throw new IllegalStateException("Metadata not found for plugin " + name);
         }
         Arrays.stream(MetadataFlag.values())
-                .filter(flag -> flag.isApplicable(this, updateCenterService))
+                .filter(flag -> flag.isApplicable(this, pluginService))
                 .forEach(metadata::addFlag);
         this.metadata.save();
     }
@@ -596,11 +596,11 @@ public class Plugin {
 
     /**
      * Return if this plugin is deprecated in the update center
-     * @param updateCenterService The update center service
+     * @param pluginService The update center service
      * @return True if the plugin is deprecated
      */
-    public boolean isDeprecated(UpdateCenterService updateCenterService) {
-        return updateCenterService.isDeprecated(this);
+    public boolean isDeprecated(PluginService pluginService) {
+        return pluginService.isDeprecated(this);
     }
 
     /**
@@ -613,11 +613,11 @@ public class Plugin {
 
     /**
      * Return if this plugin is an API plugin
-     * @param updateCenterService The update center service
+     * @param pluginService The update center service
      * @return True if the plugin is an API plugin
      */
-    public boolean isApiPlugin(UpdateCenterService updateCenterService) {
-        return updateCenterService.isApiPlugin(this);
+    public boolean isApiPlugin(PluginService pluginService) {
+        return pluginService.isApiPlugin(this);
     }
 
     /**

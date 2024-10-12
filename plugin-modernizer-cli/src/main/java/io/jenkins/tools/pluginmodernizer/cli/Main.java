@@ -6,7 +6,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
-import io.jenkins.tools.pluginmodernizer.core.utils.PluginListParser;
+import io.jenkins.tools.pluginmodernizer.core.utils.PluginService;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -224,11 +224,11 @@ public class Main implements Runnable {
             return new ArrayList<>();
         }
         List<Plugin> loadedPlugins = new ArrayList<>();
+        PluginService service = Guice.createInjector(new GuiceModule(setup())).getInstance(PluginService.class);
         if (pluginOptions.pluginFile != null) {
-            List<String> pluginsFromFile = PluginListParser.loadPluginsFromFile(pluginOptions.pluginFile);
+            List<Plugin> pluginsFromFile = service.loadPluginsFromFile(pluginOptions.pluginFile);
             if (pluginsFromFile != null) {
-                loadedPlugins.addAll(
-                        pluginsFromFile.stream().distinct().map(Plugin::build).toList());
+                loadedPlugins.addAll(pluginsFromFile);
             }
         }
         if (pluginOptions.plugins != null) {

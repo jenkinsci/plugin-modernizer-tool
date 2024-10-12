@@ -1,7 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
-import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterService;
+import io.jenkins.tools.pluginmodernizer.core.utils.PluginService;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -80,13 +80,22 @@ public enum MetadataFlag {
     /**
      * If the plugin is an API plugin
      */
-    IS_API_PLUGIN(null, (plugin, updateCenterService) -> updateCenterService.isApiPlugin(plugin)),
+    IS_API_PLUGIN(null, (plugin, pluginService) -> pluginService.isApiPlugin(plugin)),
 
     /**
      * If the plugin is deprecated
      */
-    IS_DEPRECATED(null, (plugin, updateCenterService) -> updateCenterService.isDeprecated(plugin)),
-    ;
+    IS_DEPRECATED(null, (plugin, pluginService) -> pluginService.isDeprecated(plugin)),
+
+    /**
+     * If the plugin has a max score (100 %)
+     */
+    HAS_MAX_SCORE(null, (plugin, pluginService) -> pluginService.hasMaxScore(plugin)),
+
+    /**
+     * If the plugin has a low score
+     */
+    HAS_LOW_SCORE(null, (plugin, pluginService) -> pluginService.hasLowScore(plugin));
 
     /**
      * Function to check if the flag is applicable for the given XML tag
@@ -96,13 +105,13 @@ public enum MetadataFlag {
     /**
      * Function to check if the flag is applicable for the given plugin
      */
-    private final BiPredicate<Plugin, UpdateCenterService> isApplicablePlugin;
+    private final BiPredicate<Plugin, PluginService> isApplicablePlugin;
 
     /**
      * Constructor
      * @param isApplicableTag Predicate to check if the flag is applicable for the given XML tag
      */
-    MetadataFlag(Predicate<Xml.Tag> isApplicableTag, BiPredicate<Plugin, UpdateCenterService> isApplicablePlugin) {
+    MetadataFlag(Predicate<Xml.Tag> isApplicableTag, BiPredicate<Plugin, PluginService> isApplicablePlugin) {
         this.isApplicableTag = isApplicableTag;
         this.isApplicablePlugin = isApplicablePlugin;
     }
@@ -124,7 +133,7 @@ public enum MetadataFlag {
      * @param plugin Plugin
      * @return true if the flag is applicable
      */
-    public boolean isApplicable(Plugin plugin, UpdateCenterService updateCenterService) {
+    public boolean isApplicable(Plugin plugin, PluginService pluginService) {
         if (plugin.getMetadata() == null) {
             LOG.debug("Metadata not found for plugin {}", plugin.getName());
             return false;
@@ -137,7 +146,7 @@ public enum MetadataFlag {
             LOG.debug("No applicable plugin check for flag {}", this);
             return false;
         }
-        boolean result = isApplicablePlugin.test(plugin, updateCenterService);
+        boolean result = isApplicablePlugin.test(plugin, pluginService);
         LOG.debug("Flag {} applicable for plugin {}: {}", this, plugin.getName(), result);
         return result;
     }
