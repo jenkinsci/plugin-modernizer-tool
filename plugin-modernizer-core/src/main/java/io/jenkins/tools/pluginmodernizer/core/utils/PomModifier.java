@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -26,10 +28,7 @@ import org.w3c.dom.NodeList;
 public class PomModifier {
 
     private static final Logger LOG = LoggerFactory.getLogger(PomModifier.class);
-    private Document document;
-
-    // Base directory for file operations
-    private static final String BASE_DIR = System.getProperty("java.io.tmpdir");
+    private final Document document;
 
     /**
      * Constructor for PomModifier.
@@ -43,7 +42,7 @@ public class PomModifier {
             // Validate the file path
             Path path = Paths.get(pomFilePath).normalize().toAbsolutePath();
             if (!Files.exists(path) || !Files.isRegularFile(path)) {
-                throw new IllegalArgumentException("Invalid file path: " + path.toString());
+                throw new IllegalArgumentException("Invalid file path: " + path);
             }
 
             File pomFile = path.toFile();
@@ -77,14 +76,43 @@ public class PomModifier {
         if (propertiesList.getLength() > 0) {
             Node propertiesNode = propertiesList.item(0);
             NodeList childNodes = propertiesNode.getChildNodes();
+            List<Node> nodesToRemove = new ArrayList<>();
+
             for (int i = 0; i < childNodes.getLength(); i++) {
                 Node node = childNodes.item(i);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
                     String nodeName = node.getNodeName();
                     if (nodeName.equals("jenkins-test-harness.version") || nodeName.equals("java.level")) {
-                        propertiesNode.removeChild(node);
+                        // Add the offending property to the list
+                        nodesToRemove.add(node);
+
+                        // Add preceding comments to the list
+                        int j = i - 1;
+                        while (j >= 0) {
+                            Node previousNode = childNodes.item(j);
+                            if (previousNode.getNodeType() == Node.COMMENT_NODE
+                                    || (previousNode.getNodeType() == Node.TEXT_NODE
+                                            && previousNode
+                                                    .getTextContent()
+                                                    .trim()
+                                                    .startsWith("<!--"))
+                                    || previousNode
+                                            .getTextContent()
+                                            .replaceAll("\\s+", "")
+                                            .isEmpty()) {
+                                nodesToRemove.add(previousNode);
+                                j--;
+                            } else {
+                                break; // Stop if a non-comment node is encountered
+                            }
+                        }
                     }
                 }
+            }
+
+            // Remove collected nodes
+            for (Node nodeToRemove : nodesToRemove) {
+                propertiesNode.removeChild(nodeToRemove);
             }
         }
     }
@@ -92,9 +120,9 @@ public class PomModifier {
     /**
      * Updates the parent POM information.
      *
-     * @param groupId the groupId to set
+     * @param groupId    the groupId to set
      * @param artifactId the artifactId to set
-     * @param version the version to set
+     * @param version    the version to set
      */
     public void updateParentPom(String groupId, String artifactId, String version) {
         NodeList parentList = document.getElementsByTagName("parent");
@@ -170,9 +198,9 @@ public class PomModifier {
     /**
      * Adds a BOM section to the POM file.
      *
-     * @param groupId the groupId of the BOM
+     * @param groupId    the groupId of the BOM
      * @param artifactId the artifactId of the BOM
-     * @param version the version of the BOM
+     * @param version    the version of the BOM
      */
     public void addBom(String groupId, String artifactId, String version) {
         NodeList dependencyManagementList = document.getElementsByTagName("dependencyManagement");
@@ -226,9 +254,6 @@ public class PomModifier {
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public void savePom(String outputPath) {
         try {
-            // Validate the output path
-            Path path = Paths.get(outputPath).normalize().toAbsolutePath();
-
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             transformerFactory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
             Transformer transformer = transformerFactory.newTransformer();
