@@ -18,10 +18,17 @@ import java.nio.file.Paths;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openrewrite.Recipe;
 import picocli.CommandLine;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+@ExtendWith({MockitoExtension.class, SystemStubsExtension.class})
 public class MainTest {
 
     private CommandLine commandLine;
@@ -30,6 +37,13 @@ public class MainTest {
 
     @TempDir
     Path tempDir;
+
+    @Mock
+    private Config config;
+
+    @SystemStub
+    private EnvironmentVariables envVars =
+            new EnvironmentVariables().set("GH_TOKEN", ".my-token").set("GH_OWNER", "fake-org");
 
     @BeforeEach
     public void setUp() {

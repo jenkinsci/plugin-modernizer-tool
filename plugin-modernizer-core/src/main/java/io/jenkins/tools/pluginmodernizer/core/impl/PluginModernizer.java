@@ -8,9 +8,7 @@ import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
-import io.jenkins.tools.pluginmodernizer.core.utils.HealthScoreUtils;
-import io.jenkins.tools.pluginmodernizer.core.utils.PluginVersionUtils;
-import io.jenkins.tools.pluginmodernizer.core.utils.UpdateCenterService;
+import io.jenkins.tools.pluginmodernizer.core.utils.PluginService;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +31,7 @@ public class PluginModernizer {
     private GHService ghService;
 
     @Inject
-    private UpdateCenterService updateCenterService;
+    private PluginService pluginService;
 
     @Inject
     private CacheManager cacheManager;
@@ -69,7 +67,7 @@ public class PluginModernizer {
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
 
         // Fetch plugin versions
-        PluginVersionUtils.get(config, cacheManager);
+        pluginService.getPluginVersionData();
 
         List<Plugin> plugins = config.getPlugins();
         plugins.forEach(this::process);
@@ -87,15 +85,12 @@ public class PluginModernizer {
             plugin.withConfig(config);
 
             // Determine repo name
-            plugin.withRepositoryName(updateCenterService.extractRepoName(plugin));
+            plugin.withRepositoryName(pluginService.extractRepoName(plugin));
 
-            LOG.debug("Plugin {} latest version: {}", plugin.getName(), updateCenterService.extractVersion(plugin));
-            LOG.debug(
-                    "Plugin {} health score: {}",
-                    plugin.getName(),
-                    HealthScoreUtils.extractScore(plugin, cacheManager));
-            LOG.debug("Is API plugin {} : {}", plugin.getName(), plugin.isApiPlugin(updateCenterService));
-            if (plugin.isDeprecated(updateCenterService)) {
+            LOG.debug("Plugin {} latest version: {}", plugin.getName(), pluginService.extractVersion(plugin));
+            LOG.debug("Plugin {} health score: {}", plugin.getName(), pluginService.extractScore(plugin));
+            LOG.debug("Is API plugin {} : {}", plugin.getName(), plugin.isApiPlugin(pluginService));
+            if (plugin.isDeprecated(pluginService)) {
                 LOG.info("Plugin {} is deprecated. Skipping.", plugin.getName());
                 plugin.addError("Plugin is deprecated");
                 return;
@@ -144,7 +139,7 @@ public class PluginModernizer {
                 plugin.collectMetadata(mavenInvoker);
                 plugin.moveMetadata(cacheManager);
                 plugin.loadMetadata(cacheManager);
-                plugin.enrichMetadata(updateCenterService);
+                plugin.enrichMetadata(pluginService);
 
             } else {
                 LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
@@ -172,7 +167,7 @@ public class PluginModernizer {
                     plugin.collectMetadata(mavenInvoker);
                     plugin.moveMetadata(cacheManager);
                     plugin.loadMetadata(cacheManager);
-                    plugin.enrichMetadata(updateCenterService);
+                    plugin.enrichMetadata(pluginService);
                 }
             }
 
@@ -212,7 +207,7 @@ public class PluginModernizer {
                 plugin.collectMetadata(mavenInvoker);
                 plugin.moveMetadata(cacheManager);
                 plugin.loadMetadata(cacheManager);
-                plugin.enrichMetadata(updateCenterService);
+                plugin.enrichMetadata(pluginService);
                 LOG.debug(
                         "Plugin {} metadata after modernization: {}",
                         plugin.getName(),

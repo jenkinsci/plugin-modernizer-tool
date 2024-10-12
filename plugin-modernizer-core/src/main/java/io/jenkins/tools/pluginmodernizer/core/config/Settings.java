@@ -48,6 +48,8 @@ public class Settings {
 
     public static final String RECIPE_FQDN_PREFIX = "io.jenkins.tools.pluginmodernizer";
 
+    public static final Double PLUGIN_LOW_SCORE_THRESHOLD = 80.0;
+
     public static final String ADOPTIUM_GITHUB_API_URL = "https://api.github.com/repos/adoptium";
 
     public static final ComparableVersion MAVEN_MINIMAL_VERSION = new ComparableVersion("3.9.7");
