@@ -120,7 +120,9 @@ To activate app authentication, just set the following CLI argument
 
 - `--debug` or `-d`: (optional) Enables debug mode.
 
-- `--jenkins-update-center`: (optional) Sets main update center; will override JENKINS_UC environment variable. If not set via CLI option or environment variable, will default to url in [properties file](plugin-modernizer-core/src/main/resources/update_center.properties)
+- `--jenkins-update-center`: (optional) Sets main update center; will override JENKINS_UC environment variable. If not set via CLI option or environment variable, will default to url in [properties file](plugin-modernizer-core/src/main/resources/urls.properties)
+
+- `--jenkins-plugins-stats-installations-url` (optional) Set the URL for the Jenkins Plugins Stats installations API. If not set via CLI option or environment variable, will default to url in [properties file](plugin-modernizer-core/src/main/resources/urls.properties)
 
 - `--cache-path` or `-c`: (optional) Custom path to the cache directory. Defaults to `${user.home}/.cache/jenkins-plugin-modernizer-cli`.
 

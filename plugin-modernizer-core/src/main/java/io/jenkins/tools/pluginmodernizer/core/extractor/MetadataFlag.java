@@ -95,7 +95,12 @@ public enum MetadataFlag {
     /**
      * If the plugin has a low score
      */
-    HAS_LOW_SCORE(null, (plugin, pluginService) -> pluginService.hasLowScore(plugin));
+    HAS_LOW_SCORE(null, (plugin, pluginService) -> pluginService.hasLowScore(plugin)),
+
+    /**
+     * If the plugin has no known installation
+     */
+    NO_KNOWN_INSTALLATION(null, (plugin, pluginService) -> pluginService.hasNoKnownInstallations(plugin));
 
     /**
      * Function to check if the flag is applicable for the given XML tag

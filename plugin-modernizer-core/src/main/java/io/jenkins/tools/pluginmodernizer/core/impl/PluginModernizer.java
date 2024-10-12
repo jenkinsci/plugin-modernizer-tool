@@ -60,6 +60,7 @@ public class PluginModernizer {
         LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
         LOG.debug("Plugin versions Url: {}", config.getJenkinsPluginVersions());
         LOG.debug("Plugin Health Score Url: {}", config.getPluginHealthScore());
+        LOG.debug("Installation Stats Url: {}", config.getPluginStatsInstallations());
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Skip Push: {}", config.isSkipPush());
@@ -89,6 +90,7 @@ public class PluginModernizer {
 
             LOG.debug("Plugin {} latest version: {}", plugin.getName(), pluginService.extractVersion(plugin));
             LOG.debug("Plugin {} health score: {}", plugin.getName(), pluginService.extractScore(plugin));
+            LOG.debug("Plugin {} installations: {}", plugin.getName(), pluginService.extractInstallationStats(plugin));
             LOG.debug("Is API plugin {} : {}", plugin.getName(), plugin.isApiPlugin(pluginService));
             if (plugin.isDeprecated(pluginService)) {
                 LOG.info("Plugin {} is deprecated. Skipping.", plugin.getName());

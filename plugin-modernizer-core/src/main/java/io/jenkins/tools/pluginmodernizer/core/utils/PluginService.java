@@ -157,6 +157,26 @@ public class PluginService {
     }
 
     /**
+     * Retrieve installation stats data from the given URL
+     */
+    public PluginInstallationStatsData downloadInstallationStatsData() {
+        String data = CSVUtils.fromUrl(config.getPluginStatsInstallations());
+        PluginInstallationStatsData pluginInstallationStatsData = new PluginInstallationStatsData(cacheManager);
+        pluginInstallationStatsData.setPlugins(CSVUtils.parseStats(data));
+        return pluginInstallationStatsData;
+    }
+
+    /**
+     * Extract the installation stats for a plugin
+     * @param plugin Plugin
+     * @return Installation stats
+     */
+    public Integer extractInstallationStats(Plugin plugin) {
+        PluginInstallationStatsData pluginInstallationStatsData = getPluginInstallationStatsData();
+        return pluginInstallationStatsData.getPlugins().get(plugin.getName());
+    }
+
+    /**
      * Extract the score for a plugin. Null if not found
      * @param plugin Plugin
      * @return Score
@@ -192,6 +212,16 @@ public class PluginService {
     }
 
     /**
+     * Check if a plugin has no known installations
+     * @param plugin Plugin
+     * @return True if no known installation
+     */
+    public boolean hasNoKnownInstallations(Plugin plugin) {
+        Integer installations = extractInstallationStats(plugin);
+        return installations == null || installations == 0;
+    }
+
+    /**
      * Retrieve plugin version data from the given URL of from cache if it exists
      * @return Plugin version data
      */
@@ -206,6 +236,23 @@ public class PluginService {
             cacheManager.put(pluginVersionData);
         }
         return pluginVersionData;
+    }
+
+    /**
+     * Retrieve plugin installation stats data from the given URL of from cache if it exists
+     * @return Plugin installation stats data
+     */
+    public PluginInstallationStatsData getPluginInstallationStatsData() {
+        PluginInstallationStatsData pluginInstallationStatsData = cacheManager.get(
+                cacheManager.root(), CacheManager.INSTALLATION_STATS_KEY, PluginInstallationStatsData.class);
+        // Download and update cache
+        if (pluginInstallationStatsData == null) {
+            pluginInstallationStatsData = downloadInstallationStatsData();
+            pluginInstallationStatsData.setKey(CacheManager.INSTALLATION_STATS_KEY);
+            pluginInstallationStatsData.setPath(cacheManager.root());
+            cacheManager.put(pluginInstallationStatsData);
+        }
+        return pluginInstallationStatsData;
     }
 
     /**

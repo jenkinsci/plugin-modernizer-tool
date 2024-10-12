@@ -20,6 +20,7 @@ public class CacheManager {
     public static final String UPDATE_CENTER_CACHE_KEY = "update-center";
     public static final String PLUGIN_VERSIONS_CACHE_KEY = "plugin-versions";
     public static final String HEALTH_SCORE_KEY = "health-score";
+    public static final String INSTALLATION_STATS_KEY = "plugin-installation-stats";
     public static final String PLUGIN_METADATA_CACHE_KEY = "plugin-metadata";
 
     private static final Logger LOG = LoggerFactory.getLogger(CacheManager.class);

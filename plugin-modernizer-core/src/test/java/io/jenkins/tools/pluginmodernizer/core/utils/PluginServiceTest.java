@@ -11,10 +11,7 @@ import com.google.inject.Guice;
 import io.jenkins.tools.pluginmodernizer.core.GuiceModule;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
-import io.jenkins.tools.pluginmodernizer.core.model.HealthScoreData;
-import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
-import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
-import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
+import io.jenkins.tools.pluginmodernizer.core.model.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -55,11 +52,15 @@ class PluginServiceTest {
     // Health score test data
     private HealthScoreData healthScoreData;
 
+    // Plugin installation stats test data
+    private PluginInstallationStatsData pluginInstallationStatsData;
+
     @BeforeEach
     public void setup() throws Exception {
 
         updateCenterData = new UpdateCenterData(cacheManager);
         healthScoreData = new HealthScoreData(cacheManager);
+        pluginInstallationStatsData = new PluginInstallationStatsData(cacheManager);
 
         Map<String, UpdateCenterData.UpdateCenterPlugin> updateCenterPlugins = new HashMap<>();
         updateCenterPlugins.put(
@@ -79,6 +80,11 @@ class PluginServiceTest {
         healthPlugins.put("valid-plugin", new HealthScoreData.HealthScorePlugin(100d));
         healthPlugins.put("valid-plugin2", new HealthScoreData.HealthScorePlugin(50d));
 
+        // Add installations
+        Map<String, Integer> installations = new HashMap<>();
+        installations.put("valid-plugin", 1000);
+        installations.put("valid-plugin2", 500);
+
         // Set plugins
         Field updateCenterPluginField = ReflectionUtils.findFields(
                         UpdateCenterData.class,
@@ -97,6 +103,14 @@ class PluginServiceTest {
                 .get(0);
         healthScorePluginField.setAccessible(true);
         healthScorePluginField.set(healthScoreData, healthPlugins);
+
+        Field pluginInstallationDataField = ReflectionUtils.findFields(
+                        PluginInstallationStatsData.class,
+                        f -> f.getName().equals("plugins"),
+                        ReflectionUtils.HierarchyTraversalMode.TOP_DOWN)
+                .get(0);
+        pluginInstallationDataField.setAccessible(true);
+        pluginInstallationDataField.set(pluginInstallationStatsData, healthPlugins);
     }
 
     @Test
@@ -187,6 +201,34 @@ class PluginServiceTest {
         PluginService service = getService();
         HealthScoreData result = service.downloadHealthScoreData();
         assertEquals(result.getPlugins().size(), healthScoreData.getPlugins().size());
+    }
+
+    @Test
+    public void shouldDownloadPluginInstallationsData(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+
+        setupHealthScoreMocks();
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
+
+        // Download through wiremock to avoid hitting the real stats
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/jenkins-stats/svg/202406-plugins.csv"))
+                .willReturn(WireMock.ok("\"valid-plugin\",\"1\"\n" + "\"valid-plugin2\",\"1\"")));
+
+        // No found from cache
+        doReturn(new URL(wmRuntimeInfo.getHttpBaseUrl() + "/jenkins-stats/svg/202406-plugins.csv"))
+                .when(config)
+                .getPluginStatsInstallations();
+
+        Mockito.reset(cacheManager);
+
+        // Get result
+        PluginService service = getService();
+        PluginInstallationStatsData result = service.downloadInstallationStatsData();
+        assertEquals(
+                result.getPlugins().size(),
+                pluginInstallationStatsData.getPlugins().size());
     }
 
     @Test

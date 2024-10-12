@@ -18,6 +18,7 @@ public class Config {
     private final URL jenkinsUpdateCenter;
     private final URL jenkinsPluginVersions;
     private final URL pluginHealthScore;
+    private final URL pluginStatsInstallations;
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
@@ -43,6 +44,7 @@ public class Config {
             URL jenkinsUpdateCenter,
             URL jenkinsPluginVersions,
             URL pluginHealthScore,
+            URL pluginStatsInstallations,
             Path cachePath,
             Path mavenHome,
             boolean dryRun,
@@ -62,6 +64,7 @@ public class Config {
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
         this.jenkinsPluginVersions = jenkinsPluginVersions;
         this.pluginHealthScore = pluginHealthScore;
+        this.pluginStatsInstallations = pluginStatsInstallations;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
@@ -121,6 +124,10 @@ public class Config {
         return pluginHealthScore;
     }
 
+    public URL getPluginStatsInstallations() {
+        return pluginStatsInstallations;
+    }
+
     public Path getCachePath() {
         return cachePath;
     }
@@ -175,6 +182,7 @@ public class Config {
         private List<Recipe> recipes;
         private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
         private URL jenkinsPluginVersions = Settings.DEFAULT_PLUGIN_VERSIONS;
+        private URL pluginStatsInstallations = Settings.DEFAULT_PLUGINS_STATS_INSTALLATIONS_URL;
         private URL pluginHealthScore = Settings.DEFAULT_HEALTH_SCORE_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
@@ -242,6 +250,13 @@ public class Config {
             return this;
         }
 
+        public Builder withPluginStatsInstallations(URL pluginStatsInstallations) {
+            if (pluginStatsInstallations != null) {
+                this.pluginStatsInstallations = pluginStatsInstallations;
+            }
+            return this;
+        }
+
         public Builder withCachePath(Path cachePath) {
             if (cachePath != null) {
                 this.cachePath = cachePath;
@@ -303,6 +318,7 @@ public class Config {
                     jenkinsUpdateCenter,
                     jenkinsPluginVersions,
                     pluginHealthScore,
+                    pluginStatsInstallations,
                     cachePath,
                     mavenHome,
                     dryRun,
