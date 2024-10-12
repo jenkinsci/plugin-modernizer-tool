@@ -158,6 +158,12 @@ public class Main implements Runnable {
     public URL pluginHealthScore = Settings.DEFAULT_HEALTH_SCORE_URL;
 
     @Option(
+            names = "--jenkins-plugins-stats-installations-url",
+            description =
+                    "Sets the Jenkins stats top plugins URL; will override JENKINS_PLUGINS_STATS_INSTALLATIONS_URL environment variable. If not set via CLI option or environment variable, will use default Jenkins stats top plugins url.")
+    public URL jenkinsPluginsStatsInstallationsUrl = Settings.DEFAULT_PLUGINS_STATS_INSTALLATIONS_URL;
+
+    @Option(
             names = {"-c", "--cache-path"},
             description = "Path to the cache directory.")
     public Path cachePath = Settings.DEFAULT_CACHE_PATH;
@@ -193,6 +199,7 @@ public class Main implements Runnable {
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withJenkinsPluginVersions(jenkinsPluginVersions)
                 .withPluginHealthScore(pluginHealthScore)
+                .withPluginStatsInstallations(jenkinsPluginsStatsInstallationsUrl)
                 .withCachePath(
                         !cachePath.endsWith(Settings.CACHE_SUBDIR)
                                 ? cachePath.resolve(Settings.CACHE_SUBDIR)
