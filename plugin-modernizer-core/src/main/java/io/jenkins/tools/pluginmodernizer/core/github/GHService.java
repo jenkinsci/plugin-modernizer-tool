@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.transport.RefSpec;
@@ -559,10 +560,24 @@ public class GHService {
             return;
         }
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
+            git.getRepository().scanForRepoChanges();
             String commitMessage = TemplateUtils.renderCommitMessage(plugin, config.getRecipes());
             LOG.debug("Commit message: {}", commitMessage);
-            if (git.status().call().hasUncommittedChanges()) {
+            Status status = git.status().call();
+            if (status.hasUncommittedChanges()) {
+                LOG.debug("Changed files before commit: {}", status.getChanged());
+                LOG.debug("Untracked before commit: {}", status.getUntracked());
+                LOG.debug("Missing before commit {}", status.getMissing());
+                // Stage deleted file
+                for (String file : status.getMissing()) {
+                    git.rm().addFilepattern(file).call();
+                }
+                // Add the rest of the files
                 git.add().addFilepattern(".").call();
+                status = git.status().call();
+                LOG.debug("Added files after staging: {}", status.getAdded());
+                LOG.debug("Changed files to after staging: {}", status.getChanged());
+                LOG.debug("Removed files to after staging: {}", status.getRemoved());
                 GHUser user = getCurrentUser();
                 String email = getPrimaryEmail(user);
                 git.commit()
