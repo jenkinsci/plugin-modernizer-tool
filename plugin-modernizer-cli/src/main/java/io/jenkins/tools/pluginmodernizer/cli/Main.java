@@ -114,6 +114,11 @@ public class Main implements Runnable {
     public boolean skipPush;
 
     @Option(
+            names = {"--skip-build"},
+            description = "Skip building the plugins before and after modernization.")
+    public boolean skipBuild;
+
+    @Option(
             names = {"--skip-pull-request"},
             description = "Skip creating pull requests but pull changes to the fork. Always true if --dry-run is set.")
     public boolean skipPullRequest;
@@ -191,6 +196,7 @@ public class Main implements Runnable {
                 .withRecipes(recipes)
                 .withDryRun(dryRun)
                 .withSkipPush(skipPush)
+                .withSkipBuild(skipBuild)
                 .withSkipPullRequest(skipPullRequest)
                 .withDraft(draft)
                 .withRemoveLocalData(removeLocalData)
