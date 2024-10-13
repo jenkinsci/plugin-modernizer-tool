@@ -168,3 +168,14 @@ description: Convert JUnit 4 TestCase to JUnit Jupiter
 tags: ['tests']
 recipeList:
   - org.openrewrite.java.testing.junit5.MigrateJUnitTestCase
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.DeleteUpdateCliWorkflows
+displayName: Remove updatecli workflows
+description: Remove updatecli workflows
+tags: ['chore']
+recipeList:
+  - org.openrewrite.DeleteSourceFiles:
+      filePattern: .github/workflows/updatecli.yml
+  - org.openrewrite.DeleteSourceFiles:
+      filePattern: updatecli/**/*.yml
