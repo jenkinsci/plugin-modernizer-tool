@@ -64,6 +64,7 @@ public class PluginModernizer {
         LOG.debug("Cache Path: {}", config.getCachePath());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Skip Push: {}", config.isSkipPush());
+        LOG.debug("Skip Build: {}", config.isSkipBuild());
         LOG.debug("Skip Pull Request: {}", config.isSkipPullRequest());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
 
@@ -130,7 +131,12 @@ public class PluginModernizer {
                 }
             }
 
-            mavenInvoker.ensureMinimalBuild(plugin);
+            if (!config.isSkipBuild()) {
+                LOG.info("Ensuring minimal build for plugin {}", plugin.getName());
+                mavenInvoker.ensureMinimalBuild(plugin);
+            } else {
+                LOG.info("Skipping minimal build for plugin {}", plugin.getName());
+            }
             plugin.checkoutBranch(ghService);
 
             // Minimum JDK to run openrewrite
@@ -247,7 +253,11 @@ public class PluginModernizer {
         JDK jdk = JDK.min(metadata.getJdks());
         plugin.withJDK(jdk);
         plugin.clean(mavenInvoker);
-        plugin.compile(mavenInvoker);
+        if (!config.isSkipBuild()) {
+            plugin.compile(mavenInvoker);
+        } else {
+            LOG.info("Skipping build for plugin {}", plugin.getName());
+        }
         return jdk;
     }
 
@@ -280,7 +290,11 @@ public class PluginModernizer {
         plugin.withJDK(jdk);
         plugin.clean(mavenInvoker);
         plugin.format(mavenInvoker);
-        plugin.verify(mavenInvoker);
+        if (!config.isSkipBuild()) {
+            plugin.verify(mavenInvoker);
+        } else {
+            LOG.info("Skipping verification for plugin {}", plugin.getName());
+        }
         if (plugin.hasErrors()) {
             LOG.info("Plugin {} failed to verify with JDK {}", plugin.getName(), jdk.getMajor());
             plugin.withoutErrors();

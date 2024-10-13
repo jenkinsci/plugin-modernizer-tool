@@ -23,6 +23,7 @@ public class Config {
     private final Path mavenHome;
     private final boolean dryRun;
     private final boolean skipPush;
+    private final boolean skipBuild;
     private final boolean draft;
     private final boolean skipPullRequest;
     private final boolean removeLocalData;
@@ -49,6 +50,7 @@ public class Config {
             Path mavenHome,
             boolean dryRun,
             boolean skipPush,
+            boolean skipBuild,
             boolean draft,
             boolean skipPullRequest,
             boolean removeLocalData,
@@ -69,6 +71,7 @@ public class Config {
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
         this.skipPush = skipPush;
+        this.skipBuild = skipBuild;
         this.draft = draft;
         this.skipPullRequest = skipPullRequest;
         this.removeLocalData = removeLocalData;
@@ -156,6 +159,10 @@ public class Config {
         return skipPush;
     }
 
+    public boolean isSkipBuild() {
+        return skipBuild;
+    }
+
     public boolean isRemoveLocalData() {
         return removeLocalData;
     }
@@ -189,6 +196,7 @@ public class Config {
         private boolean dryRun = false;
         private boolean draft = false;
         private boolean skipPush = false;
+        private boolean skipBuild = false;
         private boolean skipPullRequest = false;
         private boolean exportDatatables = false;
         public boolean removeLocalData = false;
@@ -286,6 +294,11 @@ public class Config {
             return this;
         }
 
+        public Builder withSkipBuild(boolean skipBuild) {
+            this.skipBuild = skipBuild;
+            return this;
+        }
+
         public Builder withSkipPullRequest(boolean skipPullRequest) {
             this.skipPullRequest = skipPullRequest;
             return this;
@@ -323,6 +336,7 @@ public class Config {
                     mavenHome,
                     dryRun,
                     skipPush,
+                    skipBuild,
                     draft,
                     skipPullRequest,
                     removeLocalData,
