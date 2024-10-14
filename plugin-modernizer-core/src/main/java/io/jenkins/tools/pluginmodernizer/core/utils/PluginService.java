@@ -73,6 +73,20 @@ public class PluginService {
     }
 
     /**
+     * Retgurn if a plugin is for adoption
+     * @param plugin Plugin
+     * @return True if for adoption
+     */
+    public boolean isForAdoption(Plugin plugin) {
+        UpdateCenterData updateCenterData = getUpdateCenterData();
+        UpdateCenterData.UpdateCenterPlugin updateCenterPlugin =
+                updateCenterData.getPlugins().get(plugin.getName());
+        return updateCenterPlugin != null
+                && updateCenterPlugin.labels() != null
+                && updateCenterPlugin.labels().contains("adopt-this-plugin");
+    }
+
+    /**
      * Check if a plugin is an API plugin
      * @param plugin Plugin
      * @return True if API plugin

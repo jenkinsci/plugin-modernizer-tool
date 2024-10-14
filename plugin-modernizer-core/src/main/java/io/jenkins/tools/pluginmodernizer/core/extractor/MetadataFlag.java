@@ -88,6 +88,11 @@ public enum MetadataFlag {
     IS_DEPRECATED(null, (plugin, pluginService) -> pluginService.isDeprecated(plugin)),
 
     /**
+     * If the plugin is for adoption
+     */
+    IS_FOR_ADOPTION(null, (plugin, pluginService) -> pluginService.isForAdoption(plugin)),
+
+    /**
      * If the plugin has a max score (100 %)
      */
     HAS_MAX_SCORE(null, (plugin, pluginService) -> pluginService.hasMaxScore(plugin)),
