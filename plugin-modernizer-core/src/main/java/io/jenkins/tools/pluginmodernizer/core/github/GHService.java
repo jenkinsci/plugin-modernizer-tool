@@ -19,6 +19,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -391,6 +392,7 @@ public class GHService {
         }
         try {
             syncRepository(getRepositoryFork(plugin));
+            LOG.info("Synced the forked repository for plugin {}", plugin);
         } catch (IOException e) {
             plugin.addError("Failed to sync the repository", e);
         }
@@ -505,7 +507,15 @@ public class GHService {
                         .setMode(ResetCommand.ResetType.HARD)
                         .setRef("origin/" + defaultBranch)
                         .call();
-                git.pull().setRemote("origin").setRemoteBranchName(repository.getDefaultBranch());
+                Ref ref = git.checkout()
+                        .setCreateBranch(false)
+                        .setName(defaultBranch)
+                        .call();
+                git.pull()
+                        .setRemote("origin")
+                        .setRemoteBranchName(defaultBranch)
+                        .call();
+                LOG.info("Fetched repository from {} to branch {}", remoteUrl, ref.getName());
             } catch (IOException | URISyntaxException e) {
                 plugin.addError("Failed fetch repository", e);
             }
@@ -516,7 +526,7 @@ public class GHService {
                     .setURI(remoteUrl)
                     .setDirectory(plugin.getLocalRepository().toFile())
                     .call()) {
-                LOG.debug("Fetch successfully from {}", remoteUrl);
+                LOG.debug("Clone successfully from {}", remoteUrl);
             }
         }
     }
