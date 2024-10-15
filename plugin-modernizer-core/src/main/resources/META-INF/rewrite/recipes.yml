@@ -178,4 +178,6 @@ recipeList:
   - org.openrewrite.DeleteSourceFiles:
       filePattern: .github/workflows/updatecli.yml
   - org.openrewrite.DeleteSourceFiles:
+      filePattern: updatecli/values.yml
+  - org.openrewrite.DeleteSourceFiles:
       filePattern: updatecli/**/*.yml
