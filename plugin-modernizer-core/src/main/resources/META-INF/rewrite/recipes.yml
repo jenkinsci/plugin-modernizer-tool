@@ -181,3 +181,12 @@ recipeList:
       filePattern: updatecli/values.yml
   - org.openrewrite.DeleteSourceFiles:
       filePattern: updatecli/**/*.yml
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.AddJenkinsFile
+displayName: Add Jenkinsfile
+description: Updates Jenkinsfile to build with recommended Java versions, platforms, and settings., or creates the file is absent.
+tags: ['chore']
+recipeList:
+  - org.openrewrite.jenkins.ModernizeJenkinsfile
+  - io.jenkins.tools.pluginmodernizer.UpgradeNextMajorParentVersion
