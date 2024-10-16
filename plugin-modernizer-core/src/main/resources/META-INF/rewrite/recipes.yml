@@ -183,7 +183,7 @@ recipeList:
       filePattern: updatecli/**/*.yml
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: io.jenkins.tools.pluginmodernizer.AddJenkinsFile
+name: io.jenkins.tools.pluginmodernizer.AddOrModernizeJenkinsFile
 displayName: Add Jenkinsfile
 description: Updates Jenkinsfile to build with recommended Java versions, platforms, and settings., or creates the file is absent.
 tags: ['chore']
