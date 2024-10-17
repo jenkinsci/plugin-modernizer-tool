@@ -185,7 +185,7 @@ recipeList:
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddOrModernizeJenkinsFile
 displayName: Add Jenkinsfile
-description: Updates Jenkinsfile to build with recommended Java versions, platforms, and settings, or creates the file if absent.
+description: Updates Jenkinsfile to build with recommended Java versions, platforms, and settings, or creates the file if absent. Also upgrades to the next parent major version, as the new version of the Jenkinsfille uses JDK17 and JDK21.
 tags: ['chore']
 recipeList:
   - org.openrewrite.jenkins.ModernizeJenkinsfile
