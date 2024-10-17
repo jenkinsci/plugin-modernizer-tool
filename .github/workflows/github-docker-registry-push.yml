@@ -55,6 +55,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Install the right Maven version
+        uses: s4u/setup-maven-action@v1.15.0
+
       # Build the project with Maven and install dependencies in the Docker context
       - name: Build with Maven and install dependencies in the Docker context
         run: mvn clean install && cp -vraxu ~/.m2 .m2
