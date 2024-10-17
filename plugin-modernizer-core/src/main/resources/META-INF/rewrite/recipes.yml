@@ -190,3 +190,24 @@ tags: ['chore']
 recipeList:
   - org.openrewrite.jenkins.ModernizeJenkinsfile
   - io.jenkins.tools.pluginmodernizer.UpgradeParentVersion
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.AddDependencyCheck
+displayName: Add dependency check
+description: Adds a dependabot GitHub action to the plugin repository
+tags: ['chore']
+recipeList:
+  - org.openrewrite.text.CreateTextFile:
+      fileContents: |
+        version: 2
+        updates:
+        - package-ecosystem: maven
+          directory: /
+          schedule:
+            interval: monthly
+        - package-ecosystem: github-actions
+          directory: /
+          schedule:
+            interval: monthly
+      relativeFileName: .github/dependabot.yml
+      overwriteExisting: false
