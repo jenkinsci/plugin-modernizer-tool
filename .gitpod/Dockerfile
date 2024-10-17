@@ -9,7 +9,7 @@ FROM gitpod/workspace-java-17
 ENV JDK8_PACKAGE=8.0.422-tem
 ENV JDK11_PACKAGE=11.0.24-tem
 ENV JDK17_PACKAGE=17.0.12-tem
-ENV JDK21_PACKAGE=21.0.4-tem
+ENV JDK21_PACKAGE=21.0.5-tem
 
 # Update the package list and install Maven. Maven is required for building Java projects, including Jenkins plugins.
 # The `apt-get update` command updates the list of available packages and their versions, but it does not install or
