@@ -43,9 +43,13 @@ public enum PreconditionError {
                 }
             },
             plugin -> {
-                // TODO: Implement remediation function (See
-                // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
-                return false;
+                PomModifier pomModifier = new PomModifier(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                pomModifier.replaceHttpWithHttps();
+                pomModifier.savePom(
+                        plugin.getLocalRepository().resolve("pom.xml").toString());
+                plugin.withoutErrors();
+                return true;
             },
             "Found non-https repository URL in pom file preventing maven older than 3.8.1"),
 

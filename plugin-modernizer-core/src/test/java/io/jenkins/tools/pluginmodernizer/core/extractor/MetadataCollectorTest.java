@@ -8,6 +8,10 @@ import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.PreconditionError;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import org.intellij.lang.annotations.Language;
@@ -254,5 +258,18 @@ public class MetadataCollectorTest implements RewriteTest {
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
         Set<JDK> jdkVersion = pluginMetadata.getJdks();
         assertEquals(2, jdkVersion.size());
+    }
+
+    @Test
+    void testRemediationFunctionForMavenRepositoriesHttp() throws Exception {
+        Path tempPom = Files.createTempFile("test-pom", ".xml");
+        Files.writeString(tempPom, POM_XML.replace("https://repo.jenkins-ci.org/public/", "http://repo.jenkins-ci.org/public/"));
+
+        Plugin plugin = Plugin.build("test-plugin").withLocalRepository(tempPom.getParent());
+        PreconditionError.MAVEN_REPOSITORIES_HTTP.remediate(plugin);
+
+        String modifiedPom = Files.readString(tempPom);
+        assertTrue(modifiedPom.contains("https://repo.jenkins-ci.org/public/"));
+        assertFalse(modifiedPom.contains("http://repo.jenkins-ci.org/public/"));
     }
 }
