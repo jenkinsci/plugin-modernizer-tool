@@ -255,15 +255,17 @@ public class PomModifier {
      * @return false Always returns false, indicating that no specific condition is met.
      */
     public boolean replaceHttpWithHttps() {
+        boolean changedAtLeastOneUrl = false;
         NodeList repositoryUrls = document.getElementsByTagName("url");
         for (int i = 0; i < repositoryUrls.getLength(); i++) {
             Node urlNode = repositoryUrls.item(i);
             String url = urlNode.getTextContent();
             if (url.startsWith("http://")) {
                 urlNode.setTextContent(url.replace("http://", "https://"));
+                changedAtLeastOneUrl = true;
             }
         }
-        return false;
+        return changedAtLeastOneUrl;
     }
 
     /**
