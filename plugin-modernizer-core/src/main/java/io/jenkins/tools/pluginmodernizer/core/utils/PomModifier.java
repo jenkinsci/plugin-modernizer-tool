@@ -250,7 +250,7 @@ public class PomModifier {
     /**
      * Replaces 'http' with 'https' in repository URLs.
      * <p>
-     * This method iterates through all the <url> elements in the POM file and replaces
+     * This method iterates through all the url elements in the POM file and replaces
      * any URLs that start with 'http://' with 'https://'. This is useful for ensuring
      * that all repository URLs use a secure connection.
      *
