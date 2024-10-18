@@ -1,7 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -16,7 +15,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -94,14 +92,14 @@ public class PomModifier {
                             Node previousNode = childNodes.item(j);
                             if (previousNode.getNodeType() == Node.COMMENT_NODE
                                     || (previousNode.getNodeType() == Node.TEXT_NODE
-                                    && previousNode
-                                    .getTextContent()
-                                    .trim()
-                                    .startsWith("<!--"))
+                                            && previousNode
+                                                    .getTextContent()
+                                                    .trim()
+                                                    .startsWith("<!--"))
                                     || previousNode
-                                    .getTextContent()
-                                    .replaceAll("\\s+", "")
-                                    .isEmpty()) {
+                                            .getTextContent()
+                                            .replaceAll("\\s+", "")
+                                            .isEmpty()) {
                                 nodesToRemove.add(previousNode);
                                 j--;
                             } else {
