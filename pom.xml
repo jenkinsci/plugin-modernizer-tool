@@ -43,9 +43,9 @@
     <spotless.check.skip>false</spotless.check.skip>
 
     <!-- Version -->
-    <openrewrite.bom.version>2.21.0</openrewrite.bom.version>
+    <openrewrite.bom.version>2.22.0-SNAPSHOT</openrewrite.bom.version>
     <openrewrite.maven.plugin.version>5.42.2</openrewrite.maven.plugin.version>
-    <openrewrite.jenkins.version>0.14.1</openrewrite.jenkins.version>
+    <openrewrite.jenkins.version>0.15.0-SNAPSHOT</openrewrite.jenkins.version>
     <micrometer.version>1.13.6</micrometer.version>
     <slf4j.version>2.0.16</slf4j.version>
     <logback.version>1.5.11</logback.version>
@@ -285,6 +285,16 @@
     <repository>
       <id>repo.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>oss-snaphots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
 
