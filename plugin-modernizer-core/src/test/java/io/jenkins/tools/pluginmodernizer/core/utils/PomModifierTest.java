@@ -16,6 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Test class for PomModifier.
@@ -141,5 +143,29 @@ public class PomModifierTest {
                 .getTextContent();
         logger.info("Jenkins version found: " + jenkinsVersion);
         assertEquals("2.462.2", jenkinsVersion);
+    }
+
+    /**
+     * Tests the replaceHttpWithHttps method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
+    @Test
+    public void testReplaceHttpWithHttps() throws Exception {
+        PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
+        pomModifier.replaceHttpWithHttps();
+        pomModifier.savePom(OUTPUT_POM_PATH);
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(new File(OUTPUT_POM_PATH));
+        doc.getDocumentElement().normalize();
+
+        NodeList repositoryUrls = doc.getElementsByTagName("url");
+        for (int i = 0; i < repositoryUrls.getLength(); i++) {
+            Node urlNode = repositoryUrls.item(i);
+            String url = urlNode.getTextContent();
+            assertTrue(url.startsWith("https://"), "URL should start with https://");
+        }
     }
 }
