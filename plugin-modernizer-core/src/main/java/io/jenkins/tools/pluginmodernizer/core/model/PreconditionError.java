@@ -56,6 +56,7 @@ public enum PreconditionError {
                         return false;
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                     return false;
                 }
             },
