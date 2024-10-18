@@ -45,11 +45,19 @@ public enum PreconditionError {
             plugin -> {
                 PomModifier pomModifier = new PomModifier(
                         plugin.getLocalRepository().resolve("pom.xml").toString());
-                pomModifier.replaceHttpWithHttps();
-                pomModifier.savePom(
-                        plugin.getLocalRepository().resolve("pom.xml").toString());
-                plugin.withoutErrors();
-                return true;
+                try {
+                    boolean changed = pomModifier.replaceHttpWithHttps();
+                    if (changed) {
+                        pomModifier.savePom(
+                                plugin.getLocalRepository().resolve("pom.xml").toString());
+                        plugin.withoutErrors();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } catch (Exception e) {
+                    return false;
+                }
             },
             "Found non-https repository URL in pom file preventing maven older than 3.8.1"),
 
@@ -130,6 +138,7 @@ public enum PreconditionError {
 
     /**
      * Constructor
+     *
      * @param isApplicable Predicate to check if the flag is applicable for the given XML document
      */
     PreconditionError(
@@ -141,8 +150,9 @@ public enum PreconditionError {
 
     /**
      * Check if the flag is applicable for the given Document and XPath
+     *
      * @param Document the XML document
-     * @param xpath the XPath object
+     * @param xpath    the XPath object
      * @return true if the flag is applicable, false otherwise
      */
     public boolean isApplicable(Document Document, XPath xpath) {
@@ -151,6 +161,7 @@ public enum PreconditionError {
 
     /**
      * Remediate the error for the given plugin
+     *
      * @param plugin the plugin to remediate
      */
     public boolean remediate(Plugin plugin) {
@@ -159,6 +170,7 @@ public enum PreconditionError {
 
     /**
      * Get the error message
+     *
      * @return the error message
      */
     public String getError() {
