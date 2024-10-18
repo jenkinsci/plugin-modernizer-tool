@@ -246,6 +246,29 @@ public class PomModifier {
     }
 
     /**
+     * Replaces 'http' with 'https' in repository URLs.
+     * <p>
+     * This method iterates through all the url elements in the POM file and replaces
+     * any URLs that start with 'http://' with 'https://'. This is useful for ensuring
+     * that all repository URLs use a secure connection.
+     *
+     * @return false Always returns false, indicating that no specific condition is met.
+     */
+    public boolean replaceHttpWithHttps() {
+        boolean changedAtLeastOneUrl = false;
+        NodeList repositoryUrls = document.getElementsByTagName("url");
+        for (int i = 0; i < repositoryUrls.getLength(); i++) {
+            Node urlNode = repositoryUrls.item(i);
+            String url = urlNode.getTextContent();
+            if (url.startsWith("http://")) {
+                urlNode.setTextContent(url.replace("http://", "https://"));
+                changedAtLeastOneUrl = true;
+            }
+        }
+        return changedAtLeastOneUrl;
+    }
+
+    /**
      * Saves the modified POM file to the specified output path.
      *
      * @param outputPath the path to save the POM file
