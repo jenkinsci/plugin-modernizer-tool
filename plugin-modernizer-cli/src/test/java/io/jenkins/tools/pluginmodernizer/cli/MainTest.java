@@ -55,7 +55,7 @@ public class MainTest {
 
     @Test
     public void testGetPlugins() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata,MinimalBuildJava8"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata"};
         commandLine.execute(args);
 
         List<Plugin> plugins = main.setup().getPlugins();
@@ -67,39 +67,28 @@ public class MainTest {
 
     @Test
     public void testGetRecipes() {
-        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata,MinimalBuildJava8"};
+        String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata"};
         commandLine.execute(args);
 
         List<Recipe> recipes = main.setup().getRecipes();
         assertNotNull(recipes);
-        assertEquals(2, recipes.size());
+        assertEquals(1, recipes.size());
         assertEquals(
                 "io.jenkins.tools.pluginmodernizer.FetchMetadata",
                 recipes.get(0).getName());
-        assertEquals(
-                "io.jenkins.tools.pluginmodernizer.MinimalBuildJava8",
-                recipes.get(1).getName());
     }
 
     @Test
     public void testGetRecipesWithFQDN() {
-        String[] args = {
-            "-p",
-            "plugin1,plugin2",
-            "-r",
-            "io.jenkins.tools.pluginmodernizer.FetchMetadata,io.jenkins.tools.pluginmodernizer.MinimalBuildJava8"
-        };
+        String[] args = {"-p", "plugin1,plugin2", "-r", "io.jenkins.tools.pluginmodernizer.FetchMetadata"};
         commandLine.execute(args);
 
         List<Recipe> recipes = main.setup().getRecipes();
         assertNotNull(recipes);
-        assertEquals(2, recipes.size());
+        assertEquals(1, recipes.size());
         assertEquals(
                 "io.jenkins.tools.pluginmodernizer.FetchMetadata",
                 recipes.get(0).getName());
-        assertEquals(
-                "io.jenkins.tools.pluginmodernizer.MinimalBuildJava8",
-                recipes.get(1).getName());
     }
 
     @Test
