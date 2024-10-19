@@ -66,7 +66,7 @@
     <jte.version>3.1.13</jte.version>
     <snakeyaml.version>2.3</snakeyaml.version>
     <guice.version>7.0.0</guice.version>
-    <error.prone.version>2.33.0</error.prone.version>
+    <error.prone.version>2.34.0</error.prone.version>
     <checker.qual.version>3.48.1</checker.qual.version>
     <jakarta.inject.version>2.0.1</jakarta.inject.version>
     <jwt.version>0.12.6</jwt.version>
