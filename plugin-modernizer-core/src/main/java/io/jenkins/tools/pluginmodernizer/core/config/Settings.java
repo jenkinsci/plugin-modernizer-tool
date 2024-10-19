@@ -68,8 +68,6 @@ public class Settings {
 
     public static final Recipe FETCH_METADATA_RECIPE;
 
-    public static final Recipe MINIMAL_BUILD_JAVA_8_RECIPE;
-
     private Settings() {}
 
     static {
@@ -130,12 +128,6 @@ public class Settings {
                 .findFirst()
                 .orElseThrow(() ->
                         new ModernizerException("io.jenkins.tools.pluginmodernizer.FetchMetadata recipe not found"));
-
-        MINIMAL_BUILD_JAVA_8_RECIPE = AVAILABLE_RECIPES.stream()
-                .filter(recipe -> recipe.getName().equals("io.jenkins.tools.pluginmodernizer.MinimalBuildJava8"))
-                .findFirst()
-                .orElseThrow(() ->
-                        new ModernizerException("Could not find io.jenkins.tools.pluginmodernizer.MinimalBuildJava8"));
     }
 
     private static Path getDefaultMavenHome() {

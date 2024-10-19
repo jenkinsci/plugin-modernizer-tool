@@ -131,12 +131,6 @@ public class PluginModernizer {
                 }
             }
 
-            if (!config.isSkipBuild()) {
-                LOG.info("Ensuring minimal build for plugin {}", plugin.getName());
-                mavenInvoker.ensureMinimalBuild(plugin);
-            } else {
-                LOG.info("Skipping minimal build for plugin {}", plugin.getName());
-            }
             plugin.checkoutBranch(ghService);
 
             // Minimum JDK to run openrewrite
