@@ -54,6 +54,9 @@ public class AddJellyXmlDeclaration extends Recipe {
              */
             @Override
             public PlainText visitText(PlainText text, ExecutionContext executionContext) {
+                if (text == null || text.getSourcePath() == null) {
+                    return text;
+                }
                 if (text.getSourcePath().toString().endsWith(".jelly")) {
                     LOG.debug("Processing Jelly file: {}", text.getSourcePath());
                     String content = text.getText();
@@ -66,7 +69,8 @@ public class AddJellyXmlDeclaration extends Recipe {
                     String lineEnding = content.contains("\r\n") ? "\r\n" : "\n";
 
                     // Check for and handle malformed declarations
-                    if (content.trim().toLowerCase().startsWith("<?jelly") && !content.startsWith(JELLY_DECLARATION)) {
+                    if (content.trim().toLowerCase().matches("^<\\?jelly\\s+[^>]*>") && !content.startsWith(JELLY_DECLARATION)) {
+                        LOG.warn("Found malformed Jelly declaration in {}", text.getSourcePath());
                         LOG.debug("Adding missing declaration");
                         // Remove existing malformed declaration up to first line ending
                         content = content.substring(content.indexOf(lineEnding) + lineEnding.length());
