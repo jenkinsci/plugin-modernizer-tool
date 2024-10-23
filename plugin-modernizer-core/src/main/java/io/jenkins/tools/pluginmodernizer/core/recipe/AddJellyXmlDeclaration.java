@@ -43,7 +43,7 @@ public class AddJellyXmlDeclaration extends Recipe {
     @Override
     public PlainTextVisitor<ExecutionContext> getVisitor() {
         return new PlainTextVisitor<ExecutionContext>() {
-            private static final String JELLY_DECLARATION = "<?jelly escape-by-default='true'?>";
+            public static final String JELLY_DECLARATION = "<?jelly escape-by-default='true'?>";
 
             /**
              * Visits the text and adds the XML declaration if it is a Jelly file and the declaration is not already present.
