@@ -38,6 +38,8 @@ public class AddJellyXmlDeclaration extends Recipe {
     @Override
     public PlainTextVisitor<ExecutionContext> getVisitor() {
         return new PlainTextVisitor<ExecutionContext>() {
+            private static final String JELLY_DECLARATION = "<?jelly escape-by-default='true'?>";
+
             /**
              * Visits the text and adds the XML declaration if it is a Jelly file and the declaration is not already present.
              *
@@ -49,8 +51,20 @@ public class AddJellyXmlDeclaration extends Recipe {
             public PlainText visitText(PlainText text, ExecutionContext executionContext) {
                 if (text.getSourcePath().toString().endsWith(".jelly")) {
                     String content = text.getText();
-                    if (!content.startsWith("<?jelly escape-by-default='true'?>")) {
-                        content = "<?jelly escape-by-default='true'?>\n" + content;
+                    // Handle empty files
+                    if (content.trim().isEmpty()) {
+                        return text.withText(JELLY_DECLARATION);
+                    }
+                    // Detect line ending style
+                    String lineEnding = content.contains("\r\n") ? "\r\n" : "\n";
+
+                    // Check for and handle malformed declarations
+                    if (content.trim().toLowerCase().startsWith("<?jelly") && !content.startsWith(JELLY_DECLARATION)) {
+                        // Remove existing malformed declaration up to first line ending
+                        content = content.substring(content.indexOf(lineEnding) + lineEnding.length());
+                    } // Add declaration if missing
+                    if (!content.startsWith(JELLY_DECLARATION)) {
+                        content = JELLY_DECLARATION + lineEnding + content;
                         return text.withText(content);
                     }
                 }
