@@ -1,16 +1,9 @@
 package io.jenkins.tools.pluginmodernizer.core.recipe;
 
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.PlainTextVisitor;
 import org.openrewrite.Recipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.text.PlainText;
-import org.openrewrite.text.PlainTextParser;
 import org.openrewrite.text.PlainTextVisitor;
-import org.openrewrite.text.PlainText;
-
-import java.util.List;
 
 public class AddJellyXmlDeclaration extends Recipe {
 
@@ -25,7 +18,7 @@ public class AddJellyXmlDeclaration extends Recipe {
     }
 
     @Override
-    protected List<SourceFile> visit(List<SourceFile> before, ExecutionContext ctx) {
+    public PlainTextVisitor<ExecutionContext> getVisitor() {
         return new PlainTextVisitor<ExecutionContext>() {
             @Override
             public PlainText visitText(PlainText text, ExecutionContext executionContext) {
@@ -38,6 +31,6 @@ public class AddJellyXmlDeclaration extends Recipe {
                 }
                 return text;
             }
-        }.visit(before, ctx);
+        };
     }
 }
