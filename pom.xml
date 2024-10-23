@@ -61,12 +61,12 @@
     <jgit.version>7.0.0.202409031743-r</jgit.version>
     <github-api.version>1.326</github-api.version>
     <commons-compress.version>1.27.1</commons-compress.version>
-    <byte-buddy.version>1.15.5</byte-buddy.version>
-    <wiremock.version>3.9.1</wiremock.version>
+    <byte-buddy.version>1.15.7</byte-buddy.version>
+    <wiremock.version>3.9.2</wiremock.version>
     <jte.version>3.1.13</jte.version>
     <snakeyaml.version>2.3</snakeyaml.version>
     <guice.version>7.0.0</guice.version>
-    <error.prone.version>2.33.0</error.prone.version>
+    <error.prone.version>2.34.0</error.prone.version>
     <checker.qual.version>3.48.1</checker.qual.version>
     <jakarta.inject.version>2.0.1</jakarta.inject.version>
     <jwt.version>0.12.6</jwt.version>
