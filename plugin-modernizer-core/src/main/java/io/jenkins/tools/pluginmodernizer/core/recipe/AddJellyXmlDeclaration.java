@@ -1,14 +1,19 @@
 package io.jenkins.tools.pluginmodernizer.core.recipe;
 
+import io.jenkins.tools.pluginmodernizer.core.utils.PomModifier;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.text.PlainText;
 import org.openrewrite.text.PlainTextVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Recipe to add an XML declaration to Jelly files.
  */
 public class AddJellyXmlDeclaration extends Recipe {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AddJellyXmlDeclaration.class);
 
     /**
      * Returns the display name of the recipe.
@@ -50,9 +55,11 @@ public class AddJellyXmlDeclaration extends Recipe {
             @Override
             public PlainText visitText(PlainText text, ExecutionContext executionContext) {
                 if (text.getSourcePath().toString().endsWith(".jelly")) {
+                    LOG.debug("Processing Jelly file: {}", text.getSourcePath());
                     String content = text.getText();
                     // Handle empty files
                     if (content.trim().isEmpty()) {
+                        LOG.debug("Adding declaration to empty file");
                         return text.withText(JELLY_DECLARATION);
                     }
                     // Detect line ending style
@@ -60,10 +67,12 @@ public class AddJellyXmlDeclaration extends Recipe {
 
                     // Check for and handle malformed declarations
                     if (content.trim().toLowerCase().startsWith("<?jelly") && !content.startsWith(JELLY_DECLARATION)) {
+                        LOG.debug("Adding missing declaration");
                         // Remove existing malformed declaration up to first line ending
                         content = content.substring(content.indexOf(lineEnding) + lineEnding.length());
                     } // Add declaration if missing
                     if (!content.startsWith(JELLY_DECLARATION)) {
+                        LOG.debug("Declaration already present");
                         content = JELLY_DECLARATION + lineEnding + content;
                         return text.withText(content);
                     }
