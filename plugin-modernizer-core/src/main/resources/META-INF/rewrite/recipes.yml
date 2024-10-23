@@ -201,3 +201,11 @@ recipeList:
             interval: monthly
       relativeFileName: .github/dependabot.yml
       overwriteExisting: false
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.AddJellyXmlDeclaration
+displayName: Add XML declaration to Jelly files
+description: Ensure the XML declaration `<?jelly escape-by-default='true'?>` is present in all `.jelly` files.
+tags: ['chore']
+recipeList:
+  - io.jenkins.tools.pluginmodernizer.core.recipe.AddJellyXmlDeclaration
