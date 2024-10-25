@@ -46,7 +46,7 @@ public class AddJellyXmlDeclaration extends Recipe {
             public static final String JELLY_DECLARATION = "<?jelly escape-by-default='true'?>";
 
             /**
-             * Visits the text and adds the XML declaration if it is a Jelly file and the declaration is not already present.
+             * Visits the text and adds the XML declaration if it is a Jelly file, and the declaration is not yet present.
              *
              * @param text the text to visit
              * @param executionContext the execution context
