@@ -70,7 +70,7 @@
     <checker.qual.version>3.48.1</checker.qual.version>
     <jakarta.inject.version>2.0.1</jakarta.inject.version>
     <jwt.version>0.12.6</jwt.version>
-    <bouncycastle.version>1.78.1</bouncycastle.version>
+    <bouncycastle.version>1.79</bouncycastle.version>
   </properties>
 
   <dependencyManagement>
