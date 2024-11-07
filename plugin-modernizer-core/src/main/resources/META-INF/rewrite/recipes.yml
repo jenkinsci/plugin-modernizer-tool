@@ -47,7 +47,7 @@ recipeList:
   - io.jenkins.tools.pluginmodernizer.UpgradeToJava17
   - org.openrewrite.jenkins.UpgradeVersionProperty:
       key: jenkins.version
-      minimumVersion: 2.479 # To be adapted when the next LTS is released
+      minimumVersion: 2.479.1
   - org.openrewrite.maven.UpgradeParentVersion:
       groupId: org.jenkins-ci.plugins
       artifactId: plugin
