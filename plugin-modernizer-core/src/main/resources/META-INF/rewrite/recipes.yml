@@ -44,7 +44,6 @@ displayName: Upgrade to the next major parent version (5.X) requiring Jenkins 2.
 description: Upgrade to the next major parent version (5.X) requiring Jenkins 2.479 and Java 17
 tags: ['dependencies']
 recipeList:
-  - io.jenkins.tools.pluginmodernizer.UpgradeToJava17
   - org.openrewrite.jenkins.UpgradeVersionProperty:
       key: jenkins.version
       minimumVersion: 2.479.1
@@ -52,9 +51,13 @@ recipeList:
       groupId: org.jenkins-ci.plugins
       artifactId: plugin
       newVersion: 5.X
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.kohsuke.stapler.StaplerRequest
+      newFullyQualifiedTypeName: org.kohsuke.stapler.StaplerRequest2
   - io.jenkins.tools.pluginmodernizer.RemoveDependencyVersionOverride
   - org.openrewrite.maven.RemoveProperty: # Set by 5.x parent, ensure it's removed
       propertyName: maven.compiler.release
+  - io.jenkins.tools.pluginmodernizer.UpgradeToJava17
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeBomVersion
