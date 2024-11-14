@@ -4,5 +4,5 @@ github:
   username: "jenkins-infra-bot"
   token: "UPDATECLI_GITHUB_TOKEN"
   branch: "main"
-  owner: "jenkinsci"
+  owner: "jenkins-infra"
   repository: "plugin-modernizer-tool"
