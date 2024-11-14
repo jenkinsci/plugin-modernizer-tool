@@ -1,6 +1,5 @@
 package io.jenkins.tools.pluginmodernizer.core.recipe;
 
-import io.jenkins.tools.pluginmodernizer.core.utils.PomModifier;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.text.PlainText;
@@ -69,7 +68,8 @@ public class AddJellyXmlDeclaration extends Recipe {
                     String lineEnding = content.contains("\r\n") ? "\r\n" : "\n";
 
                     // Check for and handle malformed declarations
-                    if (content.trim().toLowerCase().matches("^<\\?jelly\\s+[^>]*>") && !content.startsWith(JELLY_DECLARATION)) {
+                    if (content.trim().toLowerCase().matches("^<\\?jelly\\s+[^>]*>")
+                            && !content.startsWith(JELLY_DECLARATION)) {
                         LOG.warn("Found malformed Jelly declaration in {}", text.getSourcePath());
                         LOG.debug("Adding missing declaration");
                         // Remove existing malformed declaration up to first line ending
