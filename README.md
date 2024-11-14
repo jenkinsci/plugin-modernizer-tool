@@ -8,7 +8,7 @@ Using OpenRewrite Recipes for Plugin Modernization or Automation Plugin Build Me
 [![Build Status](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main/badge/icon)](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main/)
 [![Coverage](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main/badge/icon?status=${instructionCoverage}&subject=coverage&color=${colorInstructionCoverage})](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main)
 [![LOC](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main/badge/icon?job=test&status=${lineOfCode}&subject=line%20of%20code&color=blue)](https://ci.jenkins.io/job/Tools/job/plugin-modernizer-tool/job/main)
-[![GitHub license](https://img.shields.io/github/license/jenkinsci/plugin-modernizer-tool)](https://github.com/jenkinsci/plugin-modernizer-tool/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/jenkins-infra/plugin-modernizer-tool)](https://github.com/jenkins-infra/plugin-modernizer-tool/blob/main/LICENSE)
 
 > [!Note]
 > This tool is currently in development and looking for contributors and early adopters. Please report any issues or feature requests on the GitHub repository.
@@ -221,7 +221,7 @@ docker run \
   -e GH_TOKEN=${GH_TOKEN} \
   -e GH_OWNER=${GH_OWNER} \
   -v $(pwd)/plugins.txt:/plugins.txt \
-  ghcr.io/jenkinsci/plugin-modernizer-tool:main \
+  ghcr.io/jenkins-infra/plugin-modernizer-tool:main \
   --plugin-file /plugins.txt --recipes AddPluginsBom,AddCodeOwner
 ```
 
@@ -230,7 +230,7 @@ docker run \
 - `-e GH_TOKEN=${GH_TOKEN}`: Passes the GitHub token as an environment variable.
 - `-e GH_OWNER=${GH_OWNER}`: Passes the GitHub owner as an environment variable.
 - `-v $(pwd)/plugins.txt:/plugins.txt`: Mounts the plugins.txt file from the current directory to the Docker container.
-- `ghcr.io/jenkinsci/plugin-modernizer-tool:main`: Specifies the Docker image to use.
+- `ghcr.io/jenkins-infra/plugin-modernizer-tool:main`: Specifies the Docker image to use.
 - `--plugin-file /plugins.txt`: Specifies the path to the plugin file inside the Docker container.
 - `--recipes AddPluginsBom,AddCodeOwner`: Specifies the recipes to apply.
 
