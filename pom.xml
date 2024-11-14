@@ -14,7 +14,7 @@
   <version>${changelist}</version>
   <packaging>pom</packaging>
   <name>Plugin Modernizer Parent</name>
-  <url>https://github.com/jenkinsci/plugin-modernizer-tool</url>
+  <url>https://github.com/jenkins-infra/plugin-modernizer-tool</url>
 
   <licenses>
     <license>
@@ -38,7 +38,7 @@
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <changelist>999999-SNAPSHOT</changelist>
-    <gitHubRepo>jenkinsci/plugin-modernizer-tool</gitHubRepo>
+    <gitHubRepo>jenkins-infra/plugin-modernizer-tool</gitHubRepo>
 
     <spotless.check.skip>false</spotless.check.skip>
 

@@ -5,7 +5,7 @@
 @param List<Recipe> recipes
 Hello `${plugin.getName()}` developers!
 
-This is an automated pull request created by the [Jenkins Plugin Modernizer](https://github.com/jenkinsci/plugin-modernizer-tool) tool. The tool has applied the following recipes to modernize the plugin:
+This is an automated pull request created by the [Jenkins Plugin Modernizer](https://github.com/jenkins-infra/plugin-modernizer-tool) tool. The tool has applied the following recipes to modernize the plugin:
 @for(var recipe : recipes)
 <details>
     <summary>${recipe.getDisplayName()}</summary>
