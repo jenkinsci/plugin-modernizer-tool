@@ -43,7 +43,7 @@
     <spotless.check.skip>false</spotless.check.skip>
 
     <!-- Version -->
-    <openrewrite.bom.version>2.21.1</openrewrite.bom.version>
+    <openrewrite.bom.version>2.22.0</openrewrite.bom.version>
     <openrewrite.maven.plugin.version>5.45.0</openrewrite.maven.plugin.version>
     <openrewrite.jenkins.version>0.17.0</openrewrite.jenkins.version>
     <micrometer.version>1.14.0</micrometer.version>
@@ -61,6 +61,7 @@
     <jgit.version>7.0.0.202409031743-r</jgit.version>
     <github-api.version>1.326</github-api.version>
     <commons-compress.version>1.27.1</commons-compress.version>
+    <guava.version>33.3.1-jre</guava.version>
     <byte-buddy.version>1.15.10</byte-buddy.version>
     <wiremock.version>3.9.2</wiremock.version>
     <jte.version>3.1.14</jte.version>
@@ -110,6 +111,11 @@
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
         <version>${error.prone.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>${guava.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject</groupId>
