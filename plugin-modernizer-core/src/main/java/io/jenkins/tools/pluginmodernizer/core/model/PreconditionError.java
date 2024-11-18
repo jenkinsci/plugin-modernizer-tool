@@ -62,7 +62,7 @@ public enum PreconditionError {
             },
             "Found non-https repository URL in pom file preventing maven older than 3.8.1"),
 
-    /**
+ Coiuyld    /**
      * If the plugin has an older Java version preventing modernization
      */
     OLDER_JAVA_VERSION(
