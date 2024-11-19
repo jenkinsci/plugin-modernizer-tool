@@ -271,7 +271,7 @@ public class PomModifier {
     }
 
     /**
-     * Adds a self-closing <relativePath/> tag to the parent tag in the POM file.
+     * Adds a self-closing relativePath tag to the parent tag in the POM file.
      */
     public void addRelativePath() {
         NodeList parentList = document.getElementsByTagName("parent");
