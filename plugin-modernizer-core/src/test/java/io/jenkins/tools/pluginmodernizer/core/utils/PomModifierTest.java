@@ -168,4 +168,26 @@ public class PomModifierTest {
             assertTrue(url.startsWith("https://"), "URL should start with https://");
         }
     }
+
+    /**
+     * Tests the addRelativePath method of PomModifier.
+     *
+     * @throws Exception if an error occurs during the test
+     */
+    @Test
+    public void testAddRelativePath() throws Exception {
+        PomModifier pomModifier = new PomModifier(OUTPUT_POM_PATH);
+        pomModifier.addRelativePath();
+        pomModifier.savePom(OUTPUT_POM_PATH);
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(new File(OUTPUT_POM_PATH));
+        doc.getDocumentElement().normalize();
+
+        NodeList relativePathList = doc.getElementsByTagName("relativePath");
+        assertEquals(1, relativePathList.getLength(), "There should be one relativePath element");
+        Node relativePathNode = relativePathList.item(0);
+        assertTrue(relativePathNode.getTextContent().isEmpty(), "The relativePath element should be self-closing");
+    }
 }

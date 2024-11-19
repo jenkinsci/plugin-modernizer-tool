@@ -269,6 +269,30 @@ public class PomModifier {
     }
 
     /**
+     * Adds a self-closing <relativePath/> tag to the parent tag in the POM file.
+     */
+    public void addRelativePath() {
+        NodeList parentList = document.getElementsByTagName("parent");
+        if (parentList.getLength() > 0) {
+            Node parentNode = parentList.item(0);
+            NodeList childNodes = parentNode.getChildNodes();
+            boolean relativePathExists = false;
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                Node node = childNodes.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE
+                        && node.getNodeName().equals("relativePath")) {
+                    relativePathExists = true;
+                    break;
+                }
+            }
+            if (!relativePathExists) {
+                Element relativePathElement = document.createElement("relativePath");
+                parentNode.appendChild(relativePathElement);
+            }
+        }
+    }
+
+    /**
      * Saves the modified POM file to the specified output path.
      *
      * @param outputPath the path to save the POM file
