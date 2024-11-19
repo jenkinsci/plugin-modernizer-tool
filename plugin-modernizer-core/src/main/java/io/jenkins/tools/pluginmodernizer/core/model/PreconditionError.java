@@ -115,13 +115,18 @@ public enum PreconditionError {
                 }
             },
             plugin -> {
-                PomModifier pomModifier = new PomModifier(
-                        plugin.getLocalRepository().resolve("pom.xml").toString());
-                pomModifier.addRelativePath();
-                pomModifier.savePom(
-                        plugin.getLocalRepository().resolve("pom.xml").toString());
-                plugin.withoutErrors();
-                return true;
+                try {
+                    PomModifier pomModifier = new PomModifier(
+                            plugin.getLocalRepository().resolve("pom.xml").toString());
+                    pomModifier.addRelativePath();
+                    pomModifier.savePom(
+                            plugin.getLocalRepository().resolve("pom.xml").toString());
+                    plugin.withoutErrors();
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
             },
             "Missing relative path in pom file preventing parent download");
 

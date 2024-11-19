@@ -303,8 +303,10 @@ public class PomModifier {
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             transformerFactory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
+            transformerFactory.setAttribute("indent-number", 2);
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             DOMSource source = new DOMSource(document);
             StreamResult result = new StreamResult(new File(outputPath));
             transformer.transform(source, result);
