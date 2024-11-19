@@ -115,9 +115,18 @@ public enum PreconditionError {
                 }
             },
             plugin -> {
-                // TODO: Implement remediation function (See
-                // https://github.com/jenkinsci/plugin-modernizer-tool/pull/307)
-                return false;
+                try {
+                    PomModifier pomModifier = new PomModifier(
+                            plugin.getLocalRepository().resolve("pom.xml").toString());
+                    pomModifier.addRelativePath();
+                    pomModifier.savePom(
+                            plugin.getLocalRepository().resolve("pom.xml").toString());
+                    plugin.withoutErrors();
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
             },
             "Missing relative path in pom file preventing parent download");
 
