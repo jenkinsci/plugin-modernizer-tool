@@ -53,6 +53,8 @@ public class PomModifier {
             dbFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             dbFactory.setXIncludeAware(false);
             dbFactory.setExpandEntityReferences(false);
+            // Ignore whitespace
+            dbFactory.setIgnoringElementContentWhitespace(true);
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             document = dBuilder.parse(pomFile);
             document.getDocumentElement().normalize();
