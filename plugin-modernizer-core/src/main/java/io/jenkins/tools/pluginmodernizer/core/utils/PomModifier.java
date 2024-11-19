@@ -275,7 +275,12 @@ public class PomModifier {
      */
     public void addRelativePath() {
         NodeList parentList = document.getElementsByTagName("parent");
-        if (parentList.getLength() > 0) {
+        if (parentList.getLength() == 0) {
+            LOG.warn("No parent tag found in POM file");
+            return;
+        }
+
+        try {
             Node parentNode = parentList.item(0);
             NodeList childNodes = parentNode.getChildNodes();
             boolean relativePathExists = false;
@@ -284,13 +289,18 @@ public class PomModifier {
                 if (node.getNodeType() == Node.ELEMENT_NODE
                         && node.getNodeName().equals("relativePath")) {
                     relativePathExists = true;
+                    LOG.debug("relativePath tag already exists");
                     break;
                 }
             }
             if (!relativePathExists) {
                 Element relativePathElement = document.createElement("relativePath");
                 parentNode.appendChild(relativePathElement);
+                LOG.debug("Added relativePath tag to parent");
             }
+        } catch (Exception e) {
+            LOG.error("Error adding relativePath tag: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to add relativePath tag", e);
         }
     }
 
