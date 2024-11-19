@@ -53,6 +53,8 @@ public class PomModifier {
             dbFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             dbFactory.setXIncludeAware(false);
             dbFactory.setExpandEntityReferences(false);
+            // Ignore whitespace
+            dbFactory.setIgnoringElementContentWhitespace(true);
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             document = dBuilder.parse(pomFile);
             document.getDocumentElement().normalize();
@@ -269,6 +271,40 @@ public class PomModifier {
     }
 
     /**
+     * Adds a self-closing relativePath tag to the parent tag in the POM file.
+     */
+    public void addRelativePath() {
+        NodeList parentList = document.getElementsByTagName("parent");
+        if (parentList.getLength() == 0) {
+            LOG.warn("No parent tag found in POM file");
+            return;
+        }
+
+        try {
+            Node parentNode = parentList.item(0);
+            NodeList childNodes = parentNode.getChildNodes();
+            boolean relativePathExists = false;
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                Node node = childNodes.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE
+                        && node.getNodeName().equals("relativePath")) {
+                    relativePathExists = true;
+                    LOG.debug("relativePath tag already exists");
+                    break;
+                }
+            }
+            if (!relativePathExists) {
+                Element relativePathElement = document.createElement("relativePath");
+                parentNode.appendChild(relativePathElement);
+                LOG.debug("Added relativePath tag to parent");
+            }
+        } catch (Exception e) {
+            LOG.error("Error adding relativePath tag: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to add relativePath tag", e);
+        }
+    }
+
+    /**
      * Saves the modified POM file to the specified output path.
      *
      * @param outputPath the path to save the POM file
@@ -279,8 +315,10 @@ public class PomModifier {
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             transformerFactory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
+            transformerFactory.setAttribute("indent-number", 2);
             Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             DOMSource source = new DOMSource(document);
             StreamResult result = new StreamResult(new File(outputPath));
             transformer.transform(source, result);
