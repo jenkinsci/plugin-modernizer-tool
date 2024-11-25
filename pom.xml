@@ -44,13 +44,13 @@
 
     <!-- Version -->
     <openrewrite.bom.version>2.22.0</openrewrite.bom.version>
-    <openrewrite.maven.plugin.version>5.45.0</openrewrite.maven.plugin.version>
+    <openrewrite.maven.plugin.version>5.45.1</openrewrite.maven.plugin.version>
     <openrewrite.jenkins.version>0.17.0</openrewrite.jenkins.version>
     <micrometer.version>1.14.1</micrometer.version>
     <slf4j.version>2.0.16</slf4j.version>
     <logback.version>1.5.12</logback.version>
     <picocli.version>4.7.6</picocli.version>
-    <common.io.version>2.17.0</common.io.version>
+    <common.io.version>2.18.0</common.io.version>
     <common.lang3.version>3.17.0</common.lang3.version>
     <common.text.version>1.12.0</common.text.version>
     <asm.version>9.7.1</asm.version>
@@ -64,10 +64,10 @@
     <guava.version>33.3.1-jre</guava.version>
     <byte-buddy.version>1.15.10</byte-buddy.version>
     <wiremock.version>3.9.2</wiremock.version>
-    <jte.version>3.1.14</jte.version>
+    <jte.version>3.1.15</jte.version>
     <snakeyaml.version>2.3</snakeyaml.version>
     <guice.version>7.0.0</guice.version>
-    <error.prone.version>2.35.1</error.prone.version>
+    <error.prone.version>2.36.0</error.prone.version>
     <checker.qual.version>3.48.2</checker.qual.version>
     <jakarta.inject.version>2.0.1</jakarta.inject.version>
     <jwt.version>0.12.6</jwt.version>
