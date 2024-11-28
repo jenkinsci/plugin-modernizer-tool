@@ -58,7 +58,7 @@
     <jackson.version>2.18.1</jackson.version>
     <maven.version>3.9.9</maven.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    <jgit.version>7.0.0.202409031743-r</jgit.version>
+    <jgit.version>7.1.0.202411261347-r</jgit.version>
     <github-api.version>1.326</github-api.version>
     <commons-compress.version>1.27.1</commons-compress.version>
     <guava.version>33.3.1-jre</guava.version>
