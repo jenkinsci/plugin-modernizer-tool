@@ -55,7 +55,7 @@
     <common.text.version>1.12.0</common.text.version>
     <asm.version>9.7.1</asm.version>
     <gson.version>2.11.0</gson.version>
-    <jackson.version>2.18.1</jackson.version>
+    <jackson.version>2.18.2</jackson.version>
     <maven.version>3.9.9</maven.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jgit.version>7.1.0.202411261347-r</jgit.version>
