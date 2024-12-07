@@ -59,6 +59,15 @@
       </resource>
     </resources>
     <plugins>
+      <!-- We don't want to deploy the CLI to Jenkins Artifactory (It's huge fat jar of ~100Mib). We only need the parent pom and core for recipes -->
+      <!-- The CLI is distributed via JRelease and published on the GitHub releases page -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
