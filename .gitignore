@@ -42,3 +42,7 @@ build/
 
 ### ENV ###
 .env
+
+### JReleaser ###
+*.log
+out

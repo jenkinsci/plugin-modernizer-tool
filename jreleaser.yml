@@ -1,0 +1,37 @@
+project:
+  name: plugin-modernizer-tool
+  description: Plugin Modernizer Tool
+  versionPattern: CUSTOM
+  longDescription: Plugin Modernizer Tool
+  authors:
+    - Jenkins Project
+  license: MIT
+  links:
+    homepage: https://github.com/jenkins-infra/plugin-modernizer-tool
+  java:
+    groupId: io.jenkins.plugin-modernizer
+    version: 17
+  inceptionYear: 2024
+
+release:
+  github:
+    enabled: true
+    owner: jonesbusy
+    overwrite: false
+    tagName: "{{projectVersion}}"
+    releaseName: "{{tagName}}"
+    changelog:
+      enabled: false
+    milestone:
+      close: false
+    update:
+      enabled: true
+    uploadAssets: RELEASE
+
+distributions:
+  plugin-modernizer-cli:
+    active: RELEASE
+    type: SINGLE_JAR
+    stereotype: CLI
+    artifacts:
+      - path: plugin-modernizer-cli/target/jenkins-plugin-modernizer-{{projectVersion}}.jar
