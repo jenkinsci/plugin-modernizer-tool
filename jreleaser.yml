@@ -16,7 +16,7 @@ project:
 release:
   github:
     enabled: true
-    owner: jonesbusy
+    owner: jenkins-infra
     overwrite: false
     tagName: "{{projectVersion}}"
     releaseName: "{{tagName}}"
