@@ -1,4 +1,4 @@
-name: jrelease
+name: jreleaser
 
 on:
   push:
@@ -44,15 +44,24 @@ jobs:
         id: build
         run: |
           export MAVEN_OPTS=-Djansi.force=true
-          mvn -B -V -e -s $GITHUB_ACTION_PATH/settings.xml -ntp -Dstyle.color=always -Dset.changelist -Pquick-build -P\!consume-incrementals clean package
+          mvn -B -V -e -ntp -Dstyle.color=always -Dset.changelist -Pquick-build -P\!consume-incrementals clean package
           VERSION=$(mvn -q -Dset.changelist -Dignore.dirt -DforceStdout org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version)
           echo "VERSION=$VERSION"
-          echo "version=$VERSION" >> $GITHUB_STATE
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Run JReleaser
         with:
           arguments: release
         uses: jreleaser/release-action@v2
         env:
-          JJRELEASER_PROJECT_VERSION: ${{ state.version }}
+          JRELEASER_PROJECT_VERSION: ${{ steps.build.outputs.version }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: JReleaser release output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jreleaser-release
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties
