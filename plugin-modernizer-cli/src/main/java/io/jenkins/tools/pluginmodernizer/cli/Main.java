@@ -10,6 +10,7 @@ import io.jenkins.tools.pluginmodernizer.core.utils.PluginService;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.openrewrite.Recipe;
 import org.slf4j.Logger;
@@ -38,12 +39,15 @@ public class Main implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main(final String[] args) {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                LOG.info("Plugin Modernizer finished.");
-            }
-        });
+        // Don't show the shutdown message for some args
+        if (!Arrays.asList(args).contains("--version")
+                && !Arrays.asList(args).contains("-v")
+                && !Arrays.asList(args).contains("--list-recipes")
+                && !Arrays.asList(args).contains("-l")
+                && !Arrays.asList(args).contains("--help")
+                && !Arrays.asList(args).contains("-h")) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> LOG.info("Plugin Modernizer finished.")));
+        }
         new CommandLine(new Main()).setOptionsCaseInsensitive(true).execute(args);
     }
 
@@ -224,7 +228,6 @@ public class Main implements Runnable {
     }
 
     public void listAvailableRecipes() {
-        LOG.info("Available recipes:");
         // Strip the FQDN prefix from the recipe name
         Settings.AVAILABLE_RECIPES.forEach(recipe -> LOG.info(
                 "{} - {}",

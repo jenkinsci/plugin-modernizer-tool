@@ -260,7 +260,6 @@ public class MainTest {
         commandLine.execute(args);
         assertTrue(main.listRecipes);
         main.run();
-        assertTrue(outputStream.toString().contains("Available recipes:"));
     }
 
     @Test
