@@ -70,12 +70,9 @@ public class MainTest {
         String[] args = {"-p", "plugin1,plugin2", "-r", "FetchMetadata"};
         commandLine.execute(args);
 
-        List<Recipe> recipes = main.setup().getRecipes();
-        assertNotNull(recipes);
-        assertEquals(1, recipes.size());
-        assertEquals(
-                "io.jenkins.tools.pluginmodernizer.FetchMetadata",
-                recipes.get(0).getName());
+        Recipe recipe = main.setup().getRecipe();
+        assertNotNull(recipe);
+        assertEquals("io.jenkins.tools.pluginmodernizer.FetchMetadata", recipe.getName());
     }
 
     @Test
@@ -83,12 +80,9 @@ public class MainTest {
         String[] args = {"-p", "plugin1,plugin2", "-r", "io.jenkins.tools.pluginmodernizer.FetchMetadata"};
         commandLine.execute(args);
 
-        List<Recipe> recipes = main.setup().getRecipes();
-        assertNotNull(recipes);
-        assertEquals(1, recipes.size());
-        assertEquals(
-                "io.jenkins.tools.pluginmodernizer.FetchMetadata",
-                recipes.get(0).getName());
+        Recipe recipe = main.setup().getRecipe();
+        assertNotNull(recipe);
+        assertEquals("io.jenkins.tools.pluginmodernizer.FetchMetadata", recipe.getName());
     }
 
     @Test
@@ -163,32 +157,14 @@ public class MainTest {
 
     @Test
     public void testSkipPullRequestOptions() throws IOException {
-        String[] args = {
-            "-p",
-            "plugin1,plugin2",
-            "-r",
-            "FetchMetadata",
-            "--skip-push",
-            "--recipes",
-            "FetchMetadata",
-            "--skip-pull-request"
-        };
+        String[] args = {"-p", "plugin1,plugin2", "--skip-push", "--recipe", "FetchMetadata", "--skip-pull-request"};
         commandLine.execute(args);
         assertTrue(main.setup().isSkipPullRequest());
     }
 
     @Test
     public void testCleanLocalData() throws IOException {
-        String[] args = {
-            "-p",
-            "plugin1,plugin2",
-            "-r",
-            "FetchMetadata",
-            "--skip-push",
-            "--recipes",
-            "FetchMetadata",
-            "--clean-local-data"
-        };
+        String[] args = {"-p", "plugin1,plugin2", "--skip-push", "--recipe", "FetchMetadata", "--clean-local-data"};
         commandLine.execute(args);
         assertTrue(main.setup().isRemoveLocalData());
     }

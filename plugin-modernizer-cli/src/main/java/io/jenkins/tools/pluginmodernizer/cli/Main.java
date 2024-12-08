@@ -72,12 +72,11 @@ public class Main implements Runnable {
     private PluginOptions pluginOptions;
 
     @Option(
-            names = {"-r", "--recipes"},
+            names = {"-r", "--recipe"},
             required = true,
-            description = "List of Recipes to be applied.",
-            split = ",",
+            description = "Recipe to be applied.",
             converter = RecipeConverter.class)
-    private List<Recipe> recipes;
+    private Recipe recipe;
 
     @Option(
             names = {"-g", "--github-owner"},
@@ -197,7 +196,7 @@ public class Main implements Runnable {
                 .withGitHubAppSourceInstallationId(githubAppSourceInstallationId)
                 .withGitHubAppTargetInstallationId(githubAppTargetInstallationId)
                 .withPlugins(pluginOptions != null ? pluginOptions.plugins : new ArrayList<>())
-                .withRecipes(recipes)
+                .withRecipe(recipe)
                 .withDryRun(dryRun)
                 .withSkipPush(skipPush)
                 .withSkipBuild(skipBuild)
