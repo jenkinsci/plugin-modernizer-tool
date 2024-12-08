@@ -56,7 +56,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Install the right Maven version
-        uses: s4u/setup-maven-action@v1.16.0
+        uses: s4u/setup-maven-action@v1.17.0
 
       # Build the project with Maven and install dependencies in the Docker context
       - name: Build with Maven and install dependencies in the Docker context
