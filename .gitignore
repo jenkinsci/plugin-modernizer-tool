@@ -46,3 +46,4 @@ build/
 ### JReleaser ###
 *.log
 out
+results

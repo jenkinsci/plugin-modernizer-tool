@@ -28,9 +28,25 @@ release:
     uploadAssets: RELEASE
 
 distributions:
-  plugin-modernizer-cli:
+  plugin-modernizer:
     active: RELEASE
     type: SINGLE_JAR
     stereotype: CLI
     artifacts:
-      - path: plugin-modernizer-cli/target/jenkins-plugin-modernizer-{{projectVersion}}.jar
+      - path: "{{distributionName}}-cli/target/jenkins-plugin-modernizer-{{projectVersion}}.jar"
+
+packagers:
+  brew:
+    active: RELEASE
+    templateDirectory: homebrew
+    formulaName: PluginModernizer
+    repository:
+      active: RELEASE
+      owner: jonesbusy
+      name: homebrew-tap
+      tagName: '{{distributionName}}-{{tagName}}'
+    extraProperties:
+      skipLicenseFile: true
+    skipTemplates:
+      - cask.rb.tpl
+      - README.md.tpl
