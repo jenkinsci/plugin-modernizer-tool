@@ -10,10 +10,18 @@ public class PomVersionProvider implements CommandLine.IVersionProvider {
 
     @Override
     public String[] getVersion() throws Exception {
-        return new String[] {getVersionFromProperties()};
+        return new String[] {
+            "plugin modernizer %s (%s)".formatted(getValue("project.version"), getValue("build.timestamp")),
+        };
     }
 
-    private String getVersionFromProperties() throws IOException {
+    /**
+     * Get a value from the pom.properties file
+     * @param property the property to get
+     * @return the value of the property
+     * @throws IOException if the file is not found
+     */
+    private String getValue(String property) throws IOException {
         Properties properties = new Properties();
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("pom.properties")) {
             if (input == null) {
@@ -22,11 +30,11 @@ public class PomVersionProvider implements CommandLine.IVersionProvider {
             properties.load(input);
         }
 
-        String version = properties.getProperty("project.version");
-        if (version == null || version.isEmpty()) {
-            throw new ModernizerException("Version not found in pom.properties");
+        String value = properties.getProperty(property);
+        if (value == null || value.isEmpty()) {
+            throw new ModernizerException("%s not found in pom.properties".formatted(property));
         }
 
-        return version;
+        return value;
     }
 }
