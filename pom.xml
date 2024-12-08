@@ -10,7 +10,7 @@
   </parent>
 
   <groupId>io.jenkins.plugin-modernizer</groupId>
-  <artifactId>plugin-modernizer-parent-pom</artifactId>
+  <artifactId>plugin-modernizer-pom</artifactId>
   <version>${changelist}</version>
   <packaging>pom</packaging>
   <name>Plugin Modernizer Parent</name>
