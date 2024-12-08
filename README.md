@@ -100,7 +100,7 @@ To activate app authentication, just set the following CLI argument
 ## CLI Options
 - `--plugins` or `-p`: (optional) Name(s) of plugin directory cloned inside the `test-plugins` directory.
 
-- `--recipes` or `-r`: (required) Name(s) of recipes to apply to the plugins.
+- `--recipe` or `-r`: (required) Name of recipe to apply to the plugins.
 
 - `--plugin-file` or `-f`: (optional) Path to the text file that contains a list of plugins. (see example [plugin file](docs/example-plugins.txt))
 
@@ -143,7 +143,7 @@ Plugins can be passed to the CLI tool in two ways:
 Pass the plugin names directly using the `-p` or `--plugins option`. The expected input format for plugins is `artifact ID`.
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipes AddPluginsBom,AddCodeOwner
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom
 ```
 Here, `git`, `git-client`, and `jobcacher` are plugin artifact IDs (also known as plugin names), while `AddPluginsBom` and `AddCodeOwners` are recipe names. For more details about available recipes, refer to the [recipe_data.yaml](plugin-modernizer-core/src/main/resources/recipe_data.yaml) file.
 
@@ -153,7 +153,7 @@ Pass the path to a file that contains plugin names. The expected input format fo
 See example [plugin file](docs/example-plugins.txt)
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugin-file path/to/plugin-file --recipes AddPluginsBom,AddCodeOwner
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugin-file path/to/plugin-file --recipe AddPluginsBom
 ```
 
 ## Configuring Environmental Variables
@@ -172,14 +172,14 @@ java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT
 ### without dry-run
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipes AddPluginsBom,AddCodeOwner
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom
 ```
 The above command creates pull requests in the respective remote repositories after applying the changes.
 
 ### with dry-run
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipes AddPluginsBom,AddCodeOwner --dry-run
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom --dry-run
 ```
 
 The above command generates patch files instead of applying changes directly. These patch files are saved in `/target/rewrite/rewrite.patch` inside each plugin directory. No pull requests will be created.
@@ -190,7 +190,7 @@ The above command generates patch files instead of applying changes directly. Th
 ### with export-datatables
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipes AddPluginsBom,AddCodeOwner --export-datatables
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom --export-datatables
 ```
 
 The above command creates a report of the changes made through OpenRewrite in csv format. The report will be generated in `target/rewrite/datatables` inside the plugin directory.
@@ -222,7 +222,7 @@ docker run \
   -e GH_OWNER=${GH_OWNER} \
   -v $(pwd)/plugins.txt:/plugins.txt \
   ghcr.io/jenkins-infra/plugin-modernizer-tool:main \
-  --plugin-file /plugins.txt --recipes AddPluginsBom,AddCodeOwner
+  --plugin-file /plugins.txt --recipe AddCodeOwner
 ```
 
 ### Explanation
@@ -232,7 +232,7 @@ docker run \
 - `-v $(pwd)/plugins.txt:/plugins.txt`: Mounts the plugins.txt file from the current directory to the Docker container.
 - `ghcr.io/jenkins-infra/plugin-modernizer-tool:main`: Specifies the Docker image to use.
 - `--plugin-file /plugins.txt`: Specifies the path to the plugin file inside the Docker container.
-- `--recipes AddPluginsBom,AddCodeOwner`: Specifies the recipes to apply.
+- `--recipe AddPluginsBom,`: Specifies the recipe to apply.
 
 This command will run the Plugin Modernizer Tool inside the Docker container using the specified environment variables and plugin file.
 

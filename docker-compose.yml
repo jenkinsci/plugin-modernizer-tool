@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     command:
-      - --recipes ${RECIPES}
+      - --recipe ${RECIPE}
       - --plugins ${PLUGINS}
       - --debug
       - --dry-run

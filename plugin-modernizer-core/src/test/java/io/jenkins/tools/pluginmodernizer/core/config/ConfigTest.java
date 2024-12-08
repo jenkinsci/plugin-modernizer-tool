@@ -10,7 +10,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -25,9 +24,8 @@ public class ConfigTest {
         String githubOwner = "test-owner";
         List<Plugin> plugins =
                 Stream.of("plugin1", "plugin2").map(Plugin::build).toList();
-        List<Recipe> recipes = Arrays.asList(Mockito.mock(Recipe.class), Mockito.mock(Recipe.class));
-        Mockito.doReturn("recipe1").when(recipes.get(0)).getName();
-        Mockito.doReturn("recipe2").when(recipes.get(1)).getName();
+        Recipe recipe = Mockito.mock(Recipe.class);
+        Mockito.doReturn("recipe1").when(recipe).getName();
         URL jenkinsUpdateCenter = new URL("https://updates.jenkins.io/current/update-center.actual.json");
         Path cachePath = Paths.get("/path/to/cache");
         Path mavenHome = Paths.get("/path/to/maven");
@@ -37,7 +35,7 @@ public class ConfigTest {
                 .withVersion(version)
                 .withGitHubOwner(githubOwner)
                 .withPlugins(plugins)
-                .withRecipes(recipes)
+                .withRecipe(recipe)
                 .withJenkinsUpdateCenter(jenkinsUpdateCenter)
                 .withCachePath(cachePath)
                 .withMavenHome(mavenHome)
@@ -52,7 +50,7 @@ public class ConfigTest {
         assertEquals(version, config.getVersion());
         assertEquals(githubOwner, config.getGithubOwner());
         assertEquals(plugins, config.getPlugins());
-        assertEquals(recipes, config.getRecipes());
+        assertEquals(recipe, config.getRecipe());
         assertEquals(jenkinsUpdateCenter, config.getJenkinsUpdateCenter());
         assertEquals(cachePath, config.getCachePath());
         assertEquals(mavenHome, config.getMavenHome());
@@ -71,7 +69,7 @@ public class ConfigTest {
 
         assertNull(config.getVersion());
         assertNull(config.getPlugins());
-        assertNull(config.getRecipes());
+        assertNull(config.getRecipe());
         assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
         assertEquals(Settings.DEFAULT_MAVEN_HOME, config.getMavenHome());
@@ -95,7 +93,7 @@ public class ConfigTest {
 
         assertEquals(version, config.getVersion());
         assertEquals(plugins, config.getPlugins());
-        assertNull(config.getRecipes());
+        assertNull(config.getRecipe());
         assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
         assertEquals(Settings.DEFAULT_MAVEN_HOME, config.getMavenHome());
@@ -112,7 +110,7 @@ public class ConfigTest {
 
         assertNull(config.getVersion());
         assertNull(config.getPlugins());
-        assertNull(config.getRecipes());
+        assertNull(config.getRecipe());
         assertEquals(Settings.DEFAULT_UPDATE_CENTER_URL, config.getJenkinsUpdateCenter());
         assertEquals(Settings.DEFAULT_CACHE_PATH, config.getCachePath());
         assertEquals(Settings.DEFAULT_MAVEN_HOME, config.getMavenHome());

@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.InvocationRequest;
@@ -99,15 +98,12 @@ public class MavenInvoker {
      * @param plugin The plugin to run the rewrite on
      */
     public void invokeRewrite(Plugin plugin) {
-        plugin.addTags(config.getRecipes().stream()
-                .flatMap(recipe -> recipe.getTags().stream())
-                .collect(Collectors.toSet()));
+        plugin.addTags(config.getRecipe().getTags());
         LOG.info(
                 "Running recipes {} for plugin {}... Please be patient",
-                String.join(
-                        ",", config.getRecipes().stream().map(Recipe::getName).toList()),
+                config.getRecipe().getName(),
                 plugin);
-        invokeGoals(plugin, getRewriteArgs());
+        invokeGoals(plugin, getSingleRecipeArgs(config.getRecipe()));
         LOG.info("Done");
     }
 
@@ -120,24 +116,6 @@ public class MavenInvoker {
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
         goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
         goals.add("-Drewrite.activeRecipes=" + recipe.getName());
-        goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
-                + config.getVersion());
-        return goals.toArray(String[]::new);
-    }
-
-    /**
-     * Get the rewrite arguments to be executed for each plugin
-     * @return The list of arguments to be passed to the rewrite plugin
-     */
-    private String[] getRewriteArgs() {
-        List<String> goals = new ArrayList<>();
-        goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
-        goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
-
-        String activeRecipesStr =
-                config.getRecipes().stream().map(Recipe::getName).collect(Collectors.joining(", "));
-        LOG.debug("Active recipes: {}", activeRecipesStr);
-        goals.add("-Drewrite.activeRecipes=" + String.join(",", activeRecipesStr));
         goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
                 + config.getVersion());
         return goals.toArray(String[]::new);

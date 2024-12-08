@@ -507,6 +507,7 @@ public class GHService {
                         .setMode(ResetCommand.ResetType.HARD)
                         .setRef("origin/" + defaultBranch)
                         .call();
+                git.clean().setCleanDirectories(true).setDryRun(false).call();
                 Ref ref = git.checkout()
                         .setCreateBranch(false)
                         .setName(defaultBranch)
@@ -571,7 +572,7 @@ public class GHService {
         }
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
             git.getRepository().scanForRepoChanges();
-            String commitMessage = TemplateUtils.renderCommitMessage(plugin, config.getRecipes());
+            String commitMessage = TemplateUtils.renderCommitMessage(plugin, config.getRecipe());
             LOG.debug("Commit message: {}", commitMessage);
             Status status = git.status().call();
             if (status.hasUncommittedChanges()) {
@@ -702,8 +703,8 @@ public class GHService {
         refreshToken(config.getGithubAppTargetInstallationId());
 
         // Renders parts and log then even if dry-run
-        String prTitle = TemplateUtils.renderPullRequestTitle(plugin, config.getRecipes());
-        String prBody = TemplateUtils.renderPullRequestBody(plugin, config.getRecipes());
+        String prTitle = TemplateUtils.renderPullRequestTitle(plugin, config.getRecipe());
+        String prBody = TemplateUtils.renderPullRequestBody(plugin, config.getRecipe());
         LOG.debug("Pull request title: {}", prTitle);
         LOG.debug("Pull request body: {}", prBody);
         LOG.debug("Draft mode: {}", config.isDraft());

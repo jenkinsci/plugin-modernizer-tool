@@ -38,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openrewrite.Recipe;
 
 @ExtendWith({MockitoExtension.class})
 public class GHServiceTest {
@@ -610,11 +611,14 @@ public class GHServiceTest {
     public void shouldOpenPullRequest() throws Exception {
 
         // Mocks
+        Recipe recipe = Mockito.mock(Recipe.class);
         GHRepository repository = Mockito.mock(GHRepository.class);
         GHPullRequest pr = Mockito.mock(GHPullRequest.class);
         GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
         PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
+        doReturn(recipe).when(config).getRecipe();
+        doReturn("recipe1").when(recipe).getName();
         doReturn(null).when(config).getGithubAppTargetInstallationId();
         doReturn(false).when(config).isDraft();
         doReturn(true).when(plugin).hasChangesPushed();
@@ -638,11 +642,14 @@ public class GHServiceTest {
     public void shouldOpenDraftPullRequest() throws Exception {
 
         // Mocks
+        Recipe recipe = Mockito.mock(Recipe.class);
         GHRepository repository = Mockito.mock(GHRepository.class);
         GHPullRequest pr = Mockito.mock(GHPullRequest.class);
         GHPullRequestQueryBuilder prQuery = Mockito.mock(GHPullRequestQueryBuilder.class);
         PagedIterable<?> prQueryList = Mockito.mock(PagedIterable.class);
 
+        doReturn(recipe).when(config).getRecipe();
+        doReturn("recipe1").when(recipe).getName();
         doReturn(null).when(config).getGithubAppTargetInstallationId();
         doReturn(true).when(config).isDraft();
         doReturn(true).when(plugin).hasChangesPushed();
