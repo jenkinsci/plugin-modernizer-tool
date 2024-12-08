@@ -559,7 +559,7 @@ public class Plugin {
      */
     public void fork(GHService service) {
         if (config.isFetchMetadataOnly()) {
-            LOG.info("Skipping fork for plugin {} as only metadata is required", name);
+            LOG.debug("Skipping fork for plugin {} as only metadata is required", name);
             return;
         }
         service.fork(this);
@@ -571,7 +571,7 @@ public class Plugin {
      */
     public void sync(GHService service) {
         if (config.isFetchMetadataOnly()) {
-            LOG.info("Skipping sync for plugin {} as only metadata is required", name);
+            LOG.debug("Skipping sync for plugin {} as only metadata is required", name);
             return;
         }
         service.sync(this);

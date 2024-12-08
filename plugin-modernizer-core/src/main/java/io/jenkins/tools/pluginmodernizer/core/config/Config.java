@@ -112,7 +112,7 @@ public class Config {
      * @return True if only fetching metadata
      */
     public boolean isFetchMetadataOnly() {
-        return recipe.getName().equals(Settings.FETCH_METADATA_RECIPE.getName());
+        return recipe != null && recipe.getName().equals(Settings.FETCH_METADATA_RECIPE.getName());
     }
 
     public URL getJenkinsUpdateCenter() {
