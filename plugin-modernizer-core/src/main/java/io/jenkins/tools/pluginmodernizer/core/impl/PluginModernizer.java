@@ -11,8 +11,6 @@ import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
 import io.jenkins.tools.pluginmodernizer.core.utils.PluginService;
 import jakarta.inject.Inject;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.openrewrite.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +52,7 @@ public class PluginModernizer {
 
         // Debug config
         LOG.debug("Plugins: {}", config.getPlugins());
-        LOG.debug(
-                "Recipes: {}", config.getRecipes().stream().map(Recipe::getName).collect(Collectors.joining(", ")));
+        LOG.debug("Recipe: {}", config.getRecipe().getName());
         LOG.debug("GitHub owner: {}", config.getGithubOwner());
         LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
         LOG.debug("Plugin versions Url: {}", config.getJenkinsPluginVersions());
@@ -340,6 +337,13 @@ public class PluginModernizer {
                     else {
                         LOG.info("Pull request was open on "
                                 + plugin.getRemoteRepository(this.ghService).getHtmlUrl());
+
+                        // Display changes depending on the recipe
+                        if (config.getRecipe()
+                                .getName()
+                                .equals("io.jenkins.tools.pluginmodernizer.UpgradeBomVersion")) {
+                            LOG.info("New BOM version: {}", plugin.getMetadata().getBomVersion());
+                        }
                     }
                 }
             }

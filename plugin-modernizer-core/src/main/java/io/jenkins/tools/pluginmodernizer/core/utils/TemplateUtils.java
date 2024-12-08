@@ -6,7 +6,6 @@ import gg.jte.TemplateOutput;
 import gg.jte.output.StringOutput;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
-import java.util.List;
 import java.util.Map;
 import org.openrewrite.Recipe;
 import org.slf4j.Logger;
@@ -27,31 +26,31 @@ public class TemplateUtils {
     /**
      * Render the pull request body
      * @param plugin Plugin to modernize
-     * @param recipes List of recipes to apply
+     * @param recipe Recipe to apply
      * @return The rendered pull request body
      */
-    public static String renderPullRequestBody(Plugin plugin, List<Recipe> recipes) {
-        return renderTemplate("pr-body.jte", Map.of("plugin", plugin, "recipes", recipes));
+    public static String renderPullRequestBody(Plugin plugin, Recipe recipe) {
+        return renderTemplate("pr-body.jte", Map.of("plugin", plugin, "recipe", recipe));
     }
 
     /**
      * Render the commit message
      * @param plugin Plugin to modernize
-     * @param recipes List of recipes to apply
+     * @param recipe Recipe to apply
      * @return The rendered commit message
      */
-    public static String renderCommitMessage(Plugin plugin, List<Recipe> recipes) {
-        return renderTemplate("commit.jte", Map.of("plugin", plugin, "recipes", recipes));
+    public static String renderCommitMessage(Plugin plugin, Recipe recipe) {
+        return renderTemplate("commit.jte", Map.of("plugin", plugin, "recipe", recipe));
     }
 
     /**
      * Render the pull request title
      * @param plugin Plugin to modernize
-     * @param recipes List of recipes to apply
+     * @param recipe Recipe to apply
      * @return The rendered pull request title
      */
-    public static String renderPullRequestTitle(Plugin plugin, List<Recipe> recipes) {
-        return renderTemplate("pr-title.jte", Map.of("plugin", plugin, "recipes", recipes));
+    public static String renderPullRequestTitle(Plugin plugin, Recipe recipe) {
+        return renderTemplate("pr-title.jte", Map.of("plugin", plugin, "recipe", recipe));
     }
 
     /**

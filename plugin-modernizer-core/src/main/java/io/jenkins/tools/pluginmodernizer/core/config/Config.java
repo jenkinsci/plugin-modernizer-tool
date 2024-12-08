@@ -14,7 +14,7 @@ public class Config {
 
     private final String version;
     private final List<Plugin> plugins;
-    private final List<Recipe> recipes;
+    private final Recipe recipe;
     private final URL jenkinsUpdateCenter;
     private final URL jenkinsPluginVersions;
     private final URL pluginHealthScore;
@@ -41,7 +41,7 @@ public class Config {
             Long githubAppSourceInstallationId,
             Long githubAppTargetInstallationId,
             List<Plugin> plugins,
-            List<Recipe> recipes,
+            Recipe recipe,
             URL jenkinsUpdateCenter,
             URL jenkinsPluginVersions,
             URL pluginHealthScore,
@@ -62,7 +62,7 @@ public class Config {
         this.githubAppSourceInstallationId = githubAppSourceInstallationId;
         this.githubAppTargetInstallationId = githubAppTargetInstallationId;
         this.plugins = plugins;
-        this.recipes = recipes;
+        this.recipe = recipe;
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
         this.jenkinsPluginVersions = jenkinsPluginVersions;
         this.pluginHealthScore = pluginHealthScore;
@@ -103,8 +103,8 @@ public class Config {
         return plugins;
     }
 
-    public List<Recipe> getRecipes() {
-        return recipes;
+    public Recipe getRecipe() {
+        return recipe;
     }
 
     /**
@@ -112,7 +112,7 @@ public class Config {
      * @return True if only fetching metadata
      */
     public boolean isFetchMetadataOnly() {
-        return recipes.size() == 1 && recipes.get(0).getName().equals(Settings.FETCH_METADATA_RECIPE.getName());
+        return recipe.getName().equals(Settings.FETCH_METADATA_RECIPE.getName());
     }
 
     public URL getJenkinsUpdateCenter() {
@@ -186,7 +186,7 @@ public class Config {
         private Long githubAppSourceInstallationId;
         private Long githubAppTargetInstallationId;
         private List<Plugin> plugins;
-        private List<Recipe> recipes;
+        private Recipe recipe;
         private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
         private URL jenkinsPluginVersions = Settings.DEFAULT_PLUGIN_VERSIONS;
         private URL pluginStatsInstallations = Settings.DEFAULT_PLUGINS_STATS_INSTALLATIONS_URL;
@@ -232,8 +232,8 @@ public class Config {
             return this;
         }
 
-        public Builder withRecipes(List<Recipe> recipes) {
-            this.recipes = recipes;
+        public Builder withRecipe(Recipe recipe) {
+            this.recipe = recipe;
             return this;
         }
 
@@ -327,7 +327,7 @@ public class Config {
                     githubAppSourceInstallationId,
                     githubAppTargetInstallationId,
                     plugins,
-                    recipes,
+                    recipe,
                     jenkinsUpdateCenter,
                     jenkinsPluginVersions,
                     pluginHealthScore,
