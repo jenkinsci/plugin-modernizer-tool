@@ -59,16 +59,11 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
      */
     public static class MetadataAccumulator {
         private final List<ArchetypeCommonFile> commonFiles = new ArrayList<>();
-        private final List<String> otherFiles = new ArrayList<>();
         private final Set<MetadataFlag> flags = new HashSet<>();
         private final Set<JDK> jdkVersions = new HashSet<>();
 
         public List<ArchetypeCommonFile> getCommonFiles() {
             return commonFiles;
-        }
-
-        public List<String> getOtherFiles() {
-            return otherFiles;
         }
 
         public Set<JDK> getJdkVersions() {
@@ -77,10 +72,6 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
 
         public void addCommonFile(ArchetypeCommonFile file) {
             commonFiles.add(file);
-        }
-
-        public void addOtherFile(String file) {
-            otherFiles.add(file);
         }
 
         public void addJdk(JDK jdk) {
@@ -116,7 +107,6 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                     acc.addCommonFile(commonFile);
                     LOG.debug("File {} is a common file", sourceFile.getSourcePath());
                 } else {
-                    acc.addOtherFile(sourceFile.getSourcePath().toString());
                     LOG.debug("File {} is not a common file", sourceFile.getSourcePath());
                 }
                 groovyIsoVisitor.visit(tree, ctx);
@@ -263,7 +253,6 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                         resolvedPom.getManagedVersion("org.jenkins-ci.main", "jenkins-core", null, null));
                 pluginMetadata.setFlags(acc.getFlags());
                 pluginMetadata.setCommonFiles(acc.getCommonFiles());
-                pluginMetadata.setOtherFiles(acc.getOtherFiles());
                 pluginMetadata.setJdks(acc.getJdkVersions());
 
                 // Write the metadata to a file for later use by the plugin modernizer.
