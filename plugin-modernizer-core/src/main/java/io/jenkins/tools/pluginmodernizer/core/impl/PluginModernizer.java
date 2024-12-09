@@ -142,10 +142,7 @@ public class PluginModernizer {
 
             // Collect metadata and move metadata from the target directory of the plugin to the common cache
             if (!plugin.hasMetadata() || config.isFetchMetadataOnly()) {
-                plugin.collectMetadata(mavenInvoker);
-                plugin.moveMetadata(cacheManager);
-                plugin.loadMetadata(cacheManager);
-                plugin.enrichMetadata(pluginService);
+                collectMetadata(plugin);
 
             } else {
                 LOG.debug("Metadata already computed for plugin {}. Using cached metadata.", plugin.getName());
@@ -170,10 +167,7 @@ public class PluginModernizer {
 
                 // Retry to collect metadata after remediation to get up-to-date results
                 if (!config.isFetchMetadataOnly()) {
-                    plugin.collectMetadata(mavenInvoker);
-                    plugin.moveMetadata(cacheManager);
-                    plugin.loadMetadata(cacheManager);
-                    plugin.enrichMetadata(pluginService);
+                    collectMetadata(plugin);
                 }
             }
 
@@ -210,10 +204,7 @@ public class PluginModernizer {
 
             // Recollect metadata after modernization
             if (!config.isFetchMetadataOnly()) {
-                plugin.collectMetadata(mavenInvoker);
-                plugin.moveMetadata(cacheManager);
-                plugin.loadMetadata(cacheManager);
-                plugin.enrichMetadata(pluginService);
+                collectMetadata(plugin);
                 LOG.debug(
                         "Plugin {} metadata after modernization: {}",
                         plugin.getName(),
@@ -240,6 +231,17 @@ public class PluginModernizer {
                 plugin.addError("Unexpected processing error. Check the logs at " + plugin.getLogFile(), e);
             }
         }
+    }
+
+    /**
+     * Collect metadata for a plugin
+     * @param plugin The plugin
+     */
+    private void collectMetadata(Plugin plugin) {
+        plugin.collectMetadata(mavenInvoker);
+        plugin.moveMetadata(cacheManager);
+        plugin.loadMetadata(cacheManager);
+        plugin.enrichMetadata(pluginService);
     }
 
     /**
