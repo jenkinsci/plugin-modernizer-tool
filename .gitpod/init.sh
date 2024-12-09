@@ -47,5 +47,5 @@ echo -e "You could, though, use other plugin repositories as well (like ${color_
 echo -e "\nYou can now proceed with the modernizer tool thanks to the following commands:"
 echo -e "${color_cyan}java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --dry-run --plugins badge,build-timestamp --recipe AddCodeOwner --export-datatables${color_reset}"
 
-echo -e "\nBy the way, you can copy/paste from/to the terminal to execute the commands (⇧^C or ⇧⌘C and then ⇧^V or ⇧⌘V). Enjoy! 🚀"
+echo -e "\nBy the way, you can copy/paste from/to the terminal to execute the commands (⇧+^+C or ⇧+⌘+C and then ⇧+^+V, ⇧+Ins, or ⇧+⌘+V). Enjoy! 🚀"
 echo -e "See ${color_blue}https://www.gitpod.io/docs/configure/user-settings/browser-settings#browser-settings${color_reset} to know more.\n"
