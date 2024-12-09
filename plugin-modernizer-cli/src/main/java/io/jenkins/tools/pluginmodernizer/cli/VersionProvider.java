@@ -6,13 +6,25 @@ import java.io.InputStream;
 import java.util.Properties;
 import picocli.CommandLine;
 
-public class PomVersionProvider implements CommandLine.IVersionProvider {
+/**
+ * Version provider for the CLI
+ */
+public class VersionProvider implements CommandLine.IVersionProvider {
 
     @Override
     public String[] getVersion() throws Exception {
         return new String[] {
             "plugin modernizer %s (%s)".formatted(getValue("project.version"), getValue("build.timestamp")),
         };
+    }
+
+    /**
+     * Get the maven version
+     * @return the maven version
+     * @throws Exception if the version is not found
+     */
+    public String getMavenVersion() throws Exception {
+        return getValue("project.version");
     }
 
     /**

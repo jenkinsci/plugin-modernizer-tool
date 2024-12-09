@@ -1,7 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.core.utils;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -12,13 +11,10 @@ import io.jenkins.tools.pluginmodernizer.core.GuiceModule;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.*;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +22,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.platform.commons.util.ReflectionUtils;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -116,8 +111,6 @@ class PluginServiceTest {
     @Test
     public void shouldExtractRepoName() throws Exception {
         setupUpdateCenterMocks();
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
         PluginService service = getService();
         String result = service.extractRepoName(Plugin.build("valid-plugin").withConfig(config));
         assertEquals("valid-url", result);
@@ -127,8 +120,6 @@ class PluginServiceTest {
     public void shouldDownloadPluginVersionDataUpdateCenterData(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
 
         setupUpdateCenterMocks();
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
 
         // Download through wiremock to avoid hitting the real Jenkins update center
         WireMock wireMock = wmRuntimeInfo.getWireMock();
@@ -153,8 +144,6 @@ class PluginServiceTest {
     public void shouldThrowExceptionIfNotFound() throws Exception {
 
         setupUpdateCenterMocks();
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
 
         PluginService service = getService();
         Exception exception = assertThrows(ModernizerException.class, () -> {
@@ -167,8 +156,6 @@ class PluginServiceTest {
     public void shouldFailIfSCMFormatIsInvalid() throws Exception {
 
         setupUpdateCenterMocks();
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
 
         PluginService service = getService();
         Exception exception = assertThrows(ModernizerException.class, () -> {
@@ -181,8 +168,6 @@ class PluginServiceTest {
     public void shouldDownloadPluginVersionDataPluginHealthScore(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
 
         setupHealthScoreMocks();
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
 
         // Download through wiremock to avoid hitting the real Jenkins update center
         WireMock wireMock = wmRuntimeInfo.getWireMock();
@@ -207,8 +192,6 @@ class PluginServiceTest {
     public void shouldDownloadPluginInstallationsData(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
 
         setupHealthScoreMocks();
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
 
         // Download through wiremock to avoid hitting the real stats
         WireMock wireMock = wmRuntimeInfo.getWireMock();
@@ -229,102 +212,6 @@ class PluginServiceTest {
         assertEquals(
                 result.getPlugins().size(),
                 pluginInstallationStatsData.getPlugins().size());
-    }
-
-    @Test
-    public void testLoadPluginsFromFileWithEmptyLines() throws Exception {
-
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
-
-        Path pluginFile = tempDir.resolve("plugins.txt");
-        Files.write(pluginFile, List.of("plugin1", "", "plugin2", "   ", "plugin3"));
-
-        PluginService service = getService();
-        List<Plugin> plugins = service.loadPluginsFromFile(pluginFile);
-
-        assertNotNull(plugins);
-        assertEquals(3, plugins.size());
-        assertTrue(plugins.contains(Plugin.build("plugin1")));
-        assertTrue(plugins.contains(Plugin.build("plugin2")));
-        assertTrue(plugins.contains(Plugin.build("plugin3")));
-    }
-
-    @Test
-    public void testLoadPluginsFromFileEmptyFile() throws Exception {
-
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
-
-        Path pluginFile = tempDir.resolve("plugins.txt");
-        Files.createFile(pluginFile);
-
-        PluginService service = getService();
-        List<Plugin> plugins = service.loadPluginsFromFile(pluginFile);
-        assertNotNull(plugins);
-        assertTrue(plugins.isEmpty());
-    }
-
-    @Test
-    public void testLoadPluginsFromResourceFile() throws Exception {
-
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
-
-        Path resourceFilePath = Path.of("src", "test", "resources", "plugins.txt");
-
-        PluginService service = getService();
-        List<Plugin> plugins = service.loadPluginsFromFile(resourceFilePath);
-
-        assertNotNull(plugins);
-        assertEquals(4, plugins.size());
-        assertTrue(plugins.contains(Plugin.build("jobcacher")));
-        assertTrue(plugins.contains(Plugin.build("login-theme")));
-        assertTrue(plugins.contains(Plugin.build("next-executions")));
-        assertTrue(plugins.contains(Plugin.build("cloudbees-bitbucket-branch-source")));
-    }
-
-    @Test
-    public void testLoadPluginsFromResourceFileWithEmptyLines() throws Exception {
-
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
-
-        Path resourceFilePath = Path.of("src", "test", "resources", "empty-plugins.txt");
-
-        PluginService service = getService();
-        List<Plugin> plugins = service.loadPluginsFromFile(resourceFilePath);
-        assertEquals(0, plugins.size());
-    }
-
-    @Test
-    public void testLoadPluginsFromFileFileNotFound() throws Exception {
-
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
-
-        Path resourceFilePath = Path.of("src", "test", "resources", "invalid-plugins.txt");
-        PluginService service = getService();
-        List<Plugin> plugins = service.loadPluginsFromFile(resourceFilePath);
-        assertNull(plugins);
-    }
-
-    @Test
-    public void testIOExceptionWhenLoadingPluginsFromFile() {
-
-        doReturn("fake-owner").when(config).getGithubOwner();
-        doReturn(null).when(config).getGithubAppId();
-
-        Path mockPath = mock(Path.class);
-
-        try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
-            mockedFiles.when(() -> Files.lines(mockPath)).thenThrow(new IOException("Mocked IOException"));
-            PluginService service = getService();
-            List<Plugin> result = service.loadPluginsFromFile(mockPath);
-            assertNull(result, "Result should be null when IOException is thrown");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**

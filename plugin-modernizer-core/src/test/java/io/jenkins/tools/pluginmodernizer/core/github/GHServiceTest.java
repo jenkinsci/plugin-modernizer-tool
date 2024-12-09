@@ -63,10 +63,6 @@ public class GHServiceTest {
     @BeforeEach
     public void setup() throws Exception {
 
-        doReturn("fake-owner").when(config).getGithubOwner();
-
-        doReturn(null).when(config).getGithubAppId();
-
         // Create service
         service = Guice.createInjector(new GuiceModule(config)).getInstance(GHService.class);
 
@@ -112,6 +108,7 @@ public class GHServiceTest {
     public void shouldGetRepositoryFork() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
         GHRepository mock = Mockito.mock(GHRepository.class);
         doReturn("fake-repo").when(plugin).getRepositoryName();
         doReturn(mock).when(github).getRepository(eq("fake-owner/fake-repo"));
@@ -127,6 +124,7 @@ public class GHServiceTest {
     public void shouldFailToGetForkRepository() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
         doReturn("fake-repo").when(plugin).getRepositoryName();
         doThrow(new IOException()).when(github).getRepository(eq("fake-owner/fake-repo"));
 
@@ -167,6 +165,8 @@ public class GHServiceTest {
     public void isForkedTest() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         GHRepository fork = Mockito.mock(GHRepository.class);
         GHMyself myself = Mockito.mock(GHMyself.class);
 
@@ -182,6 +182,8 @@ public class GHServiceTest {
     public void isNotForkedTest() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         GHMyself myself = Mockito.mock(GHMyself.class);
 
         doReturn("fake-repo").when(plugin).getRepositoryName();
@@ -196,6 +198,7 @@ public class GHServiceTest {
     public void isForkedToOrganisation() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
         GHRepository fork = Mockito.mock(GHRepository.class);
         GHOrganization org = Mockito.mock(GHOrganization.class);
 
@@ -239,6 +242,8 @@ public class GHServiceTest {
         GHMyself myself = Mockito.mock(GHMyself.class);
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         doReturn("fake-repo").when(repository).getName();
         doReturn(Mockito.mock(URL.class)).when(fork).getHtmlUrl();
         doReturn(repository).when(plugin).getRemoteRepository(eq(service));
@@ -263,6 +268,8 @@ public class GHServiceTest {
         GHMyself myself = Mockito.mock(GHMyself.class);
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         doReturn(repository).when(fork).getParent();
         doReturn("fake-repo").when(repository).getName();
         doReturn(Mockito.mock(URL.class)).when(fork).getHtmlUrl();
@@ -289,6 +296,8 @@ public class GHServiceTest {
         GHMyself myself = Mockito.mock(GHMyself.class);
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         doReturn(other).when(fork).getParent();
         doReturn("fake-repo").when(repository).getName();
         doReturn(repository).when(plugin).getRemoteRepository(eq(service));
@@ -310,6 +319,7 @@ public class GHServiceTest {
         GHOrganization org = Mockito.mock(GHOrganization.class);
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
         doReturn("fake-repo").when(repository).getName();
         doReturn(Mockito.mock(URL.class)).when(fork).getHtmlUrl();
         doReturn(repository).when(plugin).getRemoteRepository(eq(service));
@@ -334,6 +344,7 @@ public class GHServiceTest {
         GHOrganization org = Mockito.mock(GHOrganization.class);
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
         doReturn(repository).when(fork).getParent();
         doReturn("fake-repo").when(repository).getName();
         doReturn(Mockito.mock(URL.class)).when(fork).getHtmlUrl();
@@ -360,6 +371,7 @@ public class GHServiceTest {
         GHOrganization org = Mockito.mock(GHOrganization.class);
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
         doReturn(other).when(fork).getParent();
         doReturn("fake-repo").when(repository).getName();
         doReturn(repository).when(plugin).getRemoteRepository(eq(service));
@@ -392,6 +404,8 @@ public class GHServiceTest {
     public void shouldNotAttemptToDeleteNonFork() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         GHRepository fork = Mockito.mock(GHRepository.class);
         GHMyself myself = Mockito.mock(GHMyself.class);
 
@@ -408,6 +422,8 @@ public class GHServiceTest {
     public void shouldNotDeleteForkWithOpenPullRequestSource() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         GHRepository repository = Mockito.mock(GHRepository.class);
         GHRepository fork = Mockito.mock(GHRepository.class);
         GHMyself myself = Mockito.mock(GHMyself.class);
@@ -440,6 +456,8 @@ public class GHServiceTest {
     public void shouldNotDeleteRepoIfNotAFork() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         GHRepository repository = Mockito.mock(GHRepository.class);
         GHRepository fork = Mockito.mock(GHRepository.class);
         GHMyself myself = Mockito.mock(GHMyself.class);
@@ -476,6 +494,8 @@ public class GHServiceTest {
     public void shouldNotDeleteRepoForkNotDetachedFromJenkinsOrg() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         GHRepository repository = Mockito.mock(GHRepository.class);
         GHRepository fork = Mockito.mock(GHRepository.class);
         GHMyself myself = Mockito.mock(GHMyself.class);
@@ -515,6 +535,8 @@ public class GHServiceTest {
     public void shouldDeleteForkIfAllConditionsMet() throws Exception {
 
         // Mock
+        doReturn("fake-owner").when(config).getGithubOwner();
+        doReturn(null).when(config).getGithubAppId();
         GHRepository repository = Mockito.mock(GHRepository.class);
         GHRepository fork = Mockito.mock(GHRepository.class);
         GHMyself myself = Mockito.mock(GHMyself.class);

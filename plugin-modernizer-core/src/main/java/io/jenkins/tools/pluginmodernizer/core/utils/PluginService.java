@@ -5,13 +5,6 @@ import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
 import io.jenkins.tools.pluginmodernizer.core.model.*;
 import jakarta.inject.Inject;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -276,25 +269,5 @@ public class PluginService {
      */
     public PluginVersionData downloadPluginVersionData(Config config) {
         return JsonUtils.fromUrl(config.getJenkinsPluginVersions(), PluginVersionData.class);
-    }
-
-    /**
-     * Load plugins from a file
-     * @param pluginFile Plugin file
-     * @return List of plugins
-     */
-    public List<Plugin> loadPluginsFromFile(Path pluginFile) {
-        try (Stream<String> lines = Files.lines(pluginFile)) {
-            return lines.filter(line -> !line.trim().isEmpty())
-                    .map(line -> line.split(":")[0])
-                    .map(Plugin::build)
-                    .collect(Collectors.toList());
-        } catch (NoSuchFileException e) {
-            LOG.error("File not found: {}", pluginFile);
-            return null;
-        } catch (IOException e) {
-            LOG.error("Error reading plugins from file: {}", e.getMessage());
-            return null;
-        }
     }
 }

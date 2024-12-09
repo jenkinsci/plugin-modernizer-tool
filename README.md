@@ -97,14 +97,19 @@ To activate app authentication, just set the following CLI argument
 `--github-app-target-installation-id <installation-id>` or `GH_APP_TARGET_INSTALLATION_ID` environment variable
 `--github-app-private-key <path-to-private-key>` or `GH_APP_PRIVATE_KEY` environment variable
 
+# Subcommands
+
+- `validate`: Validate the configuration and environment variables (work in progress)
+- `run`: Run the modernization process
+- `build-metadata`: Collect metadata for the given plugin and have them on the local cache
+- `recipes`: List available recipes
+
 ## CLI Options
 - `--plugins` or `-p`: (optional) Name(s) of plugin directory cloned inside the `test-plugins` directory.
 
 - `--recipe` or `-r`: (required) Name of recipe to apply to the plugins.
 
 - `--plugin-file` or `-f`: (optional) Path to the text file that contains a list of plugins. (see example [plugin file](docs/example-plugins.txt))
-
-- `--list-recipes` or `-l`: (optional) Displays the list of available recipes.
 
 - `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes. The patch files will be generated at `target/rewrite/rewrite.patch` inside the plugin directory if any change is made.
 
@@ -153,7 +158,7 @@ Pass the path to a file that contains plugin names. The expected input format fo
 See example [plugin file](docs/example-plugins.txt)
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugin-file path/to/plugin-file --recipe AddPluginsBom
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugin-file path/to/plugin-file --recipe AddPluginsBom
 ```
 
 ## Configuring Environmental Variables
@@ -172,14 +177,14 @@ java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT
 ### without dry-run
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugins git,git-client,jobcacher --recipe AddPluginsBom
 ```
 The above command creates pull requests in the respective remote repositories after applying the changes.
 
 ### with dry-run
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom --dry-run
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugins git,git-client,jobcacher --recipe AddPluginsBom --dry-run
 ```
 
 The above command generates patch files instead of applying changes directly. These patch files are saved in `/target/rewrite/rewrite.patch` inside each plugin directory. No pull requests will be created.
@@ -190,7 +195,7 @@ The above command generates patch files instead of applying changes directly. Th
 ### with export-datatables
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom --export-datatables
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugins git,git-client,jobcacher --recipe AddPluginsBom --export-datatables
 ```
 
 The above command creates a report of the changes made through OpenRewrite in csv format. The report will be generated in `target/rewrite/datatables` inside the plugin directory.

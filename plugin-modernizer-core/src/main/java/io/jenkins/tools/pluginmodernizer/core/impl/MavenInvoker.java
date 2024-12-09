@@ -170,13 +170,12 @@ public class MavenInvoker {
     public void validateMavenHome() {
         Path mavenHome = config.getMavenHome();
         if (mavenHome == null) {
-            LOG.error("Neither MAVEN_HOME nor M2_HOME environment variables are set.");
-            throw new ModernizerException("Maven home directory not set.");
+            throw new ModernizerException(
+                    "Neither MAVEN_HOME nor M2_HOME environment variables are set. Or use --maven-home if running from CLI");
         }
 
         if (!Files.isDirectory(mavenHome) || !Files.isExecutable(mavenHome.resolve("bin/mvn"))) {
-            LOG.error("Invalid Maven home directory. Aborting build.");
-            throw new ModernizerException("Invalid Maven home directory.");
+            throw new ModernizerException("Invalid Maven home directory at '%s'.".formatted(mavenHome));
         }
     }
 
