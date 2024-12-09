@@ -9,7 +9,8 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(
-        name = "Plugin Modernizer",
+        name = "plugin-modernizer",
+        description = "Plugin Modernizer. A tool to modernize Jenkins plugins",
         synopsisSubcommandLabel = "COMMAND",
         subcommands = {
             ValidateCommand.class,
