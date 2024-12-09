@@ -39,11 +39,6 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
     private List<ArchetypeCommonFile> commonFiles;
 
     /**
-     * List of other files present in the plugin
-     */
-    private List<String> otherFiles;
-
-    /**
      * JDK versions supported by the plugin
      */
     private Set<JDK> jdkVersions;
@@ -141,14 +136,6 @@ public class PluginMetadata extends CacheEntry<PluginMetadata> implements Serial
 
     public void setCommonFiles(List<ArchetypeCommonFile> commonFiles) {
         this.commonFiles = commonFiles;
-    }
-
-    public List<String> getOtherFiles() {
-        return otherFiles;
-    }
-
-    public void setOtherFiles(List<String> otherFiles) {
-        this.otherFiles = otherFiles;
     }
 
     public Set<JDK> getJdks() {
