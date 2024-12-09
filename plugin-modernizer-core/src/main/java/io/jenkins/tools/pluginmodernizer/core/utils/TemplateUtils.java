@@ -4,6 +4,7 @@ import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.TemplateOutput;
 import gg.jte.output.StringOutput;
+import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import java.util.Map;
@@ -50,6 +51,10 @@ public class TemplateUtils {
      * @return The rendered pull request title
      */
     public static String renderPullRequestTitle(Plugin plugin, Recipe recipe) {
+        if (hasTitleTemplate(recipe)) {
+            String shortName = recipe.getName().replaceAll(Settings.RECIPE_FQDN_PREFIX + ".", "");
+            return renderTemplate("pr-title-%s.jte".formatted(shortName), Map.of("plugin", plugin, "recipe", recipe));
+        }
         return renderTemplate("pr-title.jte", Map.of("plugin", plugin, "recipe", recipe));
     }
 
@@ -69,5 +74,16 @@ public class TemplateUtils {
             LOG.error("Error rendering template {}", templateName, e);
             throw new ModernizerException("Error rendering template " + templateName, e);
         }
+    }
+
+    /**
+     * Check if a title template exists for one recipe
+     * @param recipe The recipe to check
+     * @return True if a title template exists
+     */
+    private static boolean hasTitleTemplate(Recipe recipe) {
+        String shortName = recipe.getName().replaceAll(Settings.RECIPE_FQDN_PREFIX + ".", "");
+        TemplateEngine templateEngine = TemplateEngine.createPrecompiled(ContentType.Html);
+        return templateEngine.hasTemplate("pr-title-%s.jte".formatted(shortName));
     }
 }

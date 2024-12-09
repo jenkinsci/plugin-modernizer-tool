@@ -3,4 +3,4 @@
 @import static io.jenkins.tools.pluginmodernizer.core.config.Settings.RECIPE_FQDN_PREFIX
 @param Plugin plugin
 @param Recipe recipe
-Applied recipes ${recipe.getName().replaceAll(RECIPE_FQDN_PREFIX + ".", "")}
+Applied recipe ${recipe.getName().replaceAll(RECIPE_FQDN_PREFIX + ".", "")}
