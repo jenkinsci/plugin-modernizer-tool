@@ -75,7 +75,6 @@ Alternatively, you can pass the GitHub owner through the CLI option `-g` or `--g
 Your classic token should have the following scopes
 
 - `repo` (Full control of private repositories)
-- `user:email` (Read-only access to email addresses)
 - `delete_repo` (Delete repositories) (Only if using the `--clean-forks` option)
 
 > [!Note]

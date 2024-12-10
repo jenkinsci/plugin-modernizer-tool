@@ -28,7 +28,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.kohsuke.github.GHApp;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHBranchSync;
-import org.kohsuke.github.GHEmail;
 import org.kohsuke.github.GHFileNotFoundException;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHMyself;
@@ -603,6 +602,7 @@ public class GHService {
             }
         } catch (IOException | IllegalArgumentException | GitAPIException e) {
             plugin.addError("Failed to commit changes", e);
+            plugin.raiseLastError();
         }
     }
 
@@ -637,11 +637,7 @@ public class GHService {
         try {
             // User
             if (user instanceof GHMyself myself && myself.getType().equalsIgnoreCase("user")) {
-                return myself.listEmails().toList().stream()
-                        .filter(GHEmail::isPrimary)
-                        .findFirst()
-                        .map(GHEmail::getEmail)
-                        .orElseThrow(() -> new ModernizerException("Primary email not found"));
+                return "%s@users.noreply.github.com".formatted(user.getLogin());
             }
             // Bot
             else if (app != null && user.getType().equalsIgnoreCase("bot")) {
@@ -692,11 +688,7 @@ public class GHService {
                     .toList();
             results.forEach(result -> {
                 LOG.debug("Push result: {}", result.getMessages());
-                // TODO: Always use <user>@users.noreply.github.com instead of granting right to read primary email
-                if (result.getMessages().contains("GH007")) {
-                    plugin.addError("Not allow to push. Your push would publish a private email address.");
-                    plugin.raiseLastError();
-                } else if (result.getMessages().contains("error")) {
+                if (result.getMessages().contains("error")) {
                     plugin.addError("Unexpected push error: %s".formatted(result.getMessages()));
                     plugin.raiseLastError();
                 }
@@ -763,10 +755,14 @@ public class GHService {
                     prBody,
                     false,
                     config.isDraft());
-            pr.addLabels(plugin.getTags().toArray(String[]::new));
             LOG.info("Pull request created: {}", pr.getHtmlUrl());
             plugin.withoutTags();
             plugin.withPullRequest();
+            try {
+                pr.addLabels(plugin.getTags().toArray(String[]::new));
+            } catch (Exception e) {
+                LOG.debug("Failed to add labels to pull request: {}. Probably missing permission.", e.getMessage());
+            }
         } catch (IOException e) {
             plugin.addError("Failed to create pull request", e);
             plugin.raiseLastError();
