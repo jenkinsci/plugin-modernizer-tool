@@ -49,7 +49,7 @@ jobs:
           echo "VERSION=$VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Run JReleaser
+      - name: Perform release
         with:
           arguments: release
         uses: jreleaser/release-action@v2
@@ -57,7 +57,23 @@ jobs:
           JRELEASER_PROJECT_VERSION: ${{ steps.build.outputs.version }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: JReleaser release output
+      - name: Generate Homebrew token
+        uses: tibdex/github-app-token@v2
+        id: generate_homebrew_token
+        with:
+          app_id: ${{ secrets.GORELEASER_APP_ID }}
+          private_key: ${{ secrets.GORELEASER_APP_PRIVKEY }}
+
+      - name: Publish release
+        with:
+          arguments: publish
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ steps.build.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ steps.generate_homebrew_token.outputs.token }}
+
+      - name: Archive output
         if: always()
         uses: actions/upload-artifact@v4
         with:
