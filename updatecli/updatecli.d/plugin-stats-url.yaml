@@ -1,0 +1,53 @@
+# Update plugin.stats.installations.plugin.url in urls.properties
+name: Update plugin.stats.installations.plugin.url in urls.properties
+
+scms:
+  default:
+    kind: github
+    spec:
+      # GitHub user information
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  latestPluginStatsUrl:
+    kind: shell
+    spec:
+      # Command to fetch the latest plugin stats file name
+      command: "curl -s https://stats.jenkins.io/jenkins-stats/svg/ | grep -oP '\\d{6}-plugins.csv' | sort -r | head -n 1"
+    transformers:
+      # Add prefix to the fetched file name
+      - addprefix: "https://stats.jenkins.io/jenkins-stats/svg/"
+
+targets:
+  updateUrlsProperties:
+    name: "Update plugin.stats.installations.plugin.url in urls.properties"
+    kind: file
+    spec:
+      # File to update
+      file: "plugin-modernizer-core/src/main/resources/urls.properties"
+      # Pattern to match in the file
+      matchpattern: "plugin.stats.installations.plugin.url=.*"
+      # Pattern to replace in the file
+      replacepattern: >-
+        plugin.stats.installations.plugin.url={{ source "latestPluginStatsUrl" }}
+    sourceid: latestPluginStatsUrl
+    scmid: default
+
+actions:
+  createPullRequest:
+    kind: github/pullrequest
+    scmid: default
+    # Title of the pull request
+    title: 'Update plugin.stats.installations.plugin.url to {{ source "latestPluginStatsUrl" }}'
+    spec:
+      # Labels for the pull request
+      labels:
+        - dependencies
+        - updatecli
+        - urls
