@@ -14,12 +14,14 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -677,17 +679,34 @@ public class GHService {
             return;
         }
         try (Git git = Git.open(plugin.getLocalRepository().toFile())) {
-            git.push()
-                    .setForce(true)
-                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(Settings.GITHUB_TOKEN, ""))
-                    .setRemote("origin")
-                    .setRefSpecs(new RefSpec(BRANCH_NAME + ":" + BRANCH_NAME))
-                    .call();
+            List<PushResult> results = StreamSupport.stream(
+                            git.push()
+                                    .setForce(true)
+                                    .setCredentialsProvider(
+                                            new UsernamePasswordCredentialsProvider(Settings.GITHUB_TOKEN, ""))
+                                    .setRemote("origin")
+                                    .setRefSpecs(new RefSpec(BRANCH_NAME + ":" + BRANCH_NAME))
+                                    .call()
+                                    .spliterator(),
+                            false)
+                    .toList();
+            results.forEach(result -> {
+                LOG.debug("Push result: {}", result.getMessages());
+                // TODO: Always use <user>@users.noreply.github.com instead of granting right to read primary email
+                if (result.getMessages().contains("GH007")) {
+                    plugin.addError("Not allow to push. Your push would publish a private email address.");
+                    plugin.raiseLastError();
+                } else if (result.getMessages().contains("error")) {
+                    plugin.addError("Unexpected push error: %s".formatted(result.getMessages()));
+                    plugin.raiseLastError();
+                }
+            });
             plugin.withoutCommits();
             plugin.withChangesPushed();
             LOG.info("Pushed changes to forked repository for plugin {}", plugin.getName());
         } catch (IOException | GitAPIException e) {
             plugin.addError("Failed to push changes", e);
+            plugin.raiseLastError();
         }
     }
 
@@ -750,6 +769,7 @@ public class GHService {
             plugin.withPullRequest();
         } catch (IOException e) {
             plugin.addError("Failed to create pull request", e);
+            plugin.raiseLastError();
         }
     }
 
