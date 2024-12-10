@@ -42,7 +42,7 @@ packagers:
     formulaName: PluginModernizer
     repository:
       active: RELEASE
-      owner: jonesbusy
+      owner: jenkins-infra
       name: homebrew-tap
       tagName: '{{distributionName}}-{{tagName}}'
     extraProperties:
