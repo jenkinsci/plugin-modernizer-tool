@@ -1,6 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
 import io.jenkins.tools.pluginmodernizer.cli.command.BuildMetadataCommand;
+import io.jenkins.tools.pluginmodernizer.cli.command.DryRunCommand;
 import io.jenkins.tools.pluginmodernizer.cli.command.ListRecipesCommand;
 import io.jenkins.tools.pluginmodernizer.cli.command.RunCommand;
 import io.jenkins.tools.pluginmodernizer.cli.command.ValidateCommand;
@@ -16,6 +17,7 @@ import picocli.CommandLine.Command;
             ValidateCommand.class,
             ListRecipesCommand.class,
             BuildMetadataCommand.class,
+            DryRunCommand.class,
             RunCommand.class,
         },
         mixinStandardHelpOptions = true,

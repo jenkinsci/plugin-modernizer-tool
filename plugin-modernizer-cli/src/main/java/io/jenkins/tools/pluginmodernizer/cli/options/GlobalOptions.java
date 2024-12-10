@@ -55,11 +55,6 @@ public class GlobalOptions {
     public Long githubAppTargetInstallationId;
 
     @CommandLine.Option(
-            names = {"-n", "--dry-run"},
-            description = "Perform a dry run without making any changes.")
-    public boolean dryRun;
-
-    @CommandLine.Option(
             names = {"--draft"},
             description = "Open a draft pull request.")
     public boolean draft;
@@ -141,7 +136,6 @@ public class GlobalOptions {
                 .withGitHubAppId(githubAppId)
                 .withGitHubAppSourceInstallationId(githubAppSourceInstallationId)
                 .withGitHubAppTargetInstallationId(githubAppTargetInstallationId)
-                .withDryRun(dryRun)
                 .withSkipPush(skipPush)
                 .withSkipBuild(skipBuild)
                 .withSkipPullRequest(skipPullRequest)
