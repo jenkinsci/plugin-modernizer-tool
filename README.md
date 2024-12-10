@@ -100,6 +100,7 @@ To activate app authentication, just set the following CLI argument
 
 - `validate`: Validate the configuration and environment variables (work in progress)
 - `run`: Run the modernization process
+- `dry-run`: Run the modernization process in dry-run mode without forking or pushing changes
 - `build-metadata`: Collect metadata for the given plugin and have them on the local cache
 - `recipes`: List available recipes
 
@@ -109,8 +110,6 @@ To activate app authentication, just set the following CLI argument
 - `--recipe` or `-r`: (required) Name of recipe to apply to the plugins.
 
 - `--plugin-file` or `-f`: (optional) Path to the text file that contains a list of plugins. (see example [plugin file](docs/example-plugins.txt))
-
-- `--dry-run` or `-n`: (optional) Enables dry run mode, generating patch files instead of applying changes. The patch files will be generated at `target/rewrite/rewrite.patch` inside the plugin directory if any change is made.
 
 - `--skip-push` (optional) Skips pushing changes to the remote repository. Always enabled in dry-run mode.
 
@@ -194,7 +193,7 @@ The above command generates patch files instead of applying changes directly. Th
 ### with export-datatables
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugins git,git-client,jobcacher --recipe AddPluginsBom --export-datatables
+java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar dry-run --plugins git,git-client,jobcacher --recipe AddPluginsBom --export-datatables
 ```
 
 The above command creates a report of the changes made through OpenRewrite in csv format. The report will be generated in `target/rewrite/datatables` inside the plugin directory.
