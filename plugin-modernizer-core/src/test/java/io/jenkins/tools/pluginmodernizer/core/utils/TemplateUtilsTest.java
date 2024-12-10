@@ -112,4 +112,25 @@ public class TemplateUtilsTest {
         // Assert
         assertEquals("Require 2.462.3", result);
     }
+
+    @Test
+    public void testFriendlyPrTitleUpgradeNextMajorParentVersion() {
+
+        // Mocks
+        Plugin plugin = mock(Plugin.class);
+        PluginMetadata metadata = mock(PluginMetadata.class);
+        Recipe recipe = mock(Recipe.class);
+
+        doReturn(metadata).when(plugin).getMetadata();
+        doReturn("2.479.1").when(metadata).getJenkinsVersion();
+        doReturn("io.jenkins.tools.pluginmodernizer.UpgradeNextMajorParentVersion")
+                .when(recipe)
+                .getName();
+
+        // Test
+        String result = TemplateUtils.renderPullRequestTitle(plugin, recipe);
+
+        // Assert
+        assertEquals("Require 2.479.1 and Java 17", result);
+    }
 }
