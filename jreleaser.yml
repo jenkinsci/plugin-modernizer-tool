@@ -18,7 +18,7 @@ release:
     enabled: true
     overwrite: false
     skipTag: true
-    releaseName: "{{tagName}}"
+    releaseName: "{{projectVersion}}"
     changelog:
       enabled: false
     milestone:
@@ -44,7 +44,7 @@ packagers:
       active: RELEASE
       owner: jenkins-infra
       name: homebrew-tap
-      tagName: '{{distributionName}}-{{tagName}}'
+      tagName: '{{distributionName}}-{{projectVersion}}'
     commitAuthor:
       name: jenkins-infra
       email: jenkins-infra-team@googlegroups.com
