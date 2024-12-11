@@ -45,6 +45,9 @@ packagers:
       owner: jenkins-infra
       name: homebrew-tap
       tagName: '{{distributionName}}-{{tagName}}'
+    commitAuthor:
+      name: jenkins-infra
+      email: jenkins-infra-team@googlegroups.com
     extraProperties:
       skipLicenseFile: true
     skipTemplates:
