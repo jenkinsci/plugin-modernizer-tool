@@ -12,8 +12,106 @@ permissions:
   contents: write
 
 jobs:
-  maven-cd:
-    uses: jenkins-infra/github-reusable-workflows/.github/workflows/maven-cd.yml@v1
-    secrets:
-      MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-      MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.verify-ci-status.outputs.result == 'success' && steps.interesting-categories.outputs.interesting == 'true' }}
+    steps:
+      - name: Verify CI status
+        uses: jenkins-infra/verify-ci-status-action@v1.2.2
+        id: verify-ci-status
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          output_result: true
+      - name: Release Drafter
+        uses: release-drafter/release-drafter@3f0f87098bd6b5c5b9a36d49c41d998ea58f9348 # v6
+        id: draft
+        if: steps.verify-ci-status.outputs.result == 'success'
+        with:
+          name: next
+          tag: next
+          version: next
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check interesting categories
+        uses: jenkins-infra/interesting-category-action@v1.2.1
+        id: interesting-categories
+        if: steps.verify-ci-status.outputs.result == 'success'
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_DRAFT_BODY: ${{ steps.draft.outputs.body }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [validate]
+    if: needs.validate.outputs.should_release == 'true'
+    steps:
+
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # https://github.com/jenkins-infra/github-reusable-workflows/issues/36
+      - name: Set up Maven
+        run: |
+          wget --no-verbose https://dlcdn.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+          echo $CHECKSUM apache-maven-$MAVEN_VERSION-bin.tar.gz | sha512sum --check
+          tar xzf apache-maven-$MAVEN_VERSION-bin.tar.gz
+          rm apache-maven-$MAVEN_VERSION-bin.tar.gz
+          sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+          sudo rm -f /usr/bin/mvn
+          sudo ln -s /opt/maven/bin/mvn /usr/bin/mvn
+          mvn --version
+        env:
+          MAVEN_VERSION: 3.9.9
+          # https://downloads.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz.sha512
+          CHECKSUM: a555254d6b53d267965a3404ecb14e53c3827c09c3b94b5678835887ab404556bfaf78dcfe03ba76fa2508649dca8531c74bca4d5846513522404d48e8c4ac8b
+
+      - name: Release
+        uses: jenkins-infra/jenkins-maven-cd-action@v1.3.3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+
+      - name: Attach jar to release
+        with:
+          arguments: release
+          setup-java: false
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ steps.build.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Homebrew token
+        uses: tibdex/github-app-token@v2
+        id: generate_homebrew_token
+        with:
+          app_id: ${{ secrets.GORELEASER_APP_ID }}
+          private_key: ${{ secrets.GORELEASER_APP_PRIVKEY }}
+
+      - name: Publish release
+        with:
+          arguments: publish
+          setup-java: false
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ steps.build.outputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ steps.generate_homebrew_token.outputs.token }}
+
+      - name: Archive output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jreleaser-release
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties
