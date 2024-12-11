@@ -29,8 +29,9 @@ targets:
     name: "Update gson-api plugin version in recipes.yml"
     kind: yaml
     spec:
-      file: "plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml"
-      key: ".recipeList[?(@.pluginArtifactId == 'gson-api')].pluginVersion"
+      engine: "yamlpath"
+      file: plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
+      key: $.recipeList["org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin"].pluginArtifactId == "gson-api") | .["org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin"].pluginVersion'
     sourceid: latestGsonApiVersion
     scmid: default
 
