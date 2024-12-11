@@ -30,7 +30,7 @@ targets:
     kind: yaml
     spec:
       file: "plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml"
-      key: "recipeList[?(@.pluginArtifactId == 'gson-api')].pluginVersion"
+      key: ".recipeList[?(@.pluginArtifactId == 'gson-api')].pluginVersion"
     sourceid: latestGsonApiVersion
     scmid: default
 
