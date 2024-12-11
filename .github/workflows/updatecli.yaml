@@ -34,9 +34,3 @@ jobs:
         run: updatecli apply --config ./updatecli/updatecli.d --values ./updatecli/values.github-action.yaml
         env:
           UPDATECLI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run Updatecli for gson-api plugin
-        if: github.ref == 'refs/heads/main'
-        run: updatecli apply --config ./updatecli/updatecli.d/gson-api.yaml --values ./updatecli/values.github-action.yaml
-        env:
-          UPDATECLI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
