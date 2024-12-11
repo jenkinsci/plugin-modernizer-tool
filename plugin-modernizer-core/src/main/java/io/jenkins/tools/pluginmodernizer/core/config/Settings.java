@@ -1,22 +1,24 @@
 package io.jenkins.tools.pluginmodernizer.core.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
-import org.openrewrite.Recipe;
-import org.openrewrite.config.YamlResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,9 +117,16 @@ public class Settings {
 
         // Get recipes module
         try (InputStream inputStream = Settings.class.getResourceAsStream("/" + Settings.RECIPE_DATA_YAML_PATH)) {
-            YamlResourceLoader yamlResourceLoader =
-                    new YamlResourceLoader(inputStream, URI.create(Settings.RECIPE_DATA_YAML_PATH), new Properties());
-            AVAILABLE_RECIPES = yamlResourceLoader.listRecipes().stream().toList();
+            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            YAMLFactory yamlFactory = new YAMLFactory();
+            YAMLParser yamlParser = yamlFactory.createParser(inputStream);
+            List<Recipe> recipes = new ArrayList<>();
+            while (yamlParser.nextToken() != null) {
+                Recipe recipe = mapper.readValue(yamlParser, Recipe.class);
+                recipes.add(recipe);
+            }
+            AVAILABLE_RECIPES = recipes;
+
         } catch (IOException e) {
             LOG.error("Error reading recipes", e);
             throw new ModernizerException("Error reading recipes", e);

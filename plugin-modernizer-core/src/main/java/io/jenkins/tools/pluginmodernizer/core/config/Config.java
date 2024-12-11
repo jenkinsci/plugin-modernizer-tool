@@ -2,10 +2,10 @@ package io.jenkins.tools.pluginmodernizer.core.config;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
-import org.openrewrite.Recipe;
 
 public class Config {
 
