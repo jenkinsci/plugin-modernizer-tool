@@ -17,7 +17,7 @@ release:
   github:
     enabled: true
     overwrite: false
-    tagName: "{{projectVersion}}"
+    skipTag: true
     releaseName: "{{tagName}}"
     changelog:
       enabled: false
