@@ -110,7 +110,7 @@ jobs:
           setup-java: false
         uses: jreleaser/release-action@v2
         env:
-          JRELEASER_PROJECT_VERSION: ${{ steps.build.outputs.version }}
+          JRELEASER_PROJECT_VERSION: ${{ steps.extract-version.outputs.version }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JRELEASER_HOMEBREW_GITHUB_TOKEN: ${{ steps.generate_homebrew_token.outputs.token }}
 
