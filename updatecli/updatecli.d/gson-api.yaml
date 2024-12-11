@@ -27,11 +27,11 @@ sources:
 targets:
   updateRecipesYaml:
     name: "Update gson-api plugin version in recipes.yml"
-    kind: yaml
+    kind: file
     spec:
-      engine: "yamlpath"
       file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
-      key: "$.recipeList[?(@['org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin'].pluginArtifactId == 'gson-api')]['org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin'].pluginVersion"
+      matchPattern: "(pluginArtifactId: gson-api\\n)(.*\\n)(.*pluginVersion:) .*"
+      replacePattern: '$1$2$3 {{ source "latestGsonApiVersion" }}'
     sourceid: latestGsonApiVersion
     scmid: default
 
