@@ -275,11 +275,27 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
          */
         private final List<MetadataFlag> flags = new ArrayList<>();
 
+        /**
+         * Convert an OpenRewrite XML tag to a metadata XML tag.
+         * @param tag OpenRewrite XML tag
+         * @return metadata XML tag
+         */
+        private MetadataXmlTag convertToMetadataXmlTag(Xml.Tag tag) {
+            MetadataXmlTag metadataXmlTag = new MetadataXmlTag();
+            metadataXmlTag.setName(tag.getName());
+            metadataXmlTag.setValue(tag.getValue());
+            metadataXmlTag.setChildren(tag.getChildren().stream()
+                    .map(this::convertToMetadataXmlTag)
+                    .collect(Collectors.toList()));
+            return metadataXmlTag;
+        }
+
         @Override
         public Xml.Tag visitTag(Xml.Tag tag, ExecutionContext ctx) {
             Xml.Tag t = super.visitTag(tag, ctx);
+            MetadataXmlTag metadataXmlTag = convertToMetadataXmlTag(tag);
             List<MetadataFlag> newFlags = Arrays.stream(MetadataFlag.values())
-                    .filter(flag -> flag.isApplicable(tag))
+                    .filter(flag -> flag.isApplicable(metadataXmlTag))
                     .toList();
             flags.addAll(newFlags);
             if (!newFlags.isEmpty()) {
