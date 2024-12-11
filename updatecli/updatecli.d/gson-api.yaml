@@ -1,0 +1,46 @@
+name: Update gson-api plugin version
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  latestGsonApiVersion:
+    kind: githubrelease
+    spec:
+      owner: "jenkinsci"
+      repository: "gson-api-plugin"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      versioning:
+        kind: semver
+        pattern: "latest"
+
+targets:
+  updateRecipesYaml:
+    name: "Update gson-api plugin version in recipes.yml"
+    kind: file
+    spec:
+      file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
+      matchPattern: "(pluginArtifactId: gson-api\\n)(.*\\n)(.*pluginVersion:) .*"
+      replacePattern: '$1$2$3 {{ source "latestGsonApiVersion" }}'
+    sourceid: latestGsonApiVersion
+    scmid: default
+
+actions:
+  createPullRequest:
+    kind: github/pullrequest
+    scmid: default
+    title: 'Update gson-api plugin version to {{ source "latestGsonApiVersion" }}'
+    spec:
+      labels:
+        - dependencies
+        - updatecli
