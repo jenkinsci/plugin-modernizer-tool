@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.openrewrite.Recipe;
 
 public class ConfigTest {
 

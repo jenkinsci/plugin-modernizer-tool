@@ -6,8 +6,8 @@ import static org.mockito.Mockito.mock;
 
 import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
 import org.junit.jupiter.api.Test;
-import org.openrewrite.Recipe;
 
 public class TemplateUtilsTest {
 

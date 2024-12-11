@@ -1,5 +1,5 @@
 @import io.jenkins.tools.pluginmodernizer.core.model.Plugin
-@import org.openrewrite.Recipe
+@import io.jenkins.tools.pluginmodernizer.core.model.Recipe
 @param Plugin plugin
 @param Recipe recipe
 Hello `${plugin.getName()}` developers!

@@ -7,8 +7,8 @@ import gg.jte.output.StringOutput;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
 import java.util.Map;
-import org.openrewrite.Recipe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
