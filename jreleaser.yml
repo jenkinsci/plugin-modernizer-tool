@@ -17,7 +17,7 @@ release:
   github:
     enabled: true
     overwrite: false
-    tagName: "{{projectVersion}}"
+    skipTag: true
     releaseName: "{{tagName}}"
     changelog:
       enabled: false
@@ -42,9 +42,12 @@ packagers:
     formulaName: PluginModernizer
     repository:
       active: RELEASE
-      owner: jonesbusy
+      owner: jenkins-infra
       name: homebrew-tap
       tagName: '{{distributionName}}-{{tagName}}'
+    commitAuthor:
+      name: jenkins-infra
+      email: jenkins-infra-team@googlegroups.com
     extraProperties:
       skipLicenseFile: true
     skipTemplates:

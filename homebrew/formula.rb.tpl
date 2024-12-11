@@ -1,14 +1,16 @@
 class PluginModernizer < Formula
     desc "Plugin Modernizer"
+    # Note: Brew don't really like our versions scheme for CD. Implicitly it consider 499.vb_86f97f0b_197 as version 197 which is incorrect
+    # So using version which  only first numeric part for CD
     version "{{projectVersion}}".split(".")[0]
     homepage "https://github.com/jenkins-infra/plugin-modernizer-tool"
-    url "https://repo.jenkins-ci.org/artifactory/releases/io/jenkins/plugin-modernizer/{{distributionName}}-cli/{{projectVersion}}/{{distributionName}}-cli-{{projectVersion}}.jar"
+    url "https://github.com/jenkins-infra/plugin-modernizer-tool/releases/download/{{projectVersion}}/jenkins-plugin-modernizer-{{projectVersion}}.jar"
     sha256 "{{distributionChecksumSha256}}"
     license "MIT"
 
     def install
-      libexec.install "{{distributionName}}-cli-{{projectVersion}}.jar"
-      bin.write_jar_script libexec/"{{distributionName}}-cli-{{projectVersion}}.jar", "plugin-modernizer"
+      libexec.install "jenkins-plugin-modernizer-{{projectVersion}}.jar"
+      bin.write_jar_script libexec/"jenkins-plugin-modernizer-{{projectVersion}}.jar", "plugin-modernizer"
     end
 
     test do

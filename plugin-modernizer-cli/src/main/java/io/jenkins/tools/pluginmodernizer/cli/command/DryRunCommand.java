@@ -15,15 +15,15 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 /**
- * Run command
+ * Dry Run command
  */
-@CommandLine.Command(name = "run", description = "Run")
-public class RunCommand implements ICommand {
+@CommandLine.Command(name = "dry-run", description = "Dry Run")
+public class DryRunCommand implements ICommand {
 
     /**
      * Logger
      */
-    private static final Logger LOG = LoggerFactory.getLogger(RunCommand.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DryRunCommand.class);
 
     /**
      * Plugins options
@@ -50,14 +50,16 @@ public class RunCommand implements ICommand {
     @Override
     public Config setup(Config.Builder builder) {
         return builder.withPlugins(pluginOptions != null ? pluginOptions.getEffectivePlugins() : new ArrayList<>())
-                .withDryRun(false)
+                .withDryRun(true)
+                .withSkipPush(true)
+                .withSkipPush(true)
                 .withRecipe(recipe)
                 .build();
     }
 
     @Override
     public Integer call() throws Exception {
-        LOG.info("Run Plugin Modernizer");
+        LOG.info("Run Plugin Modernizer in dry-run mode");
         PluginModernizer modernizer = Guice.createInjector(new GuiceModule(setup(options.getBuilderForOptions())))
                 .getInstance(PluginModernizer.class);
         try {
