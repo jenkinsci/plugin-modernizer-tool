@@ -18,6 +18,7 @@ release:
     enabled: true
     overwrite: false
     skipTag: true
+    tagName: "{{projectVersion}}"
     releaseName: "{{projectVersion}}"
     changelog:
       enabled: false
