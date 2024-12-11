@@ -81,13 +81,20 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
 
+      - name: Extract version
+        id: extract-version
+        run: |
+          VERSION=$(mvn -q -Dset.changelist -Dignore.dirt -DforceStdout org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version)
+          echo "VERSION=$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Attach jar to release
         with:
           arguments: release
           setup-java: false
         uses: jreleaser/release-action@v2
         env:
-          JRELEASER_PROJECT_VERSION: ${{ steps.build.outputs.version }}
+          JRELEASER_PROJECT_VERSION: ${{ steps.extract-version.outputs.version }}
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Homebrew token

@@ -61,10 +61,18 @@ mvn clean install
 
 ### Using the tool
 
-After building, the JAR file will be available at [plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar](plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar)
+The CLI is distributed by Homebrew and can be installed using the following command
 
-```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --help
+Ensure to have Jenkins infra tap
+
+```
+brew tap jenkins-infra/tap
+```
+
+Then install the plugin-modernizer-tool
+
+```
+brew install plugin-modernizer
 ```
 
 ### Setup
