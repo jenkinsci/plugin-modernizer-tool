@@ -133,15 +133,16 @@
     <dependency>
       <groupId>org.openrewrite.recipe</groupId>
       <artifactId>rewrite-testing-frameworks</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.testcontainers</groupId>
+          <artifactId>testcontainers</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>uk.org.webcompere</groupId>
-      <artifactId>system-stubs-jupiter</artifactId>
-      <version>2.1.7</version>
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
@@ -157,6 +158,12 @@
     <dependency>
       <groupId>org.openrewrite</groupId>
       <artifactId>rewrite-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>uk.org.webcompere</groupId>
+      <artifactId>system-stubs-jupiter</artifactId>
+      <version>2.1.7</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
