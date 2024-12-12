@@ -641,6 +641,7 @@ public class GHServiceTest {
 
         doReturn(recipe).when(config).getRecipe();
         doReturn("recipe1").when(recipe).getName();
+        doReturn("test").when(config).getGithubOwner();
         doReturn(null).when(config).getGithubAppTargetInstallationId();
         doReturn(false).when(config).isDraft();
         doReturn(true).when(plugin).hasChangesPushed();
@@ -672,6 +673,7 @@ public class GHServiceTest {
 
         doReturn(recipe).when(config).getRecipe();
         doReturn("recipe1").when(recipe).getName();
+        doReturn("test").when(config).getGithubOwner();
         doReturn(null).when(config).getGithubAppTargetInstallationId();
         doReturn(true).when(config).isDraft();
         doReturn(true).when(plugin).hasChangesPushed();

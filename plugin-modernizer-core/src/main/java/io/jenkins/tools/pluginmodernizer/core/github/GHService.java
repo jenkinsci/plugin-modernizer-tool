@@ -74,7 +74,7 @@ public class GHService {
                         || config.getGithubAppTargetInstallationId() == null)) {
             throw new ModernizerException("Please set GH_TOKEN, GITHUB_TOKEN or configure GitHub app authentication.");
         }
-        if (config.getGithubOwner() == null) {
+        if (getGithubOwner() == null) {
             throw new ModernizerException(
                     "GitHub owner (username/organization) is not set. Please set GH_OWNER or GITHUB_OWNER environment variable. Or use --github-owner if running from CLI");
         }
@@ -85,10 +85,20 @@ public class GHService {
         }
     }
 
+    public boolean isConnected() {
+        return github != null;
+    }
+
     /**
      * Connect to GitHub using the GitHub auth token
      */
     public void connect() {
+        if (Settings.GITHUB_TOKEN == null
+                && (config.getGithubAppId() == null
+                        || config.getGithubAppSourceInstallationId() == null
+                        || config.getGithubAppTargetInstallationId() == null)) {
+            throw new ModernizerException("Please set GH_TOKEN, GITHUB_TOKEN or configure GitHub app authentication.");
+        }
         if (github != null) {
             throw new ModernizerException("GitHub client is already connected.");
         }
@@ -187,7 +197,7 @@ public class GHService {
             throw new PluginProcessingException("Cannot get fork repository in dry-run mode", plugin);
         }
         try {
-            return github.getRepository(config.getGithubOwner() + "/" + plugin.getRepositoryName());
+            return github.getRepository(getGithubOwner() + "/" + plugin.getRepositoryName());
         } catch (IOException e) {
             throw new PluginProcessingException("Failed to get repository", e, plugin);
         }
@@ -320,7 +330,7 @@ public class GHService {
      */
     private GHOrganization getOrganization() throws IOException {
         try {
-            return github.getOrganization(config.getGithubOwner());
+            return github.getOrganization(getGithubOwner());
         } catch (GHFileNotFoundException e) {
             LOG.debug("Owner is not an organization: {}", config.getGithubOwner());
             return null;
@@ -611,6 +621,10 @@ public class GHService {
      * @return The current user
      */
     public GHUser getCurrentUser() {
+        if (!isConnected()) {
+            LOG.debug("Not able to get current user. GitHub client is not connected");
+            return null;
+        }
         try {
             // Get myself
             if (config.getGithubAppId() == null) {
@@ -750,7 +764,7 @@ public class GHService {
         try {
             GHPullRequest pr = repository.createPullRequest(
                     prTitle,
-                    config.getGithubOwner() + ":" + BRANCH_NAME,
+                    getGithubOwner() + ":" + BRANCH_NAME,
                     repository.getDefaultBranch(),
                     prBody,
                     false,
@@ -820,6 +834,16 @@ public class GHService {
             plugin.addError("Failed to check if pull request exists", e);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Determine the GitHub owner from config or using current token
+     * @return The GitHub owner
+     */
+    public String getGithubOwner() {
+        return config.getGithubOwner() != null
+                ? config.getGithubOwner()
+                : getCurrentUser().getLogin();
     }
 
     /**
