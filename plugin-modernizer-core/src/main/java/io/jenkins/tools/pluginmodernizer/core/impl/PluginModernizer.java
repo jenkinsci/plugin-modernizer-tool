@@ -40,7 +40,16 @@ public class PluginModernizer {
     public void validate() {
         mavenInvoker.validateMavenHome();
         mavenInvoker.validateMavenVersion();
+        ghService.connect();
         ghService.validate();
+    }
+
+    /**
+     * Expose the effective GitHub owner from either config or current owner of token
+     * @return The GitHub owner
+     */
+    public String getGithubOwner() {
+        return ghService.getGithubOwner();
     }
 
     /**
@@ -51,7 +60,6 @@ public class PluginModernizer {
         validate();
 
         // Setup
-        this.ghService.connect();
         if (config.isRemoveLocalData()) {
             cacheManager.wipe();
         }
