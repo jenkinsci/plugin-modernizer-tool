@@ -60,6 +60,12 @@
       <type>zip</type>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-invoker</artifactId>
+      <version>3.1.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -152,6 +158,27 @@
             <arg>-Aproject=${project.groupId}/${project.artifactId}</arg>
           </compilerArgs>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.5.2</version>
+        <configuration>
+          <includes>
+            <include>**/*IT.java</include>
+            <!-- Matches your integration test -->
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <phase>integration-test</phase>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
