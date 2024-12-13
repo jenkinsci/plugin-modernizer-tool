@@ -5,7 +5,6 @@ import io.jenkins.tools.pluginmodernizer.core.utils.PluginService;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
-import org.openrewrite.xml.tree.Xml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,6 @@ public enum MetadataFlag {
                 if ("repositories".equals(tag.getName())) {
                     return tag.getChildren().stream()
                             .filter(c -> "repository".equals(c.getName()))
-                            .map(Xml.Tag.class::cast)
                             .map(r -> r.getChildValue("url").orElseThrow())
                             .allMatch(url -> url.startsWith("https"));
                 }
@@ -51,7 +49,6 @@ public enum MetadataFlag {
                 if ("licenses".equals(tag.getName())) {
                     return tag.getChildren().stream()
                             .filter(c -> "license".equals(c.getName()))
-                            .map(Xml.Tag.class::cast)
                             .map(r -> r.getChildValue("name").orElseThrow())
                             .findAny()
                             .isPresent();
@@ -68,7 +65,6 @@ public enum MetadataFlag {
                 if ("developers".equals(tag.getName())) {
                     return tag.getChildren().stream()
                             .filter(c -> "developer".equals(c.getName()))
-                            .map(Xml.Tag.class::cast)
                             .map(r -> r.getChildValue("id").orElseThrow())
                             .findAny()
                             .isPresent();
@@ -110,7 +106,7 @@ public enum MetadataFlag {
     /**
      * Function to check if the flag is applicable for the given XML tag
      */
-    private final Predicate<Xml.Tag> isApplicableTag;
+    private final Predicate<MetadataXmlTag> isApplicableTag;
 
     /**
      * Function to check if the flag is applicable for the given plugin
@@ -121,7 +117,7 @@ public enum MetadataFlag {
      * Constructor
      * @param isApplicableTag Predicate to check if the flag is applicable for the given XML tag
      */
-    MetadataFlag(Predicate<Xml.Tag> isApplicableTag, BiPredicate<Plugin, PluginService> isApplicablePlugin) {
+    MetadataFlag(Predicate<MetadataXmlTag> isApplicableTag, BiPredicate<Plugin, PluginService> isApplicablePlugin) {
         this.isApplicableTag = isApplicableTag;
         this.isApplicablePlugin = isApplicablePlugin;
     }
@@ -131,7 +127,7 @@ public enum MetadataFlag {
      * @param tag XML tag
      * @return true if the flag is applicable
      */
-    public boolean isApplicable(Xml.Tag tag) {
+    public boolean isApplicable(MetadataXmlTag tag) {
         if (isApplicableTag == null) {
             return false;
         }

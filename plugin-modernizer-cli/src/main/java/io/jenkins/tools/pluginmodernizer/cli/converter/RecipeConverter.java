@@ -1,7 +1,7 @@
 package io.jenkins.tools.pluginmodernizer.cli.converter;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
-import org.openrewrite.Recipe;
+import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
 import picocli.CommandLine;
 
 /**

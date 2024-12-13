@@ -20,6 +20,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
 import io.jenkins.tools.pluginmodernizer.core.model.PluginProcessingException;
+import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -38,7 +39,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openrewrite.Recipe;
 
 @ExtendWith({MockitoExtension.class})
 public class GHServiceTest {

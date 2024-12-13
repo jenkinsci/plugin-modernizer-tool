@@ -33,17 +33,11 @@
           <groupId>org.openrewrite</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.openrewrite.recipe</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
       </exclusions>
-    </dependency>
-    <!-- We only use the Recipe class and Xml.Tag from the CLI -->
-    <!-- TODO : We should be able to break this dependencies by introducing our own interfaces -->
-    <dependency>
-      <groupId>org.openrewrite</groupId>
-      <artifactId>rewrite-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.openrewrite</groupId>
-      <artifactId>rewrite-xml</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
