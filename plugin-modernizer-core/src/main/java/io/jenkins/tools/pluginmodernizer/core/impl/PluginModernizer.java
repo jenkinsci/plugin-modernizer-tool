@@ -53,6 +53,24 @@ public class PluginModernizer {
     }
 
     /**
+     * Expose the effective Maven version
+     * @return The Maven version
+     */
+    public String getMavenVersion() {
+        return mavenInvoker.getMavenVersion() != null
+                ? mavenInvoker.getMavenVersion().toString()
+                : "unknown";
+    }
+
+    /**
+     * Expose the effective Java version
+     * @return The Java version
+     */
+    public String getJavaVersion() {
+        return System.getProperty("java.version");
+    }
+
+    /**
      * Entry point to start the plugin modernization process
      */
     public void start() {

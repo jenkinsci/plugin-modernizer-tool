@@ -36,6 +36,8 @@ public class ValidateCommand implements ICommand {
             modernizer.validate();
             LOG.info("GitHub owner: {}", modernizer.getGithubOwner());
             LOG.info("Maven home: {}", config.getMavenHome());
+            LOG.info("Maven version: {}", modernizer.getMavenVersion());
+            LOG.info("Java version: {}", modernizer.getJavaVersion());
             LOG.info("Cache path: {}", config.getCachePath());
         } catch (ModernizerException e) {
             LOG.error("Validation error");
