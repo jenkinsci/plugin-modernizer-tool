@@ -46,10 +46,7 @@ Learn more at [this project page](https://www.jenkins.io/projects/gsoc/2024/proj
 
 ## Getting Started
 
-> [!Note]
-> Releases are paused until the end of the GSoC period. To use the latest version of the tool, clone this project locally and build it using the following commands.
-
-### Requirements to build
+### Requirements
 - Maven version 3.9.7 or later, or mvnd
 - Java 17 or Java 21
 
@@ -154,7 +151,7 @@ Plugins can be passed to the CLI tool in two ways:
 Pass the plugin names directly using the `-p` or `--plugins option`. The expected input format for plugins is `artifact ID`.
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar --plugins git,git-client,jobcacher --recipe AddPluginsBom
+plugin-modernizer --plugins git,git-client,jobcacher --recipe AddPluginsBom
 ```
 Here, `git`, `git-client`, and `jobcacher` are plugin artifact IDs (also known as plugin names), while `AddPluginsBom` and `AddCodeOwners` are recipe names. For more details about available recipes, refer to the [recipe_data.yaml](plugin-modernizer-core/src/main/resources/recipe_data.yaml) file.
 
@@ -164,7 +161,7 @@ Pass the path to a file that contains plugin names. The expected input format fo
 See example [plugin file](docs/example-plugins.txt)
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugin-file path/to/plugin-file --recipe AddPluginsBom
+plugin-modernizer run --plugin-file path/to/plugin-file --recipe AddPluginsBom
 ```
 
 ## Configuring Environmental Variables
@@ -183,14 +180,14 @@ java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT
 ### without dry-run
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugins git,git-client,jobcacher --recipe AddPluginsBom
+plugin-modernizer run --plugins git,git-client,jobcacher --recipe AddPluginsBom
 ```
 The above command creates pull requests in the respective remote repositories after applying the changes.
 
 ### with dry-run
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar run --plugins git,git-client,jobcacher --recipe AddPluginsBom --dry-run
+plugin-modernizer run --plugins git,git-client,jobcacher --recipe AddPluginsBom --dry-run
 ```
 
 The above command generates patch files instead of applying changes directly. These patch files are saved in `/target/rewrite/rewrite.patch` inside each plugin directory. No pull requests will be created.
@@ -201,7 +198,7 @@ The above command generates patch files instead of applying changes directly. Th
 ### with export-datatables
 
 ```shell
-java -jar plugin-modernizer-cli/target/jenkins-plugin-modernizer-999999-SNAPSHOT.jar dry-run --plugins git,git-client,jobcacher --recipe AddPluginsBom --export-datatables
+plugin-modernizer dry-run --plugins git,git-client,jobcacher --recipe AddPluginsBom --export-datatables
 ```
 
 The above command creates a report of the changes made through OpenRewrite in csv format. The report will be generated in `target/rewrite/datatables` inside the plugin directory.
