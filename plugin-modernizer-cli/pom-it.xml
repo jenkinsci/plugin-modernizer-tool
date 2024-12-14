@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.jenkins.plugin-modernizer</groupId>
+  <artifactId>plugin-modernizer-it</artifactId>
+  <version>${changelist}</version>
+  <properties>
+    <changelist>999999-SNAPSHOT</changelist>
+    <maven.test.skip>true</maven.test.skip>
+    <skipTests>true</skipTests> <!-- No test for this pom, only exec plugin -->
+    <exec.executable>java</exec.executable>
+    <exec.args>-jar target/jenkins-plugin-modernizer-${project.version}.jar ${test.cliArgs}</exec.args>
+    <test.cliArgs>--version</test.cliArgs>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>exec</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+                <executable>${exec.executable}</executable>
+                <arguments>
+                    ${exec.args}
+                </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -74,6 +74,8 @@
     <jakarta.inject.version>2.0.1</jakarta.inject.version>
     <jwt.version>0.12.6</jwt.version>
     <bouncycastle.version>1.79</bouncycastle.version>
+    <maven.surefire.version>3.5.2</maven.surefire.version>
+    <maven.failsafe.version>3.5.2</maven.failsafe.version>
   </properties>
 
   <dependencyManagement>
@@ -307,6 +309,16 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven.failsafe.version}</version>
+        </plugin>
         <plugin>
           <groupId>org.openrewrite.maven</groupId>
           <artifactId>rewrite-maven-plugin</artifactId>
