@@ -40,6 +40,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-invoker</artifactId>
+      <version>3.3.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
@@ -83,11 +88,36 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <excludes>
+            <exclude>**/*ITCase.java</exclude>
+          </excludes>
           <environmentVariables>
             <MAVEN_HOME>${project.build.directory}/apache-maven-${maven.version}</MAVEN_HOME>
             <M2_HOME>${project.build.directory}/apache-maven-${maven.version}</M2_HOME>
           </environmentVariables>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>integration-tests</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <useModulePath>false</useModulePath>
+              <includes>
+                <include>**/*ITCase.java</include>
+              </includes>
+              <environmentVariables>
+                <MAVEN_HOME>${project.build.directory}/apache-maven-${maven.version}</MAVEN_HOME>
+              </environmentVariables>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
