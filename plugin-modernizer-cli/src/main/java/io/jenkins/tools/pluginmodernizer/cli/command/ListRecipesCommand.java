@@ -1,9 +1,8 @@
 package io.jenkins.tools.pluginmodernizer.cli.command;
 
 import io.jenkins.tools.pluginmodernizer.cli.options.GlobalOptions;
-import io.jenkins.tools.pluginmodernizer.core.config.Settings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.jenkins.tools.pluginmodernizer.core.config.Config;
+import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import picocli.CommandLine;
 
 /**
@@ -12,20 +11,19 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "recipes", description = "List recipes")
 public class ListRecipesCommand implements ICommand {
 
-    /**
-     * Logger
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(ValidateCommand.class);
-
     @CommandLine.Mixin
     private GlobalOptions options;
 
     @Override
+    public Config setup(Config.Builder builder) {
+        options.config(builder);
+        return builder.build();
+    }
+
+    @Override
     public Integer call() throws Exception {
-        Settings.AVAILABLE_RECIPES.forEach(recipe -> LOG.info(
-                "{} - {}",
-                recipe.getName().replaceAll(Settings.RECIPE_FQDN_PREFIX + ".", ""),
-                recipe.getDescription()));
+        PluginModernizer modernizer = getModernizer();
+        modernizer.listRecipes();
         return 0;
     }
 }

@@ -185,7 +185,7 @@ public class Settings {
         if (host == null) {
             host = "api.github.com";
         }
-        return new URL("http://%s".formatted(host));
+        return new URL("https://%s".formatted(host));
     }
 
     private static @NotNull String getRemediationJenkinsMinimumVersion() {

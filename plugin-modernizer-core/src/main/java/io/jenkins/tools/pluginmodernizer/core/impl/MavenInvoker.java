@@ -114,7 +114,6 @@ public class MavenInvoker {
     private String[] getSingleRecipeArgs(Recipe recipe) {
         List<String> goals = new ArrayList<>();
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
-        goals.add("-Drewrite.exportDatatables=" + config.isExportDatatables());
         goals.add("-Drewrite.activeRecipes=" + recipe.getName());
         goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
                 + config.getVersion());
