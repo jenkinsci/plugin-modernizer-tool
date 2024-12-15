@@ -1,10 +1,6 @@
 package io.jenkins.tools.pluginmodernizer.cli;
 
-import io.jenkins.tools.pluginmodernizer.cli.command.BuildMetadataCommand;
-import io.jenkins.tools.pluginmodernizer.cli.command.DryRunCommand;
-import io.jenkins.tools.pluginmodernizer.cli.command.ListRecipesCommand;
-import io.jenkins.tools.pluginmodernizer.cli.command.RunCommand;
-import io.jenkins.tools.pluginmodernizer.cli.command.ValidateCommand;
+import io.jenkins.tools.pluginmodernizer.cli.command.*;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -19,6 +15,7 @@ import picocli.CommandLine.Command;
             BuildMetadataCommand.class,
             DryRunCommand.class,
             RunCommand.class,
+            CleanupCommand.class
         },
         mixinStandardHelpOptions = true,
         versionProvider = VersionProvider.class)

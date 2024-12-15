@@ -8,10 +8,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import io.jenkins.tools.pluginmodernizer.core.model.HealthScoreData;
+import io.jenkins.tools.pluginmodernizer.core.model.PluginVersionData;
+import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
@@ -37,6 +41,9 @@ public class CommandLineITCase {
     @TempDir
     private Path outputPath;
 
+    @TempDir
+    private Path cachePath;
+
     @Test
     public void testVersion() throws Exception {
         LOG.info("Running testVersion");
@@ -59,6 +66,30 @@ public class CommandLineITCase {
                 () -> assertEquals(0, result.getExitCode()),
                 () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
                         .anyMatch(line -> line.matches("(.*)Usage: plugin-modernizer (.*) COMMAND(.*)"))));
+    }
+
+    @Test
+    public void testCleanupWithDryRun() throws Exception {
+        LOG.info("Running testCleanupWithDryRun");
+        Invoker invoker = buildInvoker();
+        InvocationRequest request = buildRequest("cleanup --cache-path %s --dry-run".formatted(cachePath));
+        InvocationResult result = invoker.execute(request);
+        assertAll(
+                () -> assertEquals(0, result.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)Would remove path: (.*)"))));
+    }
+
+    @Test
+    public void testCleanup() throws Exception {
+        LOG.info("Running testCleanup");
+        Invoker invoker = buildInvoker();
+        InvocationRequest request = buildRequest("cleanup --cache-path %s".formatted(cachePath));
+        InvocationResult result = invoker.execute(request);
+        assertAll(
+                () -> assertEquals(0, result.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)Removed path: (.*)"))));
     }
 
     @Test
@@ -93,6 +124,59 @@ public class CommandLineITCase {
                 () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
                         .anyMatch(
                                 line -> line.matches(".*FetchMetadata - Extracts metadata from a Jenkins plugin.*"))));
+    }
+
+    @Test
+    public void testNotBuildMetadataForDeprecatedPlugin(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        LOG.info("Running testBuildMetadataForDeprecatedPlugin");
+
+        PluginStatsApiResponse pluginStatsApiResponse = new PluginStatsApiResponse(Map.of("a-fake-plugin", 1));
+        UpdateCenterApiResponse updateCenterApiResponse = new UpdateCenterApiResponse(
+                Map.of(
+                        "a-fake-plugin",
+                        new UpdateCenterData.UpdateCenterPlugin(
+                                "a-fake-plugin",
+                                "1",
+                                "git@github.com:jenkinsci/a-fake-plugin.git",
+                                "main",
+                                "io.jenkins.plugins:a-fake",
+                                null)),
+                Map.of(
+                        "a-fake-plugin",
+                        new UpdateCenterData.DeprecatedPlugin("https://github.com/jenkinsci/a-fake-plugin")));
+        PluginVersionsApiResponse pluginVersionsApiResponse = new PluginVersionsApiResponse(
+                Map.of("a-fake-plugin", Map.of("1", new PluginVersionData.PluginVersionPlugin("a-fake-plugin", "1"))));
+        HealthScoreApiResponse pluginHealthScoreApiResponse =
+                new HealthScoreApiResponse(Map.of("a-fake-plugin", new HealthScoreData.HealthScorePlugin(100d)));
+
+        // Setup
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/user"))
+                .willReturn(WireMock.jsonResponse(USER_API_RESPONSE, 200)));
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/update-center.json"))
+                .willReturn(WireMock.jsonResponse(updateCenterApiResponse, 200)));
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/plugin-versions.json"))
+                .willReturn(WireMock.jsonResponse(pluginVersionsApiResponse, 200)));
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/scores"))
+                .willReturn(WireMock.jsonResponse(pluginHealthScoreApiResponse, 200)));
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/jenkins-stats/svg/202406-plugins.csv"))
+                .willReturn(WireMock.jsonResponse(pluginStatsApiResponse, 200)));
+
+        Invoker invoker = buildInvoker();
+        InvocationRequest request = buildRequest(
+                "build-metadata --plugins a-fake-plugin --debug --cache-path %s --github-api-url %s --jenkins-update-center %s --jenkins-plugin-info %s --plugin-health-score %s --jenkins-plugins-stats-installations-url %s"
+                        .formatted(
+                                cachePath,
+                                wmRuntimeInfo.getHttpBaseUrl() + "/api",
+                                wmRuntimeInfo.getHttpBaseUrl() + "/update-center.json",
+                                wmRuntimeInfo.getHttpBaseUrl() + "/plugin-versions.json",
+                                wmRuntimeInfo.getHttpBaseUrl() + "/scores",
+                                wmRuntimeInfo.getHttpBaseUrl() + "/jenkins-stats/svg/202406-plugins.csv"));
+        InvocationResult result = invoker.execute(request);
+        assertAll(
+                () -> assertEquals(0, result.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches(".*Error: Plugin is deprecated.*"))));
     }
 
     /**
@@ -172,4 +256,14 @@ public class CommandLineITCase {
     private record UserApiResponse(String login, String type) {}
 
     private static final UserApiResponse USER_API_RESPONSE = new UserApiResponse("fake-user", "User");
+
+    private record PluginStatsApiResponse(Map<String, Integer> plugins) {}
+
+    private record UpdateCenterApiResponse(
+            Map<String, UpdateCenterData.UpdateCenterPlugin> plugins,
+            Map<String, UpdateCenterData.DeprecatedPlugin> deprecations) {}
+
+    private record PluginVersionsApiResponse(Map<String, Map<String, PluginVersionData.PluginVersionPlugin>> plugins) {}
+
+    private record HealthScoreApiResponse(Map<String, HealthScoreData.HealthScorePlugin> plugins) {}
 }

@@ -1,15 +1,12 @@
 package io.jenkins.tools.pluginmodernizer.cli.command;
 
-import com.google.inject.Guice;
 import io.jenkins.tools.pluginmodernizer.cli.converter.RecipeConverter;
 import io.jenkins.tools.pluginmodernizer.cli.options.GlobalOptions;
 import io.jenkins.tools.pluginmodernizer.cli.options.PluginOptions;
-import io.jenkins.tools.pluginmodernizer.core.GuiceModule;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
 import io.jenkins.tools.pluginmodernizer.core.model.Recipe;
-import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -49,19 +46,15 @@ public class DryRunCommand implements ICommand {
 
     @Override
     public Config setup(Config.Builder builder) {
-        return builder.withPlugins(pluginOptions != null ? pluginOptions.getEffectivePlugins() : new ArrayList<>())
-                .withDryRun(true)
-                .withSkipPush(true)
-                .withSkipPush(true)
-                .withRecipe(recipe)
-                .build();
+        options.config(builder);
+        pluginOptions.config(builder);
+        return builder.withDryRun(true).withRecipe(recipe).build();
     }
 
     @Override
     public Integer call() throws Exception {
         LOG.info("Run Plugin Modernizer in dry-run mode");
-        PluginModernizer modernizer = Guice.createInjector(new GuiceModule(setup(options.getBuilderForOptions())))
-                .getInstance(PluginModernizer.class);
+        PluginModernizer modernizer = getModernizer();
         try {
             modernizer.validate();
         } catch (ModernizerException e) {
