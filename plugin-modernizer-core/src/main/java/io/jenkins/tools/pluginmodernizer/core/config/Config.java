@@ -19,6 +19,7 @@ public class Config {
     private final URL jenkinsPluginVersions;
     private final URL pluginHealthScore;
     private final URL pluginStatsInstallations;
+    private final URL githubApiUrl;
     private final Path cachePath;
     private final Path mavenHome;
     private final boolean dryRun;
@@ -46,6 +47,7 @@ public class Config {
             URL jenkinsPluginVersions,
             URL pluginHealthScore,
             URL pluginStatsInstallations,
+            URL githubApiUrl,
             Path cachePath,
             Path mavenHome,
             boolean dryRun,
@@ -67,6 +69,7 @@ public class Config {
         this.jenkinsPluginVersions = jenkinsPluginVersions;
         this.pluginHealthScore = pluginHealthScore;
         this.pluginStatsInstallations = pluginStatsInstallations;
+        this.githubApiUrl = githubApiUrl;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
         this.dryRun = dryRun;
@@ -131,6 +134,10 @@ public class Config {
         return pluginStatsInstallations;
     }
 
+    public URL getGithubApiUrl() {
+        return githubApiUrl;
+    }
+
     public Path getCachePath() {
         return cachePath;
     }
@@ -191,6 +198,7 @@ public class Config {
         private URL jenkinsPluginVersions = Settings.DEFAULT_PLUGIN_VERSIONS;
         private URL pluginStatsInstallations = Settings.DEFAULT_PLUGINS_STATS_INSTALLATIONS_URL;
         private URL pluginHealthScore = Settings.DEFAULT_HEALTH_SCORE_URL;
+        private URL githubApiUrl = Settings.GITHUB_API_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
         private boolean dryRun = false;
@@ -265,6 +273,13 @@ public class Config {
             return this;
         }
 
+        public Builder withGithubApiUrl(URL githubApiUrl) {
+            if (githubApiUrl != null) {
+                this.githubApiUrl = githubApiUrl;
+            }
+            return this;
+        }
+
         public Builder withCachePath(Path cachePath) {
             if (cachePath != null) {
                 this.cachePath = cachePath;
@@ -332,6 +347,7 @@ public class Config {
                     jenkinsPluginVersions,
                     pluginHealthScore,
                     pluginStatsInstallations,
+                    githubApiUrl,
                     cachePath,
                     mavenHome,
                     dryRun,

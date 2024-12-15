@@ -114,6 +114,9 @@
               </includes>
               <environmentVariables>
                 <MAVEN_HOME>${project.build.directory}/apache-maven-${maven.version}</MAVEN_HOME>
+                <GH_TOKEN>fake-token</GH_TOKEN>
+                <GH_OWNER>fake-owner</GH_OWNER>
+                <GH_TARGET_ORGANISATION>jenkinsci</GH_TARGET_ORGANISATION>
               </environmentVariables>
             </configuration>
           </execution>

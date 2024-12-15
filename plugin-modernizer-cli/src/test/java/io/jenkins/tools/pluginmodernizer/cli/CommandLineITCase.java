@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,6 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Integration test for the command line interface
  */
+@WireMockTest
 public class CommandLineITCase {
 
     /**
@@ -46,6 +50,39 @@ public class CommandLineITCase {
     }
 
     @Test
+    public void testHelp() throws Exception {
+        LOG.info("Running testHelp");
+        Invoker invoker = buildInvoker();
+        InvocationRequest request = buildRequest("--help");
+        InvocationResult result = invoker.execute(request);
+        assertAll(
+                () -> assertEquals(0, result.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)Usage: plugin-modernizer (.*) COMMAND(.*)"))));
+    }
+
+    @Test
+    public void testValidate(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        LOG.info("Running testValidate");
+
+        // Setup
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/user"))
+                .willReturn(WireMock.jsonResponse(USER_API_RESPONSE, 200)));
+
+        Invoker invoker = buildInvoker();
+        InvocationRequest request =
+                buildRequest("validate --debug --github-api-url " + wmRuntimeInfo.getHttpBaseUrl() + "/api");
+        InvocationResult result = invoker.execute(request);
+        assertAll(
+                () -> assertEquals(0, result.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)GitHub owner: fake-owner(.*)"))),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)Validation successful(.*)"))));
+    }
+
+    @Test
     public void testListRecipes() throws Exception {
         LOG.info("Running testListRecipes");
         Invoker invoker = buildInvoker();
@@ -63,12 +100,11 @@ public class CommandLineITCase {
      * @return the invoker
      */
     private Invoker buildInvoker() {
-        Path javaHome = Path.of(System.getenv("JAVA_HOME"));
-        assertNotNull(javaHome, "JAVA_HOME is not set");
-        Path mavenHome = Path.of(System.getenv("MAVEN_HOME"));
-        assertNotNull(mavenHome, "MAVEN_HOME is not set");
+        String mavenHomeEnv = System.getenv("MAVEN_HOME");
+        assertNotNull(mavenHomeEnv, "MAVEN_HOME is not set");
+        Path mavenHome = Path.of(mavenHomeEnv);
+        assertTrue(Files.exists(mavenHome), "MAVEN_HOME does not exist");
         Invoker invoker = new DefaultInvoker();
-        invoker.setMavenHome(Path.of(System.getenv("MAVEN_HOME")).toFile());
         invoker.setMavenHome(mavenHome.toFile());
         return invoker;
     }
@@ -78,8 +114,10 @@ public class CommandLineITCase {
      * @return the request
      */
     private InvocationRequest buildRequest(String args) {
-        Path javaHome = Path.of(System.getenv("JAVA_HOME"));
-        assertNotNull(javaHome, "JAVA_HOME is not set");
+        String javaHomeEnv = System.getenv("JAVA_HOME");
+        assertNotNull(javaHomeEnv, "JAVA_HOME is not set");
+        Path javaHome = Path.of(javaHomeEnv);
+        assertTrue(Files.exists(javaHome), "JAVA_HOME does not exist");
 
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File("pom-it.xml"));
@@ -127,4 +165,11 @@ public class CommandLineITCase {
         });
         return request;
     }
+
+    /**
+     * Login API response
+     */
+    private record UserApiResponse(String login, String type) {}
+
+    private static final UserApiResponse USER_API_RESPONSE = new UserApiResponse("fake-user", "User");
 }

@@ -122,6 +122,7 @@ public class GHService {
                         .createToken()
                         .create();
                 github = new GitHubBuilder()
+                        .withEndpoint(config.getGithubApiUrl().toString())
                         .withAppInstallationToken(appInstallationToken.getToken())
                         .build();
                 LOG.debug("Connected to GitHub using GitHub App");
@@ -129,7 +130,10 @@ public class GHService {
             // Connect with token
             else {
                 LOG.debug("Connecting to GitHub using token...");
-                github = GitHub.connectUsingOAuth(Settings.GITHUB_TOKEN);
+                github = new GitHubBuilder()
+                        .withEndpoint(config.getGithubApiUrl().toString())
+                        .withOAuthToken(Settings.GITHUB_TOKEN)
+                        .build();
             }
             GHUser user = getCurrentUser();
             if (user == null) {
