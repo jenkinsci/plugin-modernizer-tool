@@ -115,6 +115,11 @@ public class GlobalOptions {
     public URL jenkinsPluginsStatsInstallationsUrl = Settings.DEFAULT_PLUGINS_STATS_INSTALLATIONS_URL;
 
     @CommandLine.Option(
+            names = {"--github-api-url"},
+            description = "GitHub API URL. Default to https://api.github.com")
+    public URL githubApiUrl = Settings.GITHUB_API_URL;
+
+    @CommandLine.Option(
             names = {"-c", "--cache-path"},
             description = "Path to the cache directory.")
     public Path cachePath = Settings.DEFAULT_CACHE_PATH;
@@ -147,6 +152,7 @@ public class GlobalOptions {
                 .withJenkinsPluginVersions(jenkinsPluginVersions)
                 .withPluginHealthScore(pluginHealthScore)
                 .withPluginStatsInstallations(jenkinsPluginsStatsInstallationsUrl)
+                .withGithubApiUrl(githubApiUrl)
                 .withCachePath(
                         !cachePath.endsWith(Settings.CACHE_SUBDIR)
                                 ? cachePath.resolve(Settings.CACHE_SUBDIR)

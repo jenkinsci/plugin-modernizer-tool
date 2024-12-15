@@ -34,6 +34,8 @@ public class Settings {
 
     public static final URL DEFAULT_HEALTH_SCORE_URL;
 
+    public static final URL GITHUB_API_URL;
+
     public static final Path DEFAULT_CACHE_PATH;
     public static final String CACHE_SUBDIR = "jenkins-plugin-modernizer-cli";
 
@@ -109,6 +111,11 @@ public class Settings {
         } catch (MalformedURLException e) {
             throw new ModernizerException("Invalid URL format", e);
         }
+        try {
+            GITHUB_API_URL = getGithubApiUrl();
+        } catch (MalformedURLException e) {
+            throw new ModernizerException("Invalid URL format", e);
+        }
 
         REMEDIATION_JENKINS_MINIMUM_VERSION = getRemediationJenkinsMinimumVersion();
         REMEDIATION_BOM_BASE = getRemediationBomBase();
@@ -168,6 +175,17 @@ public class Settings {
             return new URL(url);
         }
         return new URL(readProperty("plugin.versions.url", "urls.properties"));
+    }
+
+    private static URL getGithubApiUrl() throws MalformedURLException {
+        String host = System.getenv("GH_HOST");
+        if (host == null) {
+            host = System.getenv("GITHUB_HOST");
+        }
+        if (host == null) {
+            host = "api.github.com";
+        }
+        return new URL("http://%s".formatted(host));
     }
 
     private static @NotNull String getRemediationJenkinsMinimumVersion() {
