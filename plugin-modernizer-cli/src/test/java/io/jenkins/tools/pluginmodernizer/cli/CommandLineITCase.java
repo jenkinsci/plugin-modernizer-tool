@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.github.sparsick.testcontainers.gitserver.GitServerVersions;
+import com.github.sparsick.testcontainers.gitserver.http.GitHttpServerContainer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -26,12 +28,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Integration test for the command line interface
  */
 @WireMockTest
+@Testcontainers(disabledWithoutDocker = true)
 public class CommandLineITCase {
+
+    @Container
+    private GitHttpServerContainer gitRemote = new GitHttpServerContainer(GitServerVersions.V2_45.getDockerImageName());
 
     /**
      * Logger
@@ -127,7 +135,7 @@ public class CommandLineITCase {
     }
 
     @Test
-    public void testNotBuildMetadataForDeprecatedPlugin(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+    public void testBuildMetadata(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         LOG.info("Running testBuildMetadataForDeprecatedPlugin");
 
         PluginStatsApiResponse pluginStatsApiResponse = new PluginStatsApiResponse(Map.of("a-fake-plugin", 1));
@@ -137,7 +145,7 @@ public class CommandLineITCase {
                         new UpdateCenterData.UpdateCenterPlugin(
                                 "a-fake-plugin",
                                 "1",
-                                "git@github.com:jenkinsci/a-fake-plugin.git",
+                                gitRemote.getGitRepoURIAsHttp().toString(),
                                 "main",
                                 "io.jenkins.plugins:a-fake",
                                 null)),
@@ -153,6 +161,9 @@ public class CommandLineITCase {
         WireMock wireMock = wmRuntimeInfo.getWireMock();
         wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/user"))
                 .willReturn(WireMock.jsonResponse(USER_API_RESPONSE, 200)));
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/repos/jenkinsci/testRepo"))
+                .willReturn(WireMock.jsonResponse(
+                        new RepoApiResponse(gitRemote.getGitRepoURIAsHttp().toString()), 200)));
         wireMock.register(WireMock.get(WireMock.urlEqualTo("/update-center.json"))
                 .willReturn(WireMock.jsonResponse(updateCenterApiResponse, 200)));
         wireMock.register(WireMock.get(WireMock.urlEqualTo("/plugin-versions.json"))
@@ -254,6 +265,8 @@ public class CommandLineITCase {
      * Login API response
      */
     private record UserApiResponse(String login, String type) {}
+
+    private record RepoApiResponse(String clone_url) {}
 
     private static final UserApiResponse USER_API_RESPONSE = new UserApiResponse("fake-owner", "User");
 

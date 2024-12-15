@@ -56,6 +56,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.github.sparsick.testcontainers.gitserver</groupId>
+      <artifactId>testcontainers-gitserver</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -63,6 +68,11 @@
       <version>${maven.version}</version>
       <classifier>bin</classifier>
       <type>zip</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -75,7 +85,6 @@
       </resource>
     </resources>
     <plugins>
-      <!-- We don't want to deploy the CLI to Jenkins Artifactory (It's huge fat jar of ~100Mib). We only need the parent pom and core for recipes -->
       <!-- The CLI is distributed via JRelease and published on the GitHub releases page -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
