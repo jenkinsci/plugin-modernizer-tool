@@ -22,6 +22,7 @@ public class Config {
     private final URL githubApiUrl;
     private final Path cachePath;
     private final Path mavenHome;
+    private final Path mavenLocalRepo;
     private final boolean dryRun;
     private final boolean draft;
     private final boolean removeForks;
@@ -29,6 +30,7 @@ public class Config {
     private final Long githubAppId;
     private final Long githubAppSourceInstallationId;
     private final Long githubAppTargetInstallationId;
+    private final Path sshPrivateKey;
 
     private Config(
             String version,
@@ -36,6 +38,7 @@ public class Config {
             Long githubAppId,
             Long githubAppSourceInstallationId,
             Long githubAppTargetInstallationId,
+            Path sshPrivateKey,
             List<Plugin> plugins,
             Recipe recipe,
             URL jenkinsUpdateCenter,
@@ -45,6 +48,7 @@ public class Config {
             URL githubApiUrl,
             Path cachePath,
             Path mavenHome,
+            Path mavenLocalRepo,
             boolean dryRun,
             boolean draft,
             boolean removeForks) {
@@ -53,6 +57,7 @@ public class Config {
         this.githubAppId = githubAppId;
         this.githubAppSourceInstallationId = githubAppSourceInstallationId;
         this.githubAppTargetInstallationId = githubAppTargetInstallationId;
+        this.sshPrivateKey = sshPrivateKey;
         this.plugins = plugins;
         this.recipe = recipe;
         this.jenkinsUpdateCenter = jenkinsUpdateCenter;
@@ -62,6 +67,7 @@ public class Config {
         this.githubApiUrl = githubApiUrl;
         this.cachePath = cachePath;
         this.mavenHome = mavenHome;
+        this.mavenLocalRepo = mavenLocalRepo;
         this.dryRun = dryRun;
         this.draft = draft;
         this.removeForks = removeForks;
@@ -85,6 +91,10 @@ public class Config {
 
     public Long getGithubAppTargetInstallationId() {
         return githubAppTargetInstallationId;
+    }
+
+    public Path getSshPrivateKey() {
+        return sshPrivateKey;
     }
 
     public List<Plugin> getPlugins() {
@@ -124,11 +134,21 @@ public class Config {
     }
 
     public Path getCachePath() {
-        return cachePath;
+        return cachePath.toAbsolutePath();
     }
 
     public Path getMavenHome() {
-        return mavenHome;
+        if (mavenHome == null) {
+            return null;
+        }
+        return mavenHome.toAbsolutePath();
+    }
+
+    public Path getMavenLocalRepo() {
+        if (mavenLocalRepo == null) {
+            return Settings.DEFAULT_MAVEN_LOCAL_REPO;
+        }
+        return mavenLocalRepo.toAbsolutePath();
     }
 
     public boolean isDryRun() {
@@ -157,6 +177,7 @@ public class Config {
         private Long githubAppId;
         private Long githubAppSourceInstallationId;
         private Long githubAppTargetInstallationId;
+        private Path sshPrivateKey = Settings.SSH_PRIVATE_KEY;
         private List<Plugin> plugins;
         private Recipe recipe;
         private URL jenkinsUpdateCenter = Settings.DEFAULT_UPDATE_CENTER_URL;
@@ -166,6 +187,7 @@ public class Config {
         private URL githubApiUrl = Settings.GITHUB_API_URL;
         private Path cachePath = Settings.DEFAULT_CACHE_PATH;
         private Path mavenHome = Settings.DEFAULT_MAVEN_HOME;
+        private Path mavenLocalRepo = Settings.DEFAULT_MAVEN_LOCAL_REPO;
         private boolean dryRun = false;
         private boolean draft = false;
         public boolean removeForks = false;
@@ -192,6 +214,11 @@ public class Config {
 
         public Builder withGitHubAppTargetInstallationId(Long githubAppInstallationId) {
             this.githubAppTargetInstallationId = githubAppInstallationId;
+            return this;
+        }
+
+        public Builder withSshPrivateKey(Path sshPrivateKey) {
+            this.sshPrivateKey = sshPrivateKey;
             return this;
         }
 
@@ -254,6 +281,13 @@ public class Config {
             return this;
         }
 
+        public Builder withMavenLocalRepo(Path mavenLocalRepo) {
+            if (mavenLocalRepo != null) {
+                this.mavenLocalRepo = mavenLocalRepo;
+            }
+            return this;
+        }
+
         public Builder withDryRun(boolean dryRun) {
             this.dryRun = dryRun;
             return this;
@@ -276,6 +310,7 @@ public class Config {
                     githubAppId,
                     githubAppSourceInstallationId,
                     githubAppTargetInstallationId,
+                    sshPrivateKey,
                     plugins,
                     recipe,
                     jenkinsUpdateCenter,
@@ -285,6 +320,7 @@ public class Config {
                     githubApiUrl,
                     cachePath,
                     mavenHome,
+                    mavenLocalRepo,
                     dryRun,
                     draft,
                     removeForks);

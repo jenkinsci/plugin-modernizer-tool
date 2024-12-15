@@ -63,6 +63,10 @@ class PluginServiceTest {
                 new UpdateCenterData.UpdateCenterPlugin(
                         "valid-plugin", "1.0", "https://github.com/jenkinsci/valid-url", "main", "gav", null));
         updateCenterPlugins.put(
+                "valid-plugin-2",
+                new UpdateCenterData.UpdateCenterPlugin(
+                        "valid-plugin", "1.0", "git@github.com/jenkinsci/valid-git-repo.git", "main", "gav", null));
+        updateCenterPlugins.put(
                 "invalid-plugin",
                 new UpdateCenterData.UpdateCenterPlugin(
                         "invalid-plugin", "1.0", "invalid-scm-url", "main", "gav", null));
@@ -114,6 +118,14 @@ class PluginServiceTest {
         PluginService service = getService();
         String result = service.extractRepoName(Plugin.build("valid-plugin").withConfig(config));
         assertEquals("valid-url", result);
+    }
+
+    @Test
+    public void shouldExtractRepoNameWithGitSuffix() throws Exception {
+        setupUpdateCenterMocks();
+        PluginService service = getService();
+        String result = service.extractRepoName(Plugin.build("valid-plugin-2").withConfig(config));
+        assertEquals("valid-git-repo", result);
     }
 
     @Test

@@ -122,6 +122,7 @@
                 <include>**/*ITCase.java</include>
               </includes>
               <environmentVariables>
+                <MAVEN_LOCAL_REPO>${maven.repo.local}</MAVEN_LOCAL_REPO>
                 <MAVEN_HOME>${project.build.directory}/apache-maven-${maven.version}</MAVEN_HOME>
                 <GH_TOKEN>fake-token</GH_TOKEN>
                 <GH_OWNER>fake-owner</GH_OWNER>
