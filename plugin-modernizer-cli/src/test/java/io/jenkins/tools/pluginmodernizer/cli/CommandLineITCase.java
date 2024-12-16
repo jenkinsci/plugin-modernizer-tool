@@ -255,7 +255,7 @@ public class CommandLineITCase {
      */
     private record UserApiResponse(String login, String type) {}
 
-    private static final UserApiResponse USER_API_RESPONSE = new UserApiResponse("fake-user", "User");
+    private static final UserApiResponse USER_API_RESPONSE = new UserApiResponse("fake-owner", "User");
 
     private record PluginStatsApiResponse(Map<String, Integer> plugins) {}
 
