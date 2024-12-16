@@ -15,4 +15,6 @@
         <appender-ref ref="CONSOLE" />
     </root>
     <logger name="io.jenkins.tools.pluginmodernizer" level="TRACE" />
+    <logger name="org.testcontainers" level="INFO" />
+    <logger name="com.github.dockerjava" level="INFO" />
 </configuration>

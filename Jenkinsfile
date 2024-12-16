@@ -2,7 +2,7 @@
 // allowing easy windows / linux testing and producing incrementals
 // the only feature that buildPlugin has that relates to plugins is allowing you to test against multiple jenkins versions
 buildPlugin(
-    useContainerAgent: true,
+    useContainerAgent: false,
     configurations: [
         [platform: 'linux', jdk: 21],
         [platform: 'windows', jdk: 21],
