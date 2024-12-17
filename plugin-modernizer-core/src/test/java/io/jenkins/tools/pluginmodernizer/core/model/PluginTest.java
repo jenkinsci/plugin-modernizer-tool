@@ -14,6 +14,7 @@ import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
 import io.jenkins.tools.pluginmodernizer.core.github.GHService;
 import io.jenkins.tools.pluginmodernizer.core.impl.MavenInvoker;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -50,11 +51,30 @@ public class PluginTest {
     }
 
     @Test
-    public void testLocalRepository() {
-        Plugin plugin = Plugin.build("example");
+    public void testDefaultLocalRepository() {
+        Plugin plugin = mock(Plugin.class);
+        doReturn("example").when(plugin).getName();
+        Config config = mock(Config.class);
+        doReturn(Settings.DEFAULT_CACHE_PATH).when(config).getCachePath();
+        doReturn(config).when(plugin).getConfig();
         assertEquals(
                 Settings.getPluginsDirectory(plugin).resolve("sources").toString(),
-                plugin.getLocalRepository().toString());
+                Settings.DEFAULT_CACHE_PATH
+                        .resolve("example")
+                        .resolve("sources")
+                        .toString());
+    }
+
+    @Test
+    public void testCustomLocalRepository() {
+        Plugin plugin = mock(Plugin.class);
+        doReturn("example").when(plugin).getName();
+        Config config = mock(Config.class);
+        doReturn(Path.of("my-cache")).when(config).getCachePath();
+        doReturn(config).when(plugin).getConfig();
+        assertEquals(
+                Settings.getPluginsDirectory(plugin).resolve("sources").toString(),
+                Path.of("my-cache").resolve("example").resolve("sources").toString());
     }
 
     @Test

@@ -114,6 +114,7 @@ public class MavenInvoker {
     private String[] getSingleRecipeArgs(Recipe recipe) {
         List<String> goals = new ArrayList<>();
         goals.add("org.openrewrite.maven:rewrite-maven-plugin:" + Settings.MAVEN_REWRITE_PLUGIN_VERSION + ":run");
+        goals.add("-Dmaven.repo.local=%s".formatted(config.getMavenLocalRepo()));
         goals.add("-Drewrite.activeRecipes=" + recipe.getName());
         goals.add("-Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:"
                 + config.getVersion());
@@ -163,10 +164,10 @@ public class MavenInvoker {
     }
 
     /**
-     * Validate the Maven home directory.
+     * Validate the Maven home and local repo directory.
      * @throws IllegalArgumentException if the Maven home directory is not set or invalid.
      */
-    public void validateMavenHome() {
+    public void validateMaven() {
         Path mavenHome = config.getMavenHome();
         if (mavenHome == null) {
             throw new ModernizerException(
@@ -175,6 +176,14 @@ public class MavenInvoker {
 
         if (!Files.isDirectory(mavenHome) || !Files.isExecutable(mavenHome.resolve("bin/mvn"))) {
             throw new ModernizerException("Invalid Maven home directory at '%s'.".formatted(mavenHome));
+        }
+
+        Path mavenLocalRepo = config.getMavenLocalRepo();
+        if (mavenLocalRepo == null) {
+            throw new ModernizerException("Maven local repository is not set.");
+        }
+        if (!Files.isDirectory(mavenLocalRepo)) {
+            throw new ModernizerException("Invalid Maven local repository at '%s'.".formatted(mavenLocalRepo));
         }
     }
 

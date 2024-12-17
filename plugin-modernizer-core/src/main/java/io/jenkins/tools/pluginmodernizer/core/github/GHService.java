@@ -12,19 +12,22 @@ import jakarta.inject.Inject;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
+import org.apache.sshd.git.transport.GitSshdSessionFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
+import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 import org.kohsuke.github.GHApp;
 import org.kohsuke.github.GHAppInstallationToken;
 import org.kohsuke.github.GHBranchSync;
@@ -62,12 +65,18 @@ public class GHService {
     private GHApp app;
 
     /**
+     * If the authentication is done using SSH key
+     */
+    private boolean sshKeyAuth = false;
+
+    /**
      * Validate the configuration of the GHService
      */
     public void validate() {
         if (config.isFetchMetadataOnly()) {
             return;
         }
+        setSshKeyAuth();
         if (Settings.GITHUB_TOKEN == null
                 && (config.getGithubAppId() == null
                         || config.getGithubAppSourceInstallationId() == null
@@ -148,6 +157,20 @@ public class GHService {
 
         } catch (IOException e) {
             throw new ModernizerException("Failed to connect to GitHub. Cannot use GitHub/SCM integration", e);
+        }
+        // Ensure to set up SSH client for Git operations
+        setSshKeyAuth();
+        if (sshKeyAuth) {
+            try {
+                SshClient client = SshClient.setUpDefaultClient();
+                FileKeyPairProvider keyPairProvider =
+                        new FileKeyPairProvider(Collections.singletonList(config.getSshPrivateKey()));
+                client.setKeyIdentityProvider(keyPairProvider);
+                GitSshdSessionFactory sshdFactory = new GitSshdSessionFactory(client);
+                SshSessionFactory.setInstance(sshdFactory);
+            } catch (Exception e) {
+                throw new ModernizerException("Failed to set up SSH client for Git operations", e);
+            }
         }
     }
 
@@ -488,8 +511,8 @@ public class GHService {
         }
         try {
             fetchRepository(plugin);
-            LOG.debug("Fetched repository from {}", repository.getHtmlUrl());
-        } catch (GitAPIException e) {
+            LOG.debug("Fetched repository from {}", repository.getSshUrl());
+        } catch (GitAPIException | URISyntaxException e) {
             LOG.error("Failed to fetch the repository", e);
             plugin.addError("Failed to fetch the repository", e);
             plugin.raiseLastError();
@@ -501,12 +524,27 @@ public class GHService {
      * @param plugin The plugin to fetch
      * @throws GitAPIException If the fetch operation failed
      */
-    private void fetchRepository(Plugin plugin) throws GitAPIException {
+    private void fetchRepository(Plugin plugin) throws GitAPIException, URISyntaxException {
         LOG.debug("Fetching {}", plugin.getName());
         GHRepository repository = config.isDryRun() || config.isFetchMetadataOnly() || plugin.isArchived(this)
                 ? getRepository(plugin)
                 : getRepositoryFork(plugin);
-        String remoteUrl = repository.getHttpTransportUrl();
+
+        // Get the correct URI
+        URIish remoteUri =
+                sshKeyAuth ? new URIish(repository.getSshUrl()) : new URIish(repository.getHttpTransportUrl());
+
+        // Ensure to set port 22 if not set on remote URL to work with apache mina sshd
+        if (sshKeyAuth) {
+            if (remoteUri.getScheme() == null) {
+                remoteUri = remoteUri.setScheme("ssh");
+                LOG.debug("Setting scheme ssh for remote URI {}", remoteUri);
+            }
+            if (remoteUri.getPort() == -1) {
+                remoteUri = remoteUri.setPort(22);
+                LOG.debug("Setting port 22 for remote URI {}", remoteUri);
+            }
+        }
         // Fetch latest changes
         if (Files.isDirectory(plugin.getLocalRepository())) {
             // Ensure to set the correct remote, reset changes and pull
@@ -516,10 +554,13 @@ public class GHService {
                         : plugin.getRemoteForkRepository(this).getDefaultBranch();
                 git.remoteSetUrl()
                         .setRemoteName("origin")
-                        .setRemoteUri(new URIish(repository.getHttpTransportUrl()))
+                        .setRemoteUri(remoteUri)
                         .call();
-                git.fetch().setRemote("origin").call();
-                LOG.debug("Resetting changes and pulling latest changes from {}", remoteUrl);
+                git.fetch()
+                        .setCredentialsProvider(getCredentialProvider())
+                        .setRemote("origin")
+                        .call();
+                LOG.debug("Resetting changes and pulling latest changes from {}", remoteUri);
                 git.reset()
                         .setMode(ResetCommand.ResetType.HARD)
                         .setRef("origin/" + defaultBranch)
@@ -530,11 +571,12 @@ public class GHService {
                         .setName(defaultBranch)
                         .call();
                 git.pull()
+                        .setCredentialsProvider(getCredentialProvider())
                         .setRemote("origin")
                         .setRemoteBranchName(defaultBranch)
                         .call();
-                LOG.info("Fetched repository from {} to branch {}", remoteUrl, ref.getName());
-            } catch (IOException | URISyntaxException e) {
+                LOG.info("Fetched repository from {} to branch {}", remoteUri, ref.getName());
+            } catch (IOException e) {
                 plugin.addError("Failed fetch repository", e);
                 plugin.raiseLastError();
             }
@@ -542,10 +584,12 @@ public class GHService {
         // Clone the repository
         else {
             try (Git git = Git.cloneRepository()
-                    .setURI(remoteUrl)
+                    .setCredentialsProvider(getCredentialProvider())
+                    .setRemote("origin")
+                    .setURI(remoteUri.toString())
                     .setDirectory(plugin.getLocalRepository().toFile())
                     .call()) {
-                LOG.debug("Clone successfully from {}", remoteUrl);
+                LOG.debug("Clone successfully from {}", remoteUri);
             }
         }
     }
@@ -698,9 +742,8 @@ public class GHService {
             List<PushResult> results = StreamSupport.stream(
                             git.push()
                                     .setForce(true)
-                                    .setCredentialsProvider(
-                                            new UsernamePasswordCredentialsProvider(Settings.GITHUB_TOKEN, ""))
                                     .setRemote("origin")
+                                    .setCredentialsProvider(getCredentialProvider())
                                     .setRefSpecs(new RefSpec(BRANCH_NAME + ":" + BRANCH_NAME))
                                     .call()
                                     .spliterator(),
@@ -790,6 +833,16 @@ public class GHService {
     }
 
     /**
+     * Get the current credentials provider
+     * @return The credentials provider
+     */
+    private CredentialsProvider getCredentialProvider() {
+        return sshKeyAuth
+                ? new SshCredentialsProvider()
+                : new UsernamePasswordCredentialsProvider(Settings.GITHUB_TOKEN, "");
+    }
+
+    /**
      * Return if the given repository has any pull request originating from it
      * Typically to avoid deleting fork with open pull requests
      * @param plugin The plugin to check
@@ -853,6 +906,14 @@ public class GHService {
     }
 
     /**
+     * Return if SSH auth is used
+     * @return True if SSH key is used
+     */
+    public boolean isSshKeyAuth() {
+        return sshKeyAuth;
+    }
+
+    /**
      * Ensure the forked reository correspond of the origin parent repository
      * @param originalRepo The original repository
      * @param fork The forked repository
@@ -872,6 +933,41 @@ public class GHService {
                                     originalRepo.getFullName(),
                                     fork.getParent().getFullName()),
                     plugin);
+        }
+    }
+
+    /**
+     * Set the SSH key authentication if needed
+     */
+    private void setSshKeyAuth() {
+        Path privateKey = config.getSshPrivateKey();
+        if (Files.isRegularFile(privateKey)) {
+            sshKeyAuth = true;
+            LOG.debug("Using SSH private key for git operation: {}", privateKey);
+        } else {
+            sshKeyAuth = false;
+            LOG.debug("SSH private key file {} does not exist. Will use GH_TOKEN for git operation", privateKey);
+        }
+    }
+
+    /**
+     * JGit expect a credential provider even if transport and authentication is none at transport level with
+     * Apache Mina SSHD. This is therefor a dummy provider
+     */
+    private static class SshCredentialsProvider extends CredentialsProvider {
+        @Override
+        public boolean isInteractive() {
+            return false;
+        }
+
+        @Override
+        public boolean supports(CredentialItem... credentialItems) {
+            return false;
+        }
+
+        @Override
+        public boolean get(URIish uri, CredentialItem... credentialItems) throws UnsupportedCredentialItem {
+            return false;
         }
     }
 }

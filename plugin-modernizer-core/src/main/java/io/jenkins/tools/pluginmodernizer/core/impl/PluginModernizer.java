@@ -38,7 +38,7 @@ public class PluginModernizer {
      * Validate the configuration
      */
     public void validate() {
-        mavenInvoker.validateMavenHome();
+        mavenInvoker.validateMaven();
         mavenInvoker.validateMavenVersion();
         if (!ghService.isConnected()) {
             ghService.connect();
@@ -73,6 +73,14 @@ public class PluginModernizer {
     }
 
     /**
+     * Expose the effective SSH private key path
+     * @return The SSH private key path
+     */
+    public String getSshPrivateKeyPath() {
+        return config.getSshPrivateKey().toString();
+    }
+
+    /**
      * Expose the effective Maven version
      * @return The Maven version
      */
@@ -88,6 +96,14 @@ public class PluginModernizer {
      */
     public String getMavenHome() {
         return config.getMavenHome().toString();
+    }
+
+    /**
+     * Expose the effective Maven local repository
+     * @return The Maven local repository
+     */
+    public String getMavenLocalRepo() {
+        return config.getMavenLocalRepo().toString();
     }
 
     /**
@@ -125,11 +141,18 @@ public class PluginModernizer {
         LOG.debug("Plugins: {}", config.getPlugins());
         LOG.debug("Recipe: {}", config.getRecipe().getName());
         LOG.debug("GitHub owner: {}", config.getGithubOwner());
+        if (ghService.isSshKeyAuth()) {
+            LOG.debug("SSH private key: {}", config.getSshPrivateKey());
+        } else {
+            LOG.debug("Using GitHub token for git authentication");
+        }
         LOG.debug("Update Center Url: {}", config.getJenkinsUpdateCenter());
         LOG.debug("Plugin versions Url: {}", config.getJenkinsPluginVersions());
         LOG.debug("Plugin Health Score Url: {}", config.getPluginHealthScore());
         LOG.debug("Installation Stats Url: {}", config.getPluginStatsInstallations());
         LOG.debug("Cache Path: {}", config.getCachePath());
+        LOG.debug("Maven Home: {}", config.getMavenHome());
+        LOG.debug("Maven Local Repository: {}", config.getMavenLocalRepo());
         LOG.debug("Dry Run: {}", config.isDryRun());
         LOG.debug("Maven rewrite plugin version: {}", Settings.MAVEN_REWRITE_PLUGIN_VERSION);
 
@@ -374,6 +397,7 @@ public class PluginModernizer {
                         LOG.error("Stacktrace: ", error);
                     }
                 }
+
             }
             // Display what's done
             else {

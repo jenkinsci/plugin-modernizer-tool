@@ -2,6 +2,7 @@ package io.jenkins.tools.pluginmodernizer.cli.options;
 
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.config.Settings;
+import java.nio.file.Path;
 import picocli.CommandLine;
 
 /**
@@ -14,6 +15,14 @@ import picocli.CommandLine;
         optionListHeading = "%nOptions:%n",
         commandListHeading = "%nCommands:%n")
 public class GitHubOptions implements IOption {
+
+    /**
+     * Path to the authentication key
+     */
+    @CommandLine.Option(
+            names = {"--ssh-private-key"},
+            description = "Path to the authentication key for GitHub. Default to ~/.ssh/id_rsa")
+    private Path sshPrivateKey = Settings.SSH_PRIVATE_KEY;
 
     @CommandLine.Option(
             names = {"-g", "--github-owner"},
@@ -46,6 +55,7 @@ public class GitHubOptions implements IOption {
         builder.withGitHubOwner(githubOwner)
                 .withGitHubAppId(githubAppId)
                 .withGitHubAppSourceInstallationId(githubAppSourceInstallationId)
-                .withGitHubAppTargetInstallationId(githubAppTargetInstallationId);
+                .withGitHubAppTargetInstallationId(githubAppTargetInstallationId)
+                .withSshPrivateKey(sshPrivateKey);
     }
 }

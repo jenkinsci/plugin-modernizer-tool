@@ -6,6 +6,8 @@ import io.jenkins.tools.pluginmodernizer.cli.options.GlobalOptions;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
 import io.jenkins.tools.pluginmodernizer.core.impl.PluginModernizer;
 import io.jenkins.tools.pluginmodernizer.core.model.ModernizerException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -53,7 +55,13 @@ public class ValidateCommand implements ICommand {
         try {
             modernizer.validate();
             LOG.info("GitHub owner: {}", modernizer.getGithubOwner());
+            if (Files.isRegularFile(Path.of(modernizer.getSshPrivateKeyPath()))) {
+                LOG.info("SSH key path: {}", modernizer.getSshPrivateKeyPath());
+            } else {
+                LOG.info("SSH key not set. Will use GitHub token for Git operation");
+            }
             LOG.info("Maven home: {}", modernizer.getMavenHome());
+            LOG.info("Maven local repository: {}", modernizer.getMavenLocalRepo());
             LOG.info("Maven version: {}", modernizer.getMavenVersion());
             LOG.info("Java version: {}", modernizer.getJavaVersion());
             LOG.info("Cache path: {}", modernizer.getCachePath());

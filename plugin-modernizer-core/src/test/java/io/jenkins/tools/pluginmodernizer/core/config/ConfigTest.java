@@ -27,8 +27,8 @@ public class ConfigTest {
         Recipe recipe = Mockito.mock(Recipe.class);
         Mockito.doReturn("recipe1").when(recipe).getName();
         URL jenkinsUpdateCenter = new URL("https://updates.jenkins.io/current/update-center.actual.json");
-        Path cachePath = Paths.get("/path/to/cache");
-        Path mavenHome = Paths.get("/path/to/maven");
+        Path cachePath = Paths.get("path/to/cache");
+        Path mavenHome = Paths.get("path/to/maven");
         boolean dryRun = true;
 
         Config config = Config.builder()
@@ -48,8 +48,8 @@ public class ConfigTest {
         assertEquals(plugins, config.getPlugins());
         assertEquals(recipe, config.getRecipe());
         assertEquals(jenkinsUpdateCenter, config.getJenkinsUpdateCenter());
-        assertEquals(cachePath, config.getCachePath());
-        assertEquals(mavenHome, config.getMavenHome());
+        assertEquals(cachePath.toAbsolutePath(), config.getCachePath());
+        assertEquals(mavenHome.toAbsolutePath(), config.getMavenHome());
         assertTrue(config.isRemoveForks());
         assertTrue(config.isRemoveForks());
         assertTrue(config.isDryRun());

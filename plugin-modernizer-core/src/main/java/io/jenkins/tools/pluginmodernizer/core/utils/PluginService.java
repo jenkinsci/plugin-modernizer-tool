@@ -38,7 +38,7 @@ public class PluginService {
         String scmUrl = updateCenterPlugin.scm();
         int lastSlashIndex = scmUrl.lastIndexOf('/');
         if (lastSlashIndex != -1 && lastSlashIndex < scmUrl.length() - 1) {
-            return scmUrl.substring(lastSlashIndex + 1);
+            return scmUrl.substring(lastSlashIndex + 1).replaceAll(".git$", "");
         } else {
             plugin.addError("Invalid SCM URL format");
             plugin.raiseLastError();

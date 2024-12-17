@@ -43,8 +43,12 @@
     <logger name="java.lang.ProcessBuilder" level="WARN" />
     <logger name="java.lang.Shutdown" level="WARN" />
     <logger name="java.lang.Runtime" level="WARN" />
-    <logger name="org.eclipse.jgit.internal.storage.file" level="INFO" />
-    <logger name="org.eclipse.jgit.internal.util" level="INFO" />
+    <logger name="org.apache.mina.core" level="WARN" />
+    <logger name="org.apache.sshd.client" level="WARN" />
+    <logger name="org.apache.sshd.client.keyverifier" level="ERROR" />
+    <logger name="org.apache.sshd.common" level="WARN" />
+    <logger name="org.apache.sshd.git.transport" level="WARN" />
+    <logger name="org.eclipse.jgit.internal" level="WARN" />
     <logger name="org.eclipse.jgit.transport" level="INFO" />
     <logger name="org.eclipse.jgit.util" level="INFO" />
     <logger name="sun.net.www.protocol.http" level="INFO" />
