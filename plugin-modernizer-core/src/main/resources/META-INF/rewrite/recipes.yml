@@ -100,6 +100,7 @@ recipeList:
     # More API plugin on the list
   - io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
   - io.jenkins.tools.pluginmodernizer.UseGsonApiPlugin
+  - io.jenkins.tools.pluginmodernizer.UseCompressApiPlugin
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
@@ -130,6 +131,21 @@ recipeList:
       replaces:
         - groupId: com.google.code.gson
           artifactId: gson
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UseCompressApiPlugin
+displayName: Use Compress API plugin instead of direct dependency
+description: Use Compress API plugin instead of direct dependency
+tags: ['developer']
+recipeList:
+  - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+      pluginGroupId: io.jenkins.plugins
+      pluginArtifactId: commons-compress-api
+      # TODO: version from bom and filtered here ? or managed by renovate ?
+      pluginVersion: 1.26.1-2
+      replaces:
+        - groupId: org.apache.commons
+          artifactId: commons-compress
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToRecommendCoreVersion
