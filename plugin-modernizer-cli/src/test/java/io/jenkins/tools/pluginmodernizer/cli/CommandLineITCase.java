@@ -5,31 +5,40 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.github.sparsick.testcontainers.gitserver.GitServerVersions;
-import com.github.sparsick.testcontainers.gitserver.http.GitHttpServerContainer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import io.jenkins.tools.pluginmodernizer.core.model.HealthScoreData;
-import io.jenkins.tools.pluginmodernizer.core.model.PluginVersionData;
-import io.jenkins.tools.pluginmodernizer.core.model.UpdateCenterData;
+import io.jenkins.tools.pluginmodernizer.cli.utils.GitHubServerContainer;
+import io.jenkins.tools.pluginmodernizer.core.extractor.PluginMetadata;
+import io.jenkins.tools.pluginmodernizer.core.impl.CacheManager;
+import io.jenkins.tools.pluginmodernizer.core.model.Plugin;
+import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Map;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.Security;
 import java.util.Properties;
+import java.util.stream.Stream;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * Integration test for the command line interface
@@ -38,19 +47,36 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers(disabledWithoutDocker = true)
 public class CommandLineITCase {
 
-    @Container
-    private GitHttpServerContainer gitRemote = new GitHttpServerContainer(GitServerVersions.V2_45.getDockerImageName());
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     /**
      * Logger
      */
     private static final Logger LOG = LoggerFactory.getLogger(CommandLineITCase.class);
 
+    /**
+     * Tests plugins
+     * @return the plugins
+     */
+    private static Stream<Arguments> testsPlugins() {
+        return Stream.of(Arguments.of(new PluginMetadata() {
+            {
+                setPluginName("empty");
+                setJenkinsVersion("2.440.3");
+            }
+        }));
+    }
+
     @TempDir
     private Path outputPath;
 
     @TempDir
     private Path cachePath;
+
+    @TempDir
+    private Path keysPath;
 
     @Test
     public void testVersion() throws Exception {
@@ -101,17 +127,44 @@ public class CommandLineITCase {
     }
 
     @Test
+    public void testValidateWithSshKey(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        LOG.info("Running testValidateWithSshKey");
+
+        // Setup
+        WireMock wireMock = wmRuntimeInfo.getWireMock();
+        wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/user"))
+                .willReturn(
+                        WireMock.jsonResponse(new GitHubServerContainer.UserApiResponse("fake-owner", "User"), 200)));
+
+        Invoker invoker = buildInvoker();
+        InvocationRequest request =
+                buildRequest("validate --maven-home %s --ssh-private-key %s --debug --github-api-url %s/api"
+                        .formatted(
+                                getModernizerMavenHome(),
+                                generatePrivateKey("testValidateWithSshKey"),
+                                wmRuntimeInfo.getHttpBaseUrl()));
+        InvocationResult result = invoker.execute(request);
+        assertAll(
+                () -> assertEquals(0, result.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)GitHub owner: fake-owner(.*)"))),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)Validation successful(.*)"))));
+    }
+
+    @Test
     public void testValidate(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         LOG.info("Running testValidate");
 
         // Setup
         WireMock wireMock = wmRuntimeInfo.getWireMock();
         wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/user"))
-                .willReturn(WireMock.jsonResponse(USER_API_RESPONSE, 200)));
+                .willReturn(
+                        WireMock.jsonResponse(new GitHubServerContainer.UserApiResponse("fake-owner", "User"), 200)));
 
         Invoker invoker = buildInvoker();
         InvocationRequest request =
-                buildRequest("validate --debug --github-api-url " + wmRuntimeInfo.getHttpBaseUrl() + "/api");
+                buildRequest("validate --debug --github-api-url %s/api".formatted(wmRuntimeInfo.getHttpBaseUrl()));
         InvocationResult result = invoker.execute(request);
         assertAll(
                 () -> assertEquals(0, result.getExitCode()),
@@ -134,60 +187,41 @@ public class CommandLineITCase {
                                 line -> line.matches(".*FetchMetadata - Extracts metadata from a Jenkins plugin.*"))));
     }
 
-    @Test
-    public void testBuildMetadata(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
-        LOG.info("Running testBuildMetadataForDeprecatedPlugin");
+    @ParameterizedTest
+    @MethodSource("testsPlugins")
+    public void testBuildMetadata(PluginMetadata expectedMetadata, WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
 
-        PluginStatsApiResponse pluginStatsApiResponse = new PluginStatsApiResponse(Map.of("a-fake-plugin", 1));
-        UpdateCenterApiResponse updateCenterApiResponse = new UpdateCenterApiResponse(
-                Map.of(
-                        "a-fake-plugin",
-                        new UpdateCenterData.UpdateCenterPlugin(
-                                "a-fake-plugin",
-                                "1",
-                                gitRemote.getGitRepoURIAsHttp().toString(),
-                                "main",
-                                "io.jenkins.plugins:a-fake",
-                                null)),
-                Map.of(
-                        "a-fake-plugin",
-                        new UpdateCenterData.DeprecatedPlugin("https://github.com/jenkinsci/a-fake-plugin")));
-        PluginVersionsApiResponse pluginVersionsApiResponse = new PluginVersionsApiResponse(
-                Map.of("a-fake-plugin", Map.of("1", new PluginVersionData.PluginVersionPlugin("a-fake-plugin", "1"))));
-        HealthScoreApiResponse pluginHealthScoreApiResponse =
-                new HealthScoreApiResponse(Map.of("a-fake-plugin", new HealthScoreData.HealthScorePlugin(100d)));
+        String plugin = expectedMetadata.getPluginName();
 
-        // Setup
-        WireMock wireMock = wmRuntimeInfo.getWireMock();
-        wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/user"))
-                .willReturn(WireMock.jsonResponse(USER_API_RESPONSE, 200)));
-        wireMock.register(WireMock.get(WireMock.urlEqualTo("/api/repos/jenkinsci/testRepo"))
-                .willReturn(WireMock.jsonResponse(
-                        new RepoApiResponse(gitRemote.getGitRepoURIAsHttp().toString()), 200)));
-        wireMock.register(WireMock.get(WireMock.urlEqualTo("/update-center.json"))
-                .willReturn(WireMock.jsonResponse(updateCenterApiResponse, 200)));
-        wireMock.register(WireMock.get(WireMock.urlEqualTo("/plugin-versions.json"))
-                .willReturn(WireMock.jsonResponse(pluginVersionsApiResponse, 200)));
-        wireMock.register(WireMock.get(WireMock.urlEqualTo("/scores"))
-                .willReturn(WireMock.jsonResponse(pluginHealthScoreApiResponse, 200)));
-        wireMock.register(WireMock.get(WireMock.urlEqualTo("/jenkins-stats/svg/202406-plugins.csv"))
-                .willReturn(WireMock.jsonResponse(pluginStatsApiResponse, 200)));
+        // Junit attachment with logs file for the plugin build
+        System.out.printf(
+                "[[ATTACHMENT|%s]]%n", Plugin.build(plugin).getLogFile().toAbsolutePath());
 
-        Invoker invoker = buildInvoker();
-        InvocationRequest request = buildRequest(
-                "build-metadata --plugins a-fake-plugin --debug --cache-path %s --github-api-url %s --jenkins-update-center %s --jenkins-plugin-info %s --plugin-health-score %s --jenkins-plugins-stats-installations-url %s"
-                        .formatted(
-                                cachePath,
-                                wmRuntimeInfo.getHttpBaseUrl() + "/api",
-                                wmRuntimeInfo.getHttpBaseUrl() + "/update-center.json",
-                                wmRuntimeInfo.getHttpBaseUrl() + "/plugin-versions.json",
-                                wmRuntimeInfo.getHttpBaseUrl() + "/scores",
-                                wmRuntimeInfo.getHttpBaseUrl() + "/jenkins-stats/svg/202406-plugins.csv"));
-        InvocationResult result = invoker.execute(request);
-        assertAll(
-                () -> assertEquals(0, result.getExitCode()),
-                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
-                        .anyMatch(line -> line.matches(".*Error: Plugin is deprecated.*"))));
+        try (GitHubServerContainer gitRemote = new GitHubServerContainer(wmRuntimeInfo, keysPath, plugin, "main")) {
+
+            gitRemote.start();
+
+            Invoker invoker = buildInvoker();
+            InvocationRequest request = buildRequest("build-metadata %s".formatted(getRunArgs(wmRuntimeInfo, plugin)));
+            InvocationResult result = invoker.execute(request);
+
+            // Assert output
+            assertAll(
+                    () -> assertEquals(0, result.getExitCode()),
+                    () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                            .anyMatch(line ->
+                                    line.matches(".*Metadata was fetched for plugin empty and is available at.*"))));
+
+            // Assert some metadata
+            PluginMetadata metadata = JsonUtils.fromJson(
+                    cachePath
+                            .resolve("jenkins-plugin-modernizer-cli")
+                            .resolve(plugin)
+                            .resolve(CacheManager.PLUGIN_METADATA_CACHE_KEY),
+                    PluginMetadata.class);
+
+            assertEquals(expectedMetadata.getJenkinsVersion(), metadata.getJenkinsVersion());
+        }
     }
 
     /**
@@ -262,21 +296,59 @@ public class CommandLineITCase {
     }
 
     /**
-     * Login API response
+     * Generate a Ed25519 private key and save it
+     * @param name The name of the key
+     * @throws Exception If an error occurs
      */
-    private record UserApiResponse(String login, String type) {}
+    private Path generatePrivateKey(String name) throws Exception {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("Ed25519", "BC");
+        KeyPair pair = keyPairGenerator.generateKeyPair();
+        PrivateKey privateKey = pair.getPrivate();
+        File privateKeyFile = keysPath.resolve(name).toFile();
+        try (FileWriter fileWriter = new FileWriter(privateKeyFile);
+                JcaPEMWriter pemWriter = new JcaPEMWriter(fileWriter)) {
+            pemWriter.writeObject(privateKey);
+        }
+        return privateKeyFile.toPath();
+    }
 
-    private record RepoApiResponse(String clone_url) {}
+    /**
+     * Get the modernizer maven home
+     * @return Use version from the target directory
+     */
+    private Path getModernizerMavenHome() {
+        return Path.of("target/apache-maven-3.9.9").toAbsolutePath();
+    }
 
-    private static final UserApiResponse USER_API_RESPONSE = new UserApiResponse("fake-owner", "User");
-
-    private record PluginStatsApiResponse(Map<String, Integer> plugins) {}
-
-    private record UpdateCenterApiResponse(
-            Map<String, UpdateCenterData.UpdateCenterPlugin> plugins,
-            Map<String, UpdateCenterData.DeprecatedPlugin> deprecations) {}
-
-    private record PluginVersionsApiResponse(Map<String, Map<String, PluginVersionData.PluginVersionPlugin>> plugins) {}
-
-    private record HealthScoreApiResponse(Map<String, HealthScoreData.HealthScorePlugin> plugins) {}
+    /**
+     * Get the URL arguments
+     * @param wmRuntimeInfo The WireMock runtime info
+     * @param plugin The plugin
+     * @return the URL arguments
+     */
+    private String getRunArgs(WireMockRuntimeInfo wmRuntimeInfo, String plugin) {
+        return """
+        --plugins %s
+        --debug
+        --maven-home %s
+        --ssh-private-key %s
+        --cache-path %s
+        --github-api-url %s
+        --jenkins-update-center %s
+        --jenkins-plugin-info %s
+        --plugin-health-score %s
+        --jenkins-plugins-stats-installations-url %s
+        """
+                .formatted(
+                        plugin,
+                        getModernizerMavenHome(),
+                        keysPath.resolve(plugin),
+                        cachePath,
+                        wmRuntimeInfo.getHttpBaseUrl() + "/api",
+                        wmRuntimeInfo.getHttpBaseUrl() + "/update-center.json",
+                        wmRuntimeInfo.getHttpBaseUrl() + "/plugin-versions.json",
+                        wmRuntimeInfo.getHttpBaseUrl() + "/scores",
+                        wmRuntimeInfo.getHttpBaseUrl() + "/jenkins-stats/svg/202406-plugins.csv")
+                .replaceAll("\\s+", " ");
+    }
 }

@@ -41,9 +41,13 @@ public class Settings {
 
     public static final Path DEFAULT_MAVEN_HOME;
 
+    public static final Path DEFAULT_MAVEN_LOCAL_REPO;
+
     public static final String MAVEN_REWRITE_PLUGIN_VERSION;
 
     public static final String GITHUB_TOKEN;
+
+    public static final Path SSH_PRIVATE_KEY;
 
     public static final String GITHUB_OWNER;
     public static final Path GITHUB_APP_PRIVATE_KEY_FILE;
@@ -75,19 +79,27 @@ public class Settings {
     private Settings() {}
 
     static {
-        String cacheBaseDir = System.getProperty("user.home");
-        if (cacheBaseDir == null) {
-            cacheBaseDir = System.getProperty("user.dir");
+        String userBaseDir = System.getProperty("user.home");
+        if (userBaseDir == null) {
+            userBaseDir = System.getProperty("user.dir");
         }
 
         String cacheDirFromEnv = System.getenv("CACHE_DIR");
         if (cacheDirFromEnv == null) {
-            DEFAULT_CACHE_PATH = Paths.get(cacheBaseDir, ".cache", CACHE_SUBDIR);
+            DEFAULT_CACHE_PATH = Paths.get(userBaseDir, ".cache", CACHE_SUBDIR);
         } else {
             DEFAULT_CACHE_PATH = Paths.get(cacheDirFromEnv, CACHE_SUBDIR);
         }
         DEFAULT_MAVEN_HOME = getDefaultMavenHome();
+        DEFAULT_MAVEN_LOCAL_REPO = getDefaultMavenLocalRepo();
         MAVEN_REWRITE_PLUGIN_VERSION = getRewritePluginVersion();
+        String sshPrivateKey = System.getenv("SSH_PRIVATE_KEY");
+        if (sshPrivateKey != null) {
+            SSH_PRIVATE_KEY = Paths.get(sshPrivateKey);
+        } else {
+            SSH_PRIVATE_KEY = Paths.get(userBaseDir, ".ssh", "id_rsa");
+        }
+
         GITHUB_TOKEN = getGithubToken();
         GITHUB_OWNER = getGithubOwner();
         GITHUB_APP_PRIVATE_KEY_FILE = getGithubAppPrivateKeyFile();
@@ -155,6 +167,18 @@ public class Settings {
             return null;
         }
         return Path.of(mavenHome);
+    }
+
+    private static Path getDefaultMavenLocalRepo() {
+        String mavenLocalRepo = System.getenv("MAVEN_LOCAL_REPO");
+        if (mavenLocalRepo == null) {
+            String userBaseDir = System.getProperty("user.home");
+            if (userBaseDir == null) {
+                userBaseDir = System.getProperty("user.dir");
+            }
+            return Path.of(userBaseDir, ".m2", "repository").toAbsolutePath();
+        }
+        return Path.of(mavenLocalRepo);
     }
 
     private static @Nullable String getRewritePluginVersion() {
@@ -259,7 +283,7 @@ public class Settings {
     }
 
     public static Path getPluginsDirectory(Plugin plugin) {
-        return DEFAULT_CACHE_PATH.resolve(plugin.getName());
+        return plugin.getConfig().getCachePath().resolve(plugin.getName());
     }
 
     /**

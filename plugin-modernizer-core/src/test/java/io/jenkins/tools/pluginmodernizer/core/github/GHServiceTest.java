@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +55,9 @@ public class GHServiceTest {
 
     @TempDir
     private Path pluginDir;
+
+    @TempDir
+    private Path sshDir;
 
     /**
      * Tested instance
@@ -573,19 +577,30 @@ public class GHServiceTest {
     }
 
     @Test
-    public void shouldFetchOriginalRepoInDryRunModeToNewFolder() throws Exception {
+    public void shouldSshFetchOriginalRepoInDryRunModeToNewFolder() throws Exception {
 
         // Mock
         GHRepository repository = Mockito.mock(GHRepository.class);
         Git git = Mockito.mock(Git.class);
         CloneCommand cloneCommand = Mockito.mock(CloneCommand.class);
 
+        // Use SSH key auth
+        Field field = ReflectionUtils.findFields(
+                        GHService.class,
+                        f -> f.getName().equals("sshKeyAuth"),
+                        ReflectionUtils.HierarchyTraversalMode.TOP_DOWN)
+                .get(0);
+        field.setAccessible(true);
+        field.set(service, true);
+
         doReturn(true).when(config).isDryRun();
         doReturn("fake-repo").when(plugin).getRepositoryName();
         doReturn(repository).when(github).getRepository(eq("jenkinsci/fake-repo"));
         doReturn(git).when(cloneCommand).call();
-        doReturn("fake-url").when(repository).getHttpTransportUrl();
-        doReturn(cloneCommand).when(cloneCommand).setURI(eq("fake-url"));
+        doReturn("fake-url").when(repository).getSshUrl();
+        doReturn(cloneCommand).when(cloneCommand).setRemote(eq("origin"));
+        doReturn(cloneCommand).when(cloneCommand).setURI(eq("ssh:///fake-url"));
+        doReturn(cloneCommand).when(cloneCommand).setCredentialsProvider(any(CredentialsProvider.class));
         doReturn(cloneCommand).when(cloneCommand).setDirectory(any(File.class));
 
         // Directory doesn't exists
@@ -601,7 +616,78 @@ public class GHServiceTest {
     }
 
     @Test
-    public void shouldFetchOriginalRepoInMetaDataOnlyModeToNewFolder() throws Exception {
+    public void shouldHttpFetchOriginalRepoInDryRunModeToNewFolder() throws Exception {
+
+        // Mock
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        Git git = Mockito.mock(Git.class);
+        CloneCommand cloneCommand = Mockito.mock(CloneCommand.class);
+
+        doReturn(true).when(config).isDryRun();
+        doReturn("fake-repo").when(plugin).getRepositoryName();
+        doReturn(repository).when(github).getRepository(eq("jenkinsci/fake-repo"));
+        doReturn(git).when(cloneCommand).call();
+        doReturn("fake-url").when(repository).getHttpTransportUrl();
+        doReturn(cloneCommand).when(cloneCommand).setRemote(eq("origin"));
+        doReturn(cloneCommand).when(cloneCommand).setURI(eq("fake-url"));
+        doReturn(cloneCommand).when(cloneCommand).setCredentialsProvider(any(CredentialsProvider.class));
+        doReturn(cloneCommand).when(cloneCommand).setDirectory(any(File.class));
+
+        // Directory doesn't exists
+        doReturn(Path.of("not-existing-dir")).when(plugin).getLocalRepository();
+
+        // Test
+        try (MockedStatic<Git> mockStaticGit = mockStatic(Git.class)) {
+            mockStaticGit.when(Git::cloneRepository).thenReturn(cloneCommand);
+            service.fetch(plugin);
+            verify(cloneCommand, times(1)).call();
+            verifyNoMoreInteractions(cloneCommand);
+        }
+    }
+
+    @Test
+    public void shouldSshFetchOriginalRepoInMetaDataOnlyModeToNewFolder() throws Exception {
+
+        // Mock
+        GHRepository repository = Mockito.mock(GHRepository.class);
+        Git git = Mockito.mock(Git.class);
+        CloneCommand cloneCommand = Mockito.mock(CloneCommand.class);
+
+        // Use SSH key auth
+        Field field = ReflectionUtils.findFields(
+                        GHService.class,
+                        f -> f.getName().equals("sshKeyAuth"),
+                        ReflectionUtils.HierarchyTraversalMode.TOP_DOWN)
+                .get(0);
+        field.setAccessible(true);
+        field.set(service, true);
+
+        doReturn(false).when(config).isDryRun();
+
+        doReturn(true).when(config).isFetchMetadataOnly();
+        doReturn("fake-repo").when(plugin).getRepositoryName();
+        doReturn(repository).when(github).getRepository(eq("jenkinsci/fake-repo"));
+        doReturn(git).when(cloneCommand).call();
+        doReturn("fake-url").when(repository).getSshUrl();
+        doReturn(cloneCommand).when(cloneCommand).setRemote(eq("origin"));
+        doReturn(cloneCommand).when(cloneCommand).setURI(eq("ssh:///fake-url"));
+        doReturn(cloneCommand).when(cloneCommand).setDirectory(any(File.class));
+        doReturn(cloneCommand).when(cloneCommand).setCredentialsProvider(any(CredentialsProvider.class));
+
+        // Directory doesn't exists
+        doReturn(Path.of("not-existing-dir")).when(plugin).getLocalRepository();
+
+        // Test
+        try (MockedStatic<Git> mockStaticGit = mockStatic(Git.class)) {
+            mockStaticGit.when(Git::cloneRepository).thenReturn(cloneCommand);
+            service.fetch(plugin);
+            verify(cloneCommand, times(1)).call();
+            verifyNoMoreInteractions(cloneCommand);
+        }
+    }
+
+    @Test
+    public void shouldHttpFetchOriginalRepoInMetaDataOnlyModeToNewFolder() throws Exception {
 
         // Mock
         GHRepository repository = Mockito.mock(GHRepository.class);
@@ -609,13 +695,16 @@ public class GHServiceTest {
         CloneCommand cloneCommand = Mockito.mock(CloneCommand.class);
 
         doReturn(false).when(config).isDryRun();
+
         doReturn(true).when(config).isFetchMetadataOnly();
         doReturn("fake-repo").when(plugin).getRepositoryName();
         doReturn(repository).when(github).getRepository(eq("jenkinsci/fake-repo"));
         doReturn(git).when(cloneCommand).call();
         doReturn("fake-url").when(repository).getHttpTransportUrl();
+        doReturn(cloneCommand).when(cloneCommand).setRemote(eq("origin"));
         doReturn(cloneCommand).when(cloneCommand).setURI(eq("fake-url"));
         doReturn(cloneCommand).when(cloneCommand).setDirectory(any(File.class));
+        doReturn(cloneCommand).when(cloneCommand).setCredentialsProvider(any(CredentialsProvider.class));
 
         // Directory doesn't exists
         doReturn(Path.of("not-existing-dir")).when(plugin).getLocalRepository();

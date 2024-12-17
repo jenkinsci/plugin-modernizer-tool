@@ -104,13 +104,13 @@ From there you need to save both ID of installation (found on URL)
 
 ## Global option
 
-- `--debug` or `-d`: (optional) Enables debug mode. Defaults to false.
+- `--debug`: (optional) Enables debug mode. Defaults to false.
 
 
-- `--cache-path` or `-c`: (optional) Custom path to the cache directory. Defaults to `${user.home}/.cache/jenkins-plugin-modernizer-cli`.
+- `--cache-path`: (optional) Custom path to the cache directory. Defaults to `${user.home}/.cache/jenkins-plugin-modernizer-cli`.
 
 
-- `--maven-home` or `-m`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set. The minimum required version is 3.9.7.
+- `--maven-home`: (optional) Path to the Maven home directory. Required if both `MAVEN_HOME` and `M2_HOME` environment variables are not set. The minimum required version is 3.9.7.
 
 
 - `--clean-local-data` (optional) Deletes the local plugin directory before running the tool.

@@ -3,14 +3,13 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### Plugins Directory ###
-test-plugins
-
 ### Log file ###
 logs/
 
 ### IntelliJ IDEA ###
 .idea/
+!.idea/runConfigurations/
+!.idea/.gitignore/
 *.iws
 *.iml
 *.ipr
@@ -33,6 +32,8 @@ logs/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+!**/test/resources/**/.git
 
 ### VS Code ###
 .vscode/
