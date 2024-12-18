@@ -24,7 +24,7 @@ public class VersionProvider implements CommandLine.IVersionProvider {
      * @throws Exception if the version is not found
      */
     public String getMavenVersion() throws Exception {
-        return getValue("project.version");
+        return getValue("project.version").trim();
     }
 
     /**

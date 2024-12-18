@@ -15,7 +15,8 @@ import picocli.CommandLine.Command;
             BuildMetadataCommand.class,
             DryRunCommand.class,
             RunCommand.class,
-            CleanupCommand.class
+            CleanupCommand.class,
+            VersionCommand.class
         },
         mixinStandardHelpOptions = true,
         versionProvider = VersionProvider.class)

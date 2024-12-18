@@ -14,7 +14,7 @@ body:
       description: |
         For easier bug reporting, always give the version of the Plugin Modernizer you are using.
         ```shell
-        plugin-modernizer --version
+        plugin-modernizer version --short
         ```
     validations:
       required: true
