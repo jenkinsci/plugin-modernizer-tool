@@ -82,12 +82,27 @@ public class CommandLineITCase {
     public void testVersion() throws Exception {
         LOG.info("Running testVersion");
         Invoker invoker = buildInvoker();
-        InvocationRequest request = buildRequest("--version");
-        InvocationResult result = invoker.execute(request);
+        InvocationResult result1 = invoker.execute(buildRequest("--version"));
         assertAll(
-                () -> assertEquals(0, result.getExitCode()),
+                () -> assertEquals(0, result1.getExitCode()),
                 () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
-                        .anyMatch(line -> line.matches("plugin modernizer (.*) (.*)"))));
+                        .anyMatch(line -> line.matches("plugin modernizer ([a-zA-Z0-9.-_]+) (.*)"))));
+
+        Files.delete(outputPath.resolve("stdout.txt"));
+
+        InvocationResult result2 = invoker.execute(buildRequest("version"));
+        assertAll(
+                () -> assertEquals(0, result2.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("plugin modernizer ([a-zA-Z0-9.-_]+) (.*)"))));
+
+        Files.delete(outputPath.resolve("stdout.txt"));
+
+        InvocationResult result3 = invoker.execute(buildRequest("version --short"));
+        assertAll(
+                () -> assertEquals(0, result3.getExitCode()),
+                () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                        .anyMatch(line -> line.matches("(.*)\\s*[a-zA-Z0-9.-_]+\\s*"))));
     }
 
     @Test
