@@ -15,6 +15,10 @@
         <appender-ref ref="CONSOLE" />
     </root>
     <logger name="io.jenkins.tools.pluginmodernizer" level="TRACE" />
+    <logger name="io.jenkins.tools.pluginmodernizer.cli.utils" level="INFO" />
     <logger name="org.testcontainers" level="INFO" />
+    <logger name="com.github.sparsick.testcontainers" level="INFO" />
+    <logger name="tc.rockstorm/git-server:2.45" level="WARN" />
+    <logger name="tc.testcontainers/ryuk:0.9.0" level="WARN" />
     <logger name="com.github.dockerjava" level="INFO" />
 </configuration>

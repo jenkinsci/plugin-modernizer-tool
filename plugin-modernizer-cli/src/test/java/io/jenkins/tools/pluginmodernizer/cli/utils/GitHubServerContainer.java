@@ -120,7 +120,7 @@ public class GitHubServerContainer extends GitServerContainer {
         byte[] privateKey = sshIdentity.getPrivateKey();
         try {
             Files.write(keysPath.resolve(plugin), privateKey);
-            LOG.info("Private key: {}", keysPath.resolve(plugin));
+            LOG.debug("Private key: {}", keysPath.resolve(plugin));
         } catch (IOException e) {
             throw new ModernizerException("Error writing private key", e);
         }

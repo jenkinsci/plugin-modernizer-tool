@@ -145,11 +145,11 @@ public enum MetadataFlag {
             return false;
         }
         if (plugin.getMetadata().hasFlag(this)) {
-            LOG.debug("Flag {} already set for plugin {}", this, plugin.getName());
+            LOG.trace("Flag {} already set for plugin {}", this, plugin.getName());
             return true;
         }
         if (isApplicablePlugin == null) {
-            LOG.debug("No applicable plugin check for flag {}", this);
+            LOG.trace("No applicable plugin check for flag {}", this);
             return false;
         }
         boolean result = isApplicablePlugin.test(plugin, pluginService);
