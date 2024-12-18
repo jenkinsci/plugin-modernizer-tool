@@ -107,11 +107,15 @@ name: io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
 displayName: Use JSON API plugin instead of direct dependency
 description: Use JSON API plugin instead of direct dependency
 tags: ['developer']
+preconditions:
+  - org.openrewrite.maven.FindDependency:
+      groupId: org.jenkins-ci.main
+      artifactId: jenkins-core
+      version: ">=2.452.4"
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
       pluginArtifactId: json-api
-      # TODO: version from bom and filtered here ? or managed by renovate ?
       pluginVersion: 20240303-41.v94e11e6de726
       replaces:
         - groupId: org.json
@@ -122,11 +126,15 @@ name: io.jenkins.tools.pluginmodernizer.UseGsonApiPlugin
 displayName: Use GSON API plugin instead of direct dependency
 description: Use GSON API plugin instead of direct dependency
 tags: ['developer']
+preconditions:
+  - org.openrewrite.maven.FindDependency:
+      groupId: org.jenkins-ci.main
+      artifactId: jenkins-core
+      version: ">=2.452.4"
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
       pluginArtifactId: gson-api
-      # TODO: version from bom and filtered here ? or managed by renovate ?
       pluginVersion: 2.11.0-85.v1f4e87273c33
       replaces:
         - groupId: com.google.code.gson
@@ -137,11 +145,15 @@ name: io.jenkins.tools.pluginmodernizer.UseCompressApiPlugin
 displayName: Use Compress API plugin instead of direct dependency
 description: Use Compress API plugin instead of direct dependency
 tags: ['developer']
+preconditions:
+  - org.openrewrite.maven.FindDependency:
+      groupId: org.jenkins-ci.main
+      artifactId: jenkins-core
+      version: ">=2.489"
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
       pluginArtifactId: commons-compress-api
-      # TODO: version from bom and filtered here ? or managed by renovate ?
       pluginVersion: 1.26.1-2
       replaces:
         - groupId: org.apache.commons

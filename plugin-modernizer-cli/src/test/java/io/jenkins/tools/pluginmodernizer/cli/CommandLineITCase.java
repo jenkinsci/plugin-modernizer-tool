@@ -66,6 +66,11 @@ public class CommandLineITCase {
                 setPluginName("empty");
                 setJenkinsVersion("2.440.3");
             }
+
+            {
+                setPluginName("replace-by-api-plugins");
+                setJenkinsVersion("2.452.4");
+            }
         }));
     }
 
@@ -227,7 +232,7 @@ public class CommandLineITCase {
                             .anyMatch(line -> line.matches("(.*)GitHub owner: fake-owner(.*)"))),
                     () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
                             .anyMatch(line ->
-                                    line.matches(".*Metadata was fetched for plugin empty and is available at.*"))));
+                                    line.matches(".*Metadata was fetched for plugin (.*) and is available at.*"))));
 
             // Assert some metadata
             PluginMetadata metadata = JsonUtils.fromJson(
