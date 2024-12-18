@@ -1,0 +1,43 @@
+name: '🐛 Bug report'
+description: Create a bug report to help us improve
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never report security issues on GitHub or other public channels (Gitter/Twitter/etc.)**
+        Follow these instruction to report security issues: https://www.jenkins.io/security/#reporting-vulnerabilities
+
+  - type: input
+    attributes:
+      label: Plugin Modernizer version
+      description: |
+        For easier bug reporting, always give the version of the Plugin Modernizer you are using.
+        ```shell
+        plugin-modernizer --version
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What Operating System are you using
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Reproduction steps
+      description: |
+        Make sure you include `--debug` flag in your command to get more information.
+      placeholder: |
+        plugin-modernizer <command> --debug ...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected Results
+      description: What was your expected result?
+    validations:
+      required: true
