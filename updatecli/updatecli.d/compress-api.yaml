@@ -1,0 +1,48 @@
+name: Update compress-api plugin version
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  latestCompressApiVersion:
+    kind: githubrelease
+    spec:
+      owner: "jenkinsci"
+      repository: "commons-compress-api-plugin"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      versioning:
+        kind: semver
+        pattern: "latest"
+    transformers:
+      - trimprefix: "commons-compress-api-"
+
+targets:
+  updateRecipesYaml:
+    name: "Update compress-api plugin version in recipes.yml"
+    kind: file
+    spec:
+      file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
+      matchPattern: "(pluginArtifactId: commons-compress-api\\n)(.*\\n)(.*pluginVersion:) .*"
+      replacePattern: '$1$2$3 {{ source "latestCompressApiVersion" }}'
+    sourceid: latestCompressApiVersion
+    scmid: default
+
+actions:
+  createPullRequest:
+    kind: github/pullrequest
+    scmid: default
+    title: 'Update compress-api plugin version to {{ source "latestCompressApiVersion" }}'
+    spec:
+      labels:
+        - dependencies
+        - updatecli
