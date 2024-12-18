@@ -511,7 +511,9 @@ public class GHService {
         }
         try {
             fetchRepository(plugin);
-            LOG.debug("Fetched repository from {}", repository.getSshUrl());
+            LOG.debug(
+                    "Fetched repository from {}",
+                    sshKeyAuth ? repository.getSshUrl() : repository.getHttpTransportUrl());
         } catch (GitAPIException | URISyntaxException e) {
             LOG.error("Failed to fetch the repository", e);
             plugin.addError("Failed to fetch the repository", e);

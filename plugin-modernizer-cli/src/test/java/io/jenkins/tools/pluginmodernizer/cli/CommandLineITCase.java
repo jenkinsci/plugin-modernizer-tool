@@ -209,6 +209,8 @@ public class CommandLineITCase {
             assertAll(
                     () -> assertEquals(0, result.getExitCode()),
                     () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
+                            .anyMatch(line -> line.matches("(.*)GitHub owner: fake-owner(.*)"))),
+                    () -> assertTrue(Files.readAllLines(outputPath.resolve("stdout.txt")).stream()
                             .anyMatch(line ->
                                     line.matches(".*Metadata was fetched for plugin empty and is available at.*"))));
 

@@ -140,9 +140,9 @@ public class PluginModernizer {
         // Debug config
         LOG.debug("Plugins: {}", config.getPlugins());
         LOG.debug("Recipe: {}", config.getRecipe().getName());
-        LOG.debug("GitHub owner: {}", config.getGithubOwner());
+        LOG.debug("GitHub owner: {}", getGithubOwner());
         if (ghService.isSshKeyAuth()) {
-            LOG.debug("SSH private key: {}", config.getSshPrivateKey());
+            LOG.debug("SSH private key: {}", getSshPrivateKeyPath());
         } else {
             LOG.debug("Using GitHub token for git authentication");
         }
