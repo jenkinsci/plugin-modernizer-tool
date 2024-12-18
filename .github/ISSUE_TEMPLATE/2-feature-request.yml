@@ -1,0 +1,20 @@
+name: '🚀 Feature request'
+description: I have a suggestion
+
+body:
+  - type: textarea
+    attributes:
+      label: What feature do you want to see added?
+      description: A clear and concise description of your feature request.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Upstream changes
+      description: Link here any upstream changes that might be relevant to this request
+
+  - type: textarea
+    attributes:
+      label: Are you interested in contributing this feature?
+      description: Indicate if this is something you would like to work on, and how we can best support you in doing so. More details [on contributing](https://github.com/jenkins-infra/plugin-modernizer-tool/blob/main/docs/CONTRIBUTING.md)
