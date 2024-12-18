@@ -90,6 +90,38 @@
       </resource>
     </resources>
     <plugins>
+
+      <!-- Clean test plugin if they are compiled -->
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean-plugin</id>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+            <phase>clean</phase>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>src/test/resources</directory>
+                  <includes>
+                    <include>**/target/**</include>
+                  </includes>
+                </fileset>
+                <fileset>
+                  <directory>.</directory>
+                  <includes>
+                    <include>logs/*.log</include>
+                    <include>logs/*.txt</include>
+                  </includes>
+                </fileset>
+              </filesets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- The CLI is distributed via JRelease and published on the GitHub releases page -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -127,7 +159,6 @@
                 <include>**/*ITCase.java</include>
               </includes>
               <environmentVariables>
-                <MAVEN_LOCAL_REPO>${maven.repo.local}</MAVEN_LOCAL_REPO>
                 <MAVEN_HOME>${project.build.directory}/apache-maven-${maven.version}</MAVEN_HOME>
                 <GH_TOKEN>fake-token</GH_TOKEN>
                 <GH_OWNER>fake-owner</GH_OWNER>
@@ -203,4 +234,30 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>maven-repo-local</id>
+      <activation>
+        <property>
+          <name>maven.repo.local</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <systemProperties combine.children="append">
+                <property>
+                  <name>maven.repo.local</name>
+                  <value>${maven.repo.local}</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

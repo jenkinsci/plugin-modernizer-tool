@@ -291,6 +291,35 @@ If you are using a mirror for `central` you should adapt the `reference.repo` pr
 
 Thanks to all our contributors! Check out our [CONTRIBUTING](docs/CONTRIBUTING.md) file to learn how to get started.
 
+## How to debug recipes
+
+Update the `rewrite.yml` into the src/test/resources/<plugin>
+
+Example
+
+```yaml
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.Debug
+displayName: Debug recipe
+description: Debug recipe
+conditions: []
+recipeList: []
+```
+
+Then run openrewrite with the following command 
+
+```shell
+mvn org.openrewrite.maven:rewrite-maven-plugin:dryRun -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-jenkins:0.19.0 -Drewrite.activeRecipes=io.jenkins.tools.pluginmodernizer.Debug
+```
+
+If you want to test with recipes from modernizer core
+
+```
+mvn org.openrewrite.maven:rewrite-maven-plugin:dryRun -Drewrite.recipeArtifactCoordinates=io.jenkins.plugin-modernizer:plugin-modernizer-core:999999-SNAPSHOT -Drewrite.activeRecipes=io.jenkins.tools.pluginmodernizer.Debug
+
+```
+
 ## References
 
 - [GSoC 2024 Project Proposal](https://docs.google.com/document/d/1e1QkprPN6fLpFXk_QqBUQlJhZrAl9RvXbOXOiJ-gAuY/edit?usp=sharing)
