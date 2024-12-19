@@ -30,7 +30,7 @@ targets:
     kind: file
     spec:
       file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
-      matchPattern: "(pluginArtifactId: gson-api\\n)(.*\\n)(.*pluginVersion:) .*"
+      matchPattern: "(pluginArtifactId: gson-api\\n)(.*pluginVersion:) .*"
       replacePattern: '$1$2$3 {{ source "latestGsonApiVersion" }}'
     sourceid: latestGsonApiVersion
     scmid: default
