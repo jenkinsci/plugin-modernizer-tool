@@ -237,7 +237,7 @@ public class JdkFetcher {
         String arch = System.getProperty("os.arch").toLowerCase();
         if (arch.contains("amd64") || arch.contains("x86_64")) {
             return "x64";
-        } else if (arch.contains("aarch64")) {
+        } else if (arch.contains("aarch64") || arch.contains("arm64")) {
             return "aarch64";
         } else {
             throw new ModernizerException("Unsupported architecture: " + arch);
