@@ -1,6 +1,8 @@
 package io.jenkins.tools.pluginmodernizer.cli.command;
 
 import io.jenkins.tools.pluginmodernizer.cli.converter.RecipeConverter;
+import io.jenkins.tools.pluginmodernizer.cli.options.EnvOptions;
+import io.jenkins.tools.pluginmodernizer.cli.options.GitHubOptions;
 import io.jenkins.tools.pluginmodernizer.cli.options.GlobalOptions;
 import io.jenkins.tools.pluginmodernizer.cli.options.PluginOptions;
 import io.jenkins.tools.pluginmodernizer.core.config.Config;
@@ -39,15 +41,29 @@ public class DryRunCommand implements ICommand {
     private Recipe recipe;
 
     /**
+     * Environment options
+     */
+    @CommandLine.Mixin
+    private EnvOptions envOptions;
+
+    /**
      * Global options for all commands
      */
     @CommandLine.Mixin
     private GlobalOptions options;
 
+    /**
+     * GitHub options
+     */
+    @CommandLine.Mixin
+    private GitHubOptions githubOptions;
+
     @Override
     public Config setup(Config.Builder builder) {
         options.config(builder);
         pluginOptions.config(builder);
+        githubOptions.config(builder);
+        envOptions.config(builder);
         return builder.withDryRun(true).withRecipe(recipe).build();
     }
 

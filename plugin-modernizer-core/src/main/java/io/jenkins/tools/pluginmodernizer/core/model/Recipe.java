@@ -16,6 +16,9 @@ public class Recipe {
     @JsonIgnore
     private Object recipeList; // Use Object to avoid mapping complex nested structures.
 
+    @JsonIgnore
+    private Object preconditions; // Use Object to avoid mapping complex nested structures.
+
     public String getName() {
         return name;
     }
@@ -62,5 +65,9 @@ public class Recipe {
 
     public void setRecipeList(Object recipeList) {
         this.recipeList = recipeList;
+    }
+
+    public Object getPreconditions() {
+        return preconditions;
     }
 }

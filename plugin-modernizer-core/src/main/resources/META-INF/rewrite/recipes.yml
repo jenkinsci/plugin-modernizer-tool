@@ -101,32 +101,79 @@ recipeList:
   - io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
   - io.jenkins.tools.pluginmodernizer.UseGsonApiPlugin
   - io.jenkins.tools.pluginmodernizer.UseCompressApiPlugin
+  - io.jenkins.tools.pluginmodernizer.UseJodaTimeApiPlugin
+  - io.jenkins.tools.pluginmodernizer.UseAsmApiPlugin
+  - io.jenkins.tools.pluginmodernizer.UseByteBuddyApiPlugin
+  - io.jenkins.tools.pluginmodernizer.UseCommonsLangApiPlugin
+  - io.jenkins.tools.pluginmodernizer.UseCommonsTextApiPlugin
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
 displayName: Use JSON API plugin instead of direct dependency
 description: Use JSON API plugin instead of direct dependency
 tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
       pluginArtifactId: json-api
-      # TODO: version from bom and filtered here ? or managed by renovate ?
       pluginVersion: 20240303-41.v94e11e6de726
       replaces:
         - groupId: org.json
           artifactId: json
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UseAsmApiPlugin
+displayName: Use ASM API plugin instead of direct dependency
+description: Use ASM API plugin instead of direct dependency
+tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingCoreVersionWithASMRemoved
+recipeList:
+    - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+        pluginGroupId: io.jenkins.plugins
+        pluginArtifactId: asm-api
+        pluginVersion: 9.7.1-97.v4cc844130d97
+        replaces:
+          - groupId: org.ow2.asm
+            artifactId: asm
+          - groupId: org.ow2.asm
+            artifactId: asm-analysis
+          - groupId: org.ow2.asm
+            artifactId: asm-commons
+          - groupId: org.ow2.asm
+            artifactId: asm-tree
+          - groupId: org.ow2.asm
+            artifactId: asm-util
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UseJodaTimeApiPlugin
+displayName: Use Joda Time API plugin instead of direct dependency
+description: Use Joda Time API plugin instead of direct dependency
+tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
+recipeList:
+    - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+        pluginGroupId: io.jenkins.plugins
+        pluginArtifactId: joda-time-api
+        pluginVersion: 2.13.0-93.v9934da_29b_a_e9
+        replaces:
+            - groupId: joda-time
+              artifactId: joda-time
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseGsonApiPlugin
 displayName: Use GSON API plugin instead of direct dependency
 description: Use GSON API plugin instead of direct dependency
 tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
       pluginArtifactId: gson-api
-      # TODO: version from bom and filtered here ? or managed by renovate ?
       pluginVersion: 2.11.0-85.v1f4e87273c33
       replaces:
         - groupId: com.google.code.gson
@@ -137,15 +184,65 @@ name: io.jenkins.tools.pluginmodernizer.UseCompressApiPlugin
 displayName: Use Compress API plugin instead of direct dependency
 description: Use Compress API plugin instead of direct dependency
 tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingCoreVersionWithCommonsCompressRemoved
 recipeList:
   - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
       pluginGroupId: io.jenkins.plugins
       pluginArtifactId: commons-compress-api
-      # TODO: version from bom and filtered here ? or managed by renovate ?
       pluginVersion: 1.26.1-2
       replaces:
         - groupId: org.apache.commons
           artifactId: commons-compress
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UseCommonsLangApiPlugin
+displayName: Use Commons Lang 3 API plugin instead of direct dependency
+description: Use Commons Lang 3 API plugin instead of direct dependency
+tags: ['developer']
+preconditions:
+  - org.openrewrite.jenkins.IsJenkinsPlugin:
+      version: "[2.361.4,)"
+recipeList:
+  - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+      pluginGroupId: io.jenkins.plugins
+      pluginArtifactId: commons-lang3-api
+      pluginVersion: 3.17.0-84.vb_b_938040b_078
+      replaces:
+        - groupId: org.apache.commons
+          artifactId: commons-lang3
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UseByteBuddyApiPlugin
+displayName: Use Byte Buddy API plugin instead of direct dependency
+description: Use Byte Buddy API plugin instead of direct dependency
+tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
+recipeList:
+  - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+      pluginGroupId: io.jenkins.plugins
+      pluginArtifactId: byte-buddy-api
+      pluginVersion: 1.15.11-99.v078c614a_5258
+      replaces:
+        - groupId: net.bytebuddy
+          artifactId: byte-buddy
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UseCommonsTextApiPlugin
+displayName: Use Commons Text API plugin instead of direct dependency
+description: Use Commons Text API plugin instead of direct dependency
+tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
+recipeList:
+  - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+      pluginGroupId: io.jenkins.plugins
+      pluginArtifactId: commons-text-api
+      pluginVersion: 1.12.0-129.v99a_50df237f7
+      replaces:
+        - groupId: org.apache.commons
+          artifactId: commons-text
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UpgradeToRecommendCoreVersion
@@ -153,8 +250,6 @@ displayName: Upgrade to latest recommended core version and ensure the bom is ma
 description: Upgrade to latest recommended core version and ensure the bom is matching the core version
 tags: ['developer']
 recipeList:
-    # TODO: https://github.com/jenkins-infra/jenkins.io/blob/master/updatecli/updatecli.d/jenkins-lts.yaml#L104
-    # https://github.com/jenkins-infra/jenkins-version?
   - org.openrewrite.jenkins.UpgradeVersionProperty:
       key: jenkins.version
       minimumVersion: 2.452.4
@@ -168,8 +263,6 @@ displayName: Upgrade to latest LTS core version supporting Java 11
 description: Upgrade to latest LTS core version supporting Java 11
 tags: ['developer']
 recipeList:
-  # TODO: https://github.com/jenkins-infra/jenkins.io/blob/master/updatecli/updatecli.d/jenkins-lts.yaml#L104
-  # https://github.com/jenkins-infra/jenkins-version?
   - org.openrewrite.jenkins.UpgradeVersionProperty:
       key: jenkins.version
       minimumVersion: 2.462.3
@@ -244,3 +337,30 @@ tags: ['chore']
 recipeList:
   - org.openrewrite.jenkins.CreateIndexJelly
   - org.openrewrite.jenkins.AddJellyXmlDeclaration
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
+displayName: Check if the plugin is using the recommended core version
+description: Check if the plugin is using the recommended core version
+tags: ['condition']
+recipeList:
+  - org.openrewrite.jenkins.IsJenkinsPlugin:
+      version: "[2.452.4,)"
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.conditions.IsUsingCoreVersionWithASMRemoved
+displayName: Check if the plugin is using a version with ASM removed
+description: Check if the plugin is using a version with ASM removed
+tags: ['condition']
+recipeList:
+  - org.openrewrite.jenkins.IsJenkinsPlugin:
+      version: "[2.479.1,)"
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.conditions.IsUsingCoreVersionWithCommonsCompressRemoved
+displayName: Check if the plugin using using a version with commons-compress removed
+description: Check if the plugin using using a version with commons-compress removed
+tags: ['condition']
+recipeList:
+  - org.openrewrite.jenkins.IsJenkinsPlugin:
+      version: "[2.489,)" # Adapt when LTS
