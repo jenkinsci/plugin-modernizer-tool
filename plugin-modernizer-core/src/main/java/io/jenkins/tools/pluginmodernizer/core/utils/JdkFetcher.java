@@ -196,7 +196,8 @@ public class JdkFetcher {
         String os = getOSName();
         String normalizedOS = normalizeOS(os);
         String architecture = getArchitecture();
-        return String.format("OpenJDK%sU-jdk_%s_%s_%s_hotspot_%s", jdkVersion, architecture, normalizedOS, architecture, jdkVersion);
+        return String.format(
+                "OpenJDK%sU-jdk_%s_%s_%s_hotspot_%s", jdkVersion, architecture, normalizedOS, architecture, jdkVersion);
     }
 
     /**
