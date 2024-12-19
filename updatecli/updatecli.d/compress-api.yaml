@@ -32,7 +32,7 @@ targets:
     kind: file
     spec:
       file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
-      matchPattern: "(pluginArtifactId: commons-compress-api\\n)(.*\\n)(.*pluginVersion:) .*"
+      matchPattern: "(pluginArtifactId: commons-compress-api\\n)(.*pluginVersion:) .*"
       replacePattern: '$1$2$3 {{ source "latestCompressApiVersion" }}'
     sourceid: latestCompressApiVersion
     scmid: default
