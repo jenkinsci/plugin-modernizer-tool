@@ -312,6 +312,7 @@ public class JdkFetcher {
      *
      * @param jdkPath The path to the JDK directory.
      */
+    @SuppressFBWarnings(value = "OVERLY_PERMISSIVE_FILE_PERMISSION", justification = "bin requires to be executable")
     private void setJavaBinariesPermissions(Path jdkPath) {
         Path binDir = jdkPath.resolve("bin");
 
