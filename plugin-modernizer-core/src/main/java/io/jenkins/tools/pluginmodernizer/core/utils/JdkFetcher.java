@@ -195,7 +195,8 @@ public class JdkFetcher {
     public String buildJDKFileName(int jdkVersion) {
         String os = getOSName();
         String normalizedOS = normalizeOS(os);
-        return String.format("OpenJDK%sU-jdk_x64_%s_hotspot_%s", jdkVersion, normalizedOS, jdkVersion);
+        String architecture = getArchitecture();
+        return String.format("OpenJDK%sU-jdk_%s_%s_%s_hotspot_%s", jdkVersion, architecture, normalizedOS, architecture, jdkVersion);
     }
 
     /**
@@ -225,6 +226,22 @@ public class JdkFetcher {
      */
     private String getOSName() {
         return System.getProperty("os.name").toLowerCase();
+    }
+
+    /**
+     * Determines the architecture of the underlying system.
+     *
+     * @return The architecture (e.g., "x64", "aarch64").
+     */
+    private String getArchitecture() {
+        String arch = System.getProperty("os.arch").toLowerCase();
+        if (arch.contains("amd64") || arch.contains("x86_64")) {
+            return "x64";
+        } else if (arch.contains("aarch64")) {
+            return "aarch64";
+        } else {
+            throw new ModernizerException("Unsupported architecture: " + arch);
+        }
     }
 
     /**
@@ -294,7 +311,6 @@ public class JdkFetcher {
      *
      * @param jdkPath The path to the JDK directory.
      */
-    @SuppressFBWarnings(value = "OVERLY_PERMISSIVE_FILE_PERMISSION", justification = "bin requires to be executable")
     private void setJavaBinariesPermissions(Path jdkPath) {
         Path binDir = jdkPath.resolve("bin");
 

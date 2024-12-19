@@ -292,6 +292,49 @@ public class CommandLineITCase {
         }
     }
 
+    @Test
+    public void testBuildMetadataOnAarch64(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+
+        Path logFile = logFolder.resolve("testBuildMetadataOnAarch64.txt");
+        Files.deleteIfExists(logFile);
+        Files.createFile(logFile);
+        String plugin = "replace-by-api-plugins";
+
+        // Junit attachment with logs file for the plugin build
+        System.out.printf(
+                "[[ATTACHMENT|%s]]%n", Plugin.build(plugin).getLogFile().toAbsolutePath());
+        System.out.printf("[[ATTACHMENT|%s]]%n", logFile.toAbsolutePath());
+
+        try (GitHubServerContainer gitRemote = new GitHubServerContainer(wmRuntimeInfo, keysPath, plugin, "main")) {
+
+            gitRemote.start();
+
+            Invoker invoker = buildInvoker();
+            InvocationRequest request =
+                    buildRequest("build-metadata %s".formatted(getRunArgs(wmRuntimeInfo, plugin)), logFile);
+            InvocationResult result = invoker.execute(request);
+
+            // Assert output
+            assertAll(
+                    () -> assertEquals(0, result.getExitCode()),
+                    () -> assertTrue(Files.readAllLines(logFile).stream()
+                            .anyMatch(line -> line.matches("(.*)GitHub owner: fake-owner(.*)"))),
+                    () -> assertTrue(Files.readAllLines(logFile).stream()
+                            .anyMatch(line ->
+                                    line.matches(".*Metadata was fetched for plugin (.*) and is available at.*"))));
+
+            // Assert some metadata
+            PluginMetadata metadata = JsonUtils.fromJson(
+                    cachePath
+                            .resolve("jenkins-plugin-modernizer-cli")
+                            .resolve(plugin)
+                            .resolve(CacheManager.PLUGIN_METADATA_CACHE_KEY),
+                    PluginMetadata.class);
+
+            assertEquals("2.452.4", metadata.getJenkinsVersion());
+        }
+    }
+
     /**
      * Build the invoker
      * @return the invoker
