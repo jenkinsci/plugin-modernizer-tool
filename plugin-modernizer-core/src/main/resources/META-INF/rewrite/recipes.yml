@@ -5,7 +5,8 @@ displayName: Fetch metadata
 description: Extracts metadata from a Jenkins plugin
 tags: ['extractor']
 recipeList:
-  - io.jenkins.tools.pluginmodernizer.core.extractor.MetadataCollector
+  - io.jenkins.tools.pluginmodernizer.core.extractor.MetadataCollector:
+    force: true
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.AddPluginsBom

@@ -3,28 +3,23 @@ package io.jenkins.tools.pluginmodernizer.core.extractor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
 import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.FindSourceFiles;
-import org.openrewrite.Preconditions;
-import org.openrewrite.ScanningRecipe;
-import org.openrewrite.SourceFile;
-import org.openrewrite.Tree;
-import org.openrewrite.TreeVisitor;
+import org.openrewrite.*;
 import org.openrewrite.groovy.GroovyIsoVisitor;
 import org.openrewrite.groovy.tree.G;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.Markers;
+import org.openrewrite.marker.SearchResult;
 import org.openrewrite.maven.MavenIsoVisitor;
 import org.openrewrite.maven.tree.MavenResolutionResult;
 import org.openrewrite.maven.tree.Parent;
@@ -44,6 +39,19 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
      */
     private static final Logger LOG = LoggerFactory.getLogger(MetadataCollector.class);
 
+    public MetadataCollector() {}
+
+    public MetadataCollector(boolean force) {
+        this.force = force;
+    }
+
+    @Option(
+            displayName = "Force collection of metadata. Default to false",
+            required = false,
+            description = "Force the collection of metadata. If false will reuse the existing metadata if any.",
+            example = "true")
+    boolean force = false;
+
     @Override
     public String getDisplayName() {
         return "Plugin metadata extractor";
@@ -58,12 +66,12 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
      * Accumulator to store metadata.
      */
     public static class MetadataAccumulator {
-        private final List<ArchetypeCommonFile> commonFiles = new ArrayList<>();
-        private final Set<MetadataFlag> flags = new HashSet<>();
-        private final Set<JDK> jdkVersions = new HashSet<>();
+        private final List<ArchetypeCommonFile> commonFiles = new LinkedList<>();
+        private final Set<MetadataFlag> flags = new LinkedHashSet<>();
+        private final Set<JDK> jdkVersions = new LinkedHashSet<>();
 
         public List<ArchetypeCommonFile> getCommonFiles() {
-            return commonFiles;
+            return commonFiles.stream().sorted().collect(Collectors.toList());
         }
 
         public Set<JDK> getJdkVersions() {
@@ -82,7 +90,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
             return flags;
         }
 
-        public void addFlags(List<MetadataFlag> flags) {
+        public void addFlags(Set<MetadataFlag> flags) {
             this.flags.addAll(flags);
         }
     }
@@ -211,6 +219,18 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
             @Override
             public Xml.Document visitDocument(Xml.Document document, ExecutionContext ctx) {
 
+                final PluginMetadata pluginMetadata = new PluginMetadata();
+
+                if (!force) {
+                    // Check if metadata already exists
+                    PluginMetadata refreshedMetadata = pluginMetadata.refresh();
+                    if (refreshedMetadata != null && refreshedMetadata.getJenkinsVersion() != null) {
+                        LOG.info("Metadata already exists, skipping metadata extraction");
+                        LOG.info("Metadata: {}", JsonUtils.toJson(refreshedMetadata));
+                        return SearchResult.found(document, JsonUtils.toJson(refreshedMetadata));
+                    }
+                }
+
                 // Ensure maven resolution result is present
                 Markers markers = document.getMarkers();
                 Optional<MavenResolutionResult> mavenResolutionResult = markers.findFirst(MavenResolutionResult.class);
@@ -236,7 +256,6 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 properties.remove("basedir");
 
                 // Construct the plugin metadata
-                PluginMetadata pluginMetadata = new PluginMetadata();
                 pluginMetadata.setPluginName(pom.getName());
                 Parent parent = pom.getParent();
                 if (parent != null) {
@@ -260,7 +279,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
                 LOG.debug("Plugin metadata written to {}", pluginMetadata.getRelativePath());
                 LOG.debug(JsonUtils.toJson(pluginMetadata));
 
-                return document;
+                return SearchResult.found(document, JsonUtils.toJson(pluginMetadata));
             }
         };
     }
@@ -273,7 +292,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
         /**
          * Detected flag
          */
-        private final List<MetadataFlag> flags = new ArrayList<>();
+        private final Set<MetadataFlag> flags = new LinkedHashSet<>();
 
         /**
          * Convert an OpenRewrite XML tag to a metadata XML tag.
@@ -311,7 +330,7 @@ public class MetadataCollector extends ScanningRecipe<MetadataCollector.Metadata
          * Get the flags for this visitor.
          * @return flags for this visitor
          */
-        public List<MetadataFlag> getFlags() {
+        public Set<MetadataFlag> getFlags() {
             return flags;
         }
     }

@@ -738,7 +738,7 @@ public class Plugin {
                 CacheManager.PLUGIN_METADATA_CACHE_KEY,
                 new PluginMetadata(pluginCacheManager)));
         LOG.debug(
-                "Moved plugin {} metadata to cache: {}",
+                "Copied plugin {} metadata to cache: {}",
                 getName(),
                 getMetadata().getLocation().toAbsolutePath());
     }
