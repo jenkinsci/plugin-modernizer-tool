@@ -216,6 +216,8 @@ public class CommandLineITCase {
         InvocationResult result = invoker.execute(request);
         assertAll(
                 () -> assertEquals(0, result.getExitCode()),
+                () -> assertTrue(
+                        Files.readAllLines(logFile).stream().noneMatch(line -> line.matches("conditions\\..*"))),
                 () -> assertTrue(Files.readAllLines(logFile).stream()
                         .anyMatch(
                                 line -> line.matches(".*FetchMetadata - Extracts metadata from a Jenkins plugin.*"))));
