@@ -1,0 +1,46 @@
+name: Update json-api plugin version
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  latestJsonApiVersion:
+    kind: githubrelease
+    spec:
+      owner: "jenkinsci"
+      repository: "json-api-plugin"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      versioning:
+        kind: semver
+        pattern: "latest"
+
+targets:
+  updateRecipesYaml:
+    name: "Update json-api plugin version in recipes.yml"
+    kind: file
+    spec:
+      file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
+      matchPattern: "(pluginArtifactId: json-api\\n)(.*pluginVersion:) .*"
+      replacePattern: '$1$2$3 {{ source "latestJsonApiVersion" }}'
+    sourceid: latestJsonApiVersion
+    scmid: default
+
+actions:
+  createPullRequest:
+    kind: github/pullrequest
+    scmid: default
+    title: 'Update json-api plugin version to {{ source "latestJsonApiVersion" }}'
+    spec:
+      labels:
+        - dependencies
+        - updatecli

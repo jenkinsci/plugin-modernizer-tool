@@ -1,0 +1,46 @@
+name: Update joda-time-api plugin version
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  latestJodaTimeApiVersion:
+    kind: githubrelease
+    spec:
+      owner: "jenkinsci"
+      repository: "joda-time-api-plugin"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      versioning:
+        kind: semver
+        pattern: "latest"
+
+targets:
+  updateRecipesYaml:
+    name: "Update joda-time-api plugin version in recipes.yml"
+    kind: file
+    spec:
+      file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
+      matchPattern: "(pluginArtifactId: joda-time-api\\n)(.*pluginVersion:) .*"
+      replacePattern: '$1$2$3 {{ source "latestJodaTimeApiVersion" }}'
+    sourceid: latestJodaTimeApiVersion
+    scmid: default
+
+actions:
+  createPullRequest:
+    kind: github/pullrequest
+    scmid: default
+    title: 'Update joda-time-api plugin version to {{ source "latestJodaTimeApiVersion" }}'
+    spec:
+      labels:
+        - dependencies
+        - updatecli
