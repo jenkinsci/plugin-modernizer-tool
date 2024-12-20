@@ -1,0 +1,46 @@
+name: Update commons-text-api plugin version
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  latestCommonsTextApiVersion:
+    kind: githubrelease
+    spec:
+      owner: "jenkinsci"
+      repository: "commons-text-api"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      versioning:
+        kind: semver
+        pattern: "latest"
+
+targets:
+  updateRecipesYaml:
+    name: "Update commons-text-api plugin version in recipes.yml"
+    kind: file
+    spec:
+      file: ./plugin-modernizer-core/src/main/resources/META-INF/rewrite/recipes.yml
+      matchPattern: "(pluginArtifactId: commons-text-api\\n)(.*pluginVersion:) .*"
+      replacePattern: '$1$2$3 {{ source "latestCommonsTextApiVersion" }}'
+    sourceid: latestCommonsTextApiVersion
+    scmid: default
+
+actions:
+  createPullRequest:
+    kind: github/pullrequest
+    scmid: default
+    title: 'Update json-api plugin version to {{ source "latestCommonsTextApiVersion" }}'
+    spec:
+      labels:
+        - dependencies
+        - updatecli
