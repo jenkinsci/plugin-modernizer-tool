@@ -97,8 +97,8 @@ displayName: Use API plugin instead of direct dependency
 tags: ['developer']
 description: Use API plugins instead of direct dependency
 recipeList:
-    # More API plugin on the list
   - io.jenkins.tools.pluginmodernizer.UseJsonApiPlugin
+  - io.jenkins.tools.pluginmodernizer.UseJsonPathApiPlugin
   - io.jenkins.tools.pluginmodernizer.UseGsonApiPlugin
   - io.jenkins.tools.pluginmodernizer.UseCompressApiPlugin
   - io.jenkins.tools.pluginmodernizer.UseJodaTimeApiPlugin
@@ -124,6 +124,22 @@ recipeList:
           artifactId: json
 ---
 type: specs.openrewrite.org/v1beta/recipe
+name: io.jenkins.tools.pluginmodernizer.UseJsonPathApiPlugin
+displayName: Use JSON Path API plugin instead of direct dependency
+description: Use JSON Path API plugin instead of direct dependency
+tags: ['developer']
+preconditions:
+  - io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
+recipeList:
+  - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+      pluginGroupId: io.jenkins.plugins
+      pluginArtifactId: json-path-api
+      pluginVersion: 2.9.0-118.v7f23ed82a_8b_8
+      replaces:
+        - groupId: com.jayway.jsonpath
+          artifactId: json-path
+---
+type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseAsmApiPlugin
 displayName: Use ASM API plugin instead of direct dependency
 description: Use ASM API plugin instead of direct dependency
@@ -131,21 +147,21 @@ tags: ['developer']
 preconditions:
   - io.jenkins.tools.pluginmodernizer.conditions.IsUsingCoreVersionWithASMRemoved
 recipeList:
-    - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
-        pluginGroupId: io.jenkins.plugins
-        pluginArtifactId: asm-api
-        pluginVersion: 9.7.1-97.v4cc844130d97
-        replaces:
-          - groupId: org.ow2.asm
-            artifactId: asm
-          - groupId: org.ow2.asm
-            artifactId: asm-analysis
-          - groupId: org.ow2.asm
-            artifactId: asm-commons
-          - groupId: org.ow2.asm
-            artifactId: asm-tree
-          - groupId: org.ow2.asm
-            artifactId: asm-util
+  - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+      pluginGroupId: io.jenkins.plugins
+      pluginArtifactId: asm-api
+      pluginVersion: 9.7.1-97.v4cc844130d97
+      replaces:
+        - groupId: org.ow2.asm
+          artifactId: asm
+        - groupId: org.ow2.asm
+          artifactId: asm-analysis
+        - groupId: org.ow2.asm
+          artifactId: asm-commons
+        - groupId: org.ow2.asm
+          artifactId: asm-tree
+        - groupId: org.ow2.asm
+          artifactId: asm-util
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseJodaTimeApiPlugin
@@ -155,13 +171,13 @@ tags: ['developer']
 preconditions:
   - io.jenkins.tools.pluginmodernizer.conditions.IsUsingRecommendCoreVersion
 recipeList:
-    - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
-        pluginGroupId: io.jenkins.plugins
-        pluginArtifactId: joda-time-api
-        pluginVersion: 2.13.0-93.v9934da_29b_a_e9
-        replaces:
-            - groupId: joda-time
-              artifactId: joda-time
+  - org.openrewrite.jenkins.ReplaceLibrariesWithApiPlugin:
+      pluginGroupId: io.jenkins.plugins
+      pluginArtifactId: joda-time-api
+      pluginVersion: 2.13.0-93.v9934da_29b_a_e9
+      replaces:
+        - groupId: joda-time
+          artifactId: joda-time
 ---
 type: specs.openrewrite.org/v1beta/recipe
 name: io.jenkins.tools.pluginmodernizer.UseGsonApiPlugin
