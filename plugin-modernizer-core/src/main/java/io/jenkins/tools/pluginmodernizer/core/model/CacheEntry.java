@@ -108,12 +108,25 @@ public abstract class CacheEntry<T extends CacheEntry<T>> implements Serializabl
     }
 
     private T move(CacheManager newCacheManager, Path newPath, String newKey, boolean copy) {
-        LOG.debug(
-                "Moving object from {} to {}",
-                cacheManager.getLocation().resolve(path).resolve(key),
-                newCacheManager.getLocation().resolve(newPath).resolve(newKey));
+        if (copy) {
+            LOG.debug(
+                    "Copying object from {} to {}",
+                    cacheManager.getLocation().resolve(path).resolve(key),
+                    newCacheManager.getLocation().resolve(newPath).resolve(newKey));
+        } else {
+            LOG.debug(
+                    "Moving object from {} to {}",
+                    cacheManager.getLocation().resolve(path).resolve(key),
+                    newCacheManager.getLocation().resolve(newPath).resolve(newKey));
+        }
+
         // Copy transient fields
         T refreshedObject = refresh();
+        if (refreshedObject == null) {
+            LOG.debug("Object not found in cache, saving it");
+            save();
+            refreshedObject = refresh();
+        }
         refreshedObject.setPath(newPath);
         refreshedObject.setKey(newKey);
         refreshedObject.setCacheManager(newCacheManager);

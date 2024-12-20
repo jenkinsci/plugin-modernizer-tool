@@ -1,21 +1,50 @@
 package io.jenkins.tools.pluginmodernizer.core.extractor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openrewrite.groovy.Assertions.groovy;
 import static org.openrewrite.maven.Assertions.pomXml;
 
 import io.jenkins.tools.pluginmodernizer.core.model.JDK;
-import java.util.Map;
-import java.util.Set;
+import io.jenkins.tools.pluginmodernizer.core.utils.JsonUtils;
+import java.util.*;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
-import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
 public class MetadataCollectorTest implements RewriteTest {
+
+    private static final PluginMetadata EXPECTED_POM_METADATA;
+
+    static {
+        EXPECTED_POM_METADATA = new PluginMetadata();
+        EXPECTED_POM_METADATA.setPluginName("GitLab Plugin");
+        EXPECTED_POM_METADATA.setParentVersion("4.80");
+        EXPECTED_POM_METADATA.setJenkinsVersion("2.426.3");
+        EXPECTED_POM_METADATA.setBomVersion("2950.va_633b_f42f759");
+        Map<String, String> properties = new LinkedHashMap<>();
+        properties.put("revision", "1.8.1");
+        properties.put("java.level", "8");
+        properties.put("changelist", "-SNAPSHOT");
+        properties.put("jenkins.version", "2.426.3");
+        properties.put("spotbugs.effort", "Max");
+        properties.put("spotbugs.threshold", "Low");
+        properties.put("gitHubRepo", "jenkinsci/${project.artifactId}");
+        properties.put("hpi.compatibleSinceVersion", "1.4.0");
+        properties.put("mockserver.version", "5.15.0");
+        properties.put("spotless.check.skip", "false");
+        EXPECTED_POM_METADATA.setProperties(properties);
+        List<ArchetypeCommonFile> commonFiles = new LinkedList<>();
+        commonFiles.add(ArchetypeCommonFile.JENKINSFILE);
+        commonFiles.add(ArchetypeCommonFile.POM);
+        EXPECTED_POM_METADATA.setCommonFiles(commonFiles);
+        Set<MetadataFlag> flags = new LinkedHashSet<>();
+        flags.add(MetadataFlag.DEVELOPER_SET);
+        flags.add(MetadataFlag.LICENSE_SET);
+        flags.add(MetadataFlag.SCM_HTTPS);
+        flags.add(MetadataFlag.MAVEN_REPOSITORIES_HTTPS);
+        EXPECTED_POM_METADATA.setFlags(flags);
+    }
 
     @Language("xml")
     private static final String POM_XML =
@@ -30,7 +59,7 @@ public class MetadataCollectorTest implements RewriteTest {
                             <relativePath />
                           </parent>
 
-                          <artifactId>gitx  lab-plugin</artifactId>
+                          <artifactId>gitlab-plugin</artifactId>
                           <version>${revision}${changelist}</version>
                           <packaging>hpi</packaging>
                           <name>GitLab Plugin</name>
@@ -132,51 +161,29 @@ public class MetadataCollectorTest implements RewriteTest {
                         </project>
                         """;
 
-    @Override
-    public void defaults(RecipeSpec spec) {
-        spec.recipe(new MetadataCollector());
-    }
-
     @Test
     void testPluginWithJenkinsfileWithoutJdkInfo() throws Exception {
+        EXPECTED_POM_METADATA.setJdks(Set.of());
+        EXPECTED_POM_METADATA.setJdks(Collections.emptySet());
         rewriteRun(
+                recipeSpec -> recipeSpec.recipe(new MetadataCollector(true)),
                 // language=groovy
                 groovy(
                         """
                           buildPlugin()
                           """,
                         spec -> spec.path("Jenkinsfile")),
-                pomXml(POM_XML));
-        PluginMetadata pluginMetadata = new PluginMetadata().refresh();
-        String pluginName = pluginMetadata.getPluginName();
-        assertEquals("GitLab Plugin", pluginName);
-        assertEquals("4.80", pluginMetadata.getParentVersion());
-        String jenkinsVersion = pluginMetadata.getJenkinsVersion();
-        assertEquals("2.426.3", jenkinsVersion);
-        assertEquals("2950.va_633b_f42f759", pluginMetadata.getBomVersion());
-        assertNotNull(pluginMetadata.getProperties().get("java.level"));
-        assertTrue(pluginMetadata.hasFlag(MetadataFlag.SCM_HTTPS));
-        assertTrue(pluginMetadata.hasFlag(MetadataFlag.MAVEN_REPOSITORIES_HTTPS));
-        assertTrue(pluginMetadata.hasFlag(MetadataFlag.LICENSE_SET));
-        assertTrue(pluginMetadata.hasFlag(MetadataFlag.DEVELOPER_SET));
-        Map<String, String> properties = pluginMetadata.getProperties();
-        assertNotNull(properties);
-        assertEquals(10, properties.size());
-
-        // Files are present
-        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
-        assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.POM));
-
-        // Absent
-        assertFalse(pluginMetadata.hasFile(ArchetypeCommonFile.WORKFLOW_CD));
-
-        Set<JDK> jdkVersion = pluginMetadata.getJdks();
-        assertEquals(0, jdkVersion.size());
+                pomXml(POM_XML, "<!--~~(" + JsonUtils.toJson(EXPECTED_POM_METADATA) + ")~~>-->" + POM_XML));
     }
 
     @Test
     void testPluginWithJenkinsfileWithJdkInfo() {
+        Set<JDK> jdks = new LinkedHashSet<>();
+        jdks.add(JDK.JAVA_21);
+        jdks.add(JDK.JAVA_17);
+        EXPECTED_POM_METADATA.setJdks(jdks);
         rewriteRun(
+                recipeSpec -> recipeSpec.recipe(new MetadataCollector(true)),
                 // language=groovy
                 groovy(
                         """
@@ -188,7 +195,7 @@ public class MetadataCollectorTest implements RewriteTest {
                          ])
                          """,
                         spec -> spec.path("Jenkinsfile")),
-                pomXml(POM_XML));
+                pomXml(POM_XML, "<!--~~(" + JsonUtils.toJson(EXPECTED_POM_METADATA) + ")~~>-->" + POM_XML));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         // Files are present
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
@@ -203,7 +210,12 @@ public class MetadataCollectorTest implements RewriteTest {
 
     @Test
     void testJenkinsfileWithConfigurationsAsParameter() {
+        Set<JDK> jdks = new LinkedHashSet<>();
+        jdks.add(JDK.JAVA_11);
+        jdks.add(JDK.JAVA_17);
+        EXPECTED_POM_METADATA.setJdks(jdks);
         rewriteRun(
+                recipeSpec -> recipeSpec.recipe(new MetadataCollector(true)),
                 // language=groovy
                 groovy(
                         """
@@ -223,7 +235,7 @@ public class MetadataCollectorTest implements RewriteTest {
                             buildPlugin(params)
                             """,
                         spec -> spec.path("Jenkinsfile")),
-                pomXml(POM_XML));
+                pomXml(POM_XML, "<!--~~(" + JsonUtils.toJson(EXPECTED_POM_METADATA) + ")~~>-->" + POM_XML));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
         Set<JDK> jdkVersion = pluginMetadata.getJdks();
@@ -232,7 +244,12 @@ public class MetadataCollectorTest implements RewriteTest {
 
     @Test
     void testJenkinsfileWithInlineConfigurations() {
+        Set<JDK> jdks = new LinkedHashSet<>();
+        jdks.add(JDK.JAVA_11);
+        jdks.add(JDK.JAVA_17);
+        EXPECTED_POM_METADATA.setJdks(jdks);
         rewriteRun(
+                recipeSpec -> recipeSpec.recipe(new MetadataCollector(true)),
                 // language=groovy
                 groovy(
                         """
@@ -249,7 +266,7 @@ public class MetadataCollectorTest implements RewriteTest {
                                 jacoco: [sourceCodeRetention: 'MODIFIED'])
                             """,
                         spec -> spec.path("Jenkinsfile")),
-                pomXml(POM_XML));
+                pomXml(POM_XML, "<!--~~(" + JsonUtils.toJson(EXPECTED_POM_METADATA) + ")~~>-->" + POM_XML));
         PluginMetadata pluginMetadata = new PluginMetadata().refresh();
         assertTrue(pluginMetadata.hasFile(ArchetypeCommonFile.JENKINSFILE));
         Set<JDK> jdkVersion = pluginMetadata.getJdks();

@@ -15,7 +15,10 @@ import picocli.CommandLine;
 /**
  * Run command
  */
-@CommandLine.Command(name = "build-metadata", description = "Build local metadata")
+@CommandLine.Command(
+        name = "build-metadata",
+        aliases = {"fetch-metadata"},
+        description = "Build local metadata")
 public class BuildMetadataCommand implements ICommand {
 
     /**

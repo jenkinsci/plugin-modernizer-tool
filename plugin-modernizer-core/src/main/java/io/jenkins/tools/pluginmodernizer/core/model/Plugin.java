@@ -727,34 +727,20 @@ public class Plugin {
     }
 
     /**
-     * Move metadata from plugin target directory to cache
+     * Copy metadata from plugin target directory to cache
      * @param cacheManager The cache manager
      */
-    public void moveMetadata(CacheManager cacheManager) {
+    public void copyMetadata(CacheManager cacheManager) {
         CacheManager pluginCacheManager = buildPluginTargetDirectoryCacheManager();
-        setMetadata(pluginCacheManager.move(
+        setMetadata(pluginCacheManager.copy(
                 cacheManager,
                 Path.of(getName()),
                 CacheManager.PLUGIN_METADATA_CACHE_KEY,
                 new PluginMetadata(pluginCacheManager)));
         LOG.debug(
-                "Moved plugin {} metadata to cache: {}",
+                "Copied plugin {} metadata to cache: {}",
                 getName(),
                 getMetadata().getLocation().toAbsolutePath());
-    }
-
-    /**
-     * Read the target metadata of the plugin. Generally to use after running recipes to get the updated metadata
-     */
-    public PluginMetadata readTargetMetadata() {
-        CacheManager pluginCacheManager = buildPluginTargetDirectoryCacheManager();
-        PluginMetadata metadata = pluginCacheManager.get(
-                pluginCacheManager.root(), CacheManager.PLUGIN_METADATA_CACHE_KEY, PluginMetadata.class);
-        if (metadata == null) {
-            addError("Failed to read target metadata for plugin " + getName());
-            raiseLastError();
-        }
-        return metadata;
     }
 
     /**

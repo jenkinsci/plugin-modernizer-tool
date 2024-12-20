@@ -45,7 +45,7 @@ public class JsonUtils {
      */
     public static void toJsonFile(Object object, Path path) {
         try {
-            LOG.trace("Writing JSON file to {}", path);
+            LOG.debug("Writing JSON file to {}", path);
             FileUtils.writeStringToFile(path.toFile(), gson.toJson(object), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new ModernizerException("Unable to write JSON file due to IO error", e);

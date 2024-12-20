@@ -323,7 +323,7 @@ public class PluginModernizer {
      */
     private void collectMetadata(Plugin plugin) {
         plugin.collectMetadata(mavenInvoker);
-        plugin.moveMetadata(cacheManager);
+        plugin.copyMetadata(cacheManager);
         plugin.loadMetadata(cacheManager);
         plugin.enrichMetadata(pluginService);
     }
